@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Calendar, Clock, Target, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, Target, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -19,12 +20,10 @@ const Index = () => {
       {/* Header */}
       <header className="relative z-10 p-6">
         <nav className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-glow">
-              <BookOpen className="w-5 h-5 text-primary-foreground" />
-            </div>
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl shadow-glow" />
             <span className="text-xl font-bold text-foreground">Skoolife</span>
-          </div>
+          </Link>
           <Link to="/auth">
             <Button variant="default" size="sm">
               Se connecter
@@ -153,12 +152,10 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border bg-card/50">
         <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <BookOpen className="w-4 h-4 text-primary-foreground" />
-            </div>
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <img src={logo} alt="Skoolife" className="w-8 h-8 rounded-lg" />
             <span className="font-bold">Skoolife</span>
-          </div>
+          </Link>
           <p className="text-sm text-muted-foreground">
             © 2024 Skoolife. Fait avec ❤️ pour les étudiants.
           </p>
