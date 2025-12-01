@@ -57,7 +57,7 @@ const Index = () => {
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-foreground leading-tight">
               Tes révisions,
               <br />
-              <span className="text-primary">
+              <span className="gradient-text-animated">
                 enfin organisées
               </span>
             </h1>
