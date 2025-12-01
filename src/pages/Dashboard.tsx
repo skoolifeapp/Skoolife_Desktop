@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,8 +63,11 @@ const Dashboard = () => {
   
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const isSigningOut = useRef(false);
 
   useEffect(() => {
+    if (isSigningOut.current) return;
+    
     if (!user) {
       navigate('/auth');
       return;
@@ -247,6 +250,7 @@ const Dashboard = () => {
   };
 
   const handleSignOut = async () => {
+    isSigningOut.current = true;
     await signOut();
     navigate('/');
   };
