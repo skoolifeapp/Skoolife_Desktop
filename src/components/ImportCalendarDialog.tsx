@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Upload, FileText, Loader2, CheckCircle2 } from 'lucide-react';
+import ICAL from 'ical.js';
 
 interface ImportCalendarDialogProps {
   open: boolean;
@@ -12,11 +13,12 @@ interface ImportCalendarDialogProps {
   onImportComplete: () => void;
 }
 
-interface ICSEvent {
+interface ParsedEvent {
   title: string;
   start: Date;
   end: Date;
   location?: string;
+  isAllDay: boolean;
 }
 
 const ImportCalendarDialog = ({ open, onOpenChange, onImportComplete }: ImportCalendarDialogProps) => {
@@ -25,51 +27,63 @@ const ImportCalendarDialog = ({ open, onOpenChange, onImportComplete }: ImportCa
   const [dragActive, setDragActive] = useState(false);
   const { user } = useAuth();
 
-  const parseICS = (content: string): ICSEvent[] => {
-    const events: ICSEvent[] = [];
-    const lines = content.split(/\r?\n/);
-    let currentEvent: Partial<ICSEvent> | null = null;
+  const parseICSWithLibrary = (content: string): ParsedEvent[] => {
+    const events: ParsedEvent[] = [];
+    
+    try {
+      // Parse the ICS content using ical.js
+      const jcalData = ICAL.parse(content);
+      const vcalendar = new ICAL.Component(jcalData);
+      const vevents = vcalendar.getAllSubcomponents('vevent');
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
+      console.log(`Found ${vevents.length} VEVENT components in ICS file`);
 
-      if (line === 'BEGIN:VEVENT') {
-        currentEvent = {};
-      } else if (line === 'END:VEVENT' && currentEvent) {
-        if (currentEvent.title && currentEvent.start && currentEvent.end) {
-          events.push(currentEvent as ICSEvent);
-        }
-        currentEvent = null;
-      } else if (currentEvent) {
-        if (line.startsWith('SUMMARY:')) {
-          currentEvent.title = line.substring(8);
-        } else if (line.startsWith('DTSTART')) {
-          const dateStr = line.split(':').pop() || '';
-          currentEvent.start = parseICSDate(dateStr);
-        } else if (line.startsWith('DTEND')) {
-          const dateStr = line.split(':').pop() || '';
-          currentEvent.end = parseICSDate(dateStr);
-        } else if (line.startsWith('LOCATION:')) {
-          currentEvent.location = line.substring(9);
+      for (const vevent of vevents) {
+        try {
+          const event = new ICAL.Event(vevent);
+          
+          // Get the summary (title)
+          const title = event.summary || 'Sans titre';
+          
+          // Get start and end dates
+          const startDate = event.startDate;
+          const endDate = event.endDate;
+
+          if (!startDate) {
+            console.warn('Event without start date, skipping:', title);
+            continue;
+          }
+
+          // Check if it's an all-day event
+          const isAllDay = startDate.isDate;
+
+          // Convert to JS Date
+          // ical.js handles timezone conversion automatically
+          const start = startDate.toJSDate();
+          const end = endDate ? endDate.toJSDate() : new Date(start.getTime() + 60 * 60 * 1000); // Default 1h if no end
+
+          // Get location if available
+          const location = event.location || undefined;
+
+          console.log(`Parsed event: "${title}" from ${start.toISOString()} to ${end.toISOString()}, allDay: ${isAllDay}`);
+
+          events.push({
+            title,
+            start,
+            end,
+            location,
+            isAllDay
+          });
+        } catch (eventError) {
+          console.error('Error parsing individual event:', eventError);
         }
       }
+    } catch (parseError) {
+      console.error('Error parsing ICS file:', parseError);
+      throw new Error('Le fichier .ics semble invalide ou corrompu');
     }
 
     return events;
-  };
-
-  const parseICSDate = (dateStr: string): Date => {
-    // Handle format: 20231215T090000Z or 20231215T090000
-    const year = parseInt(dateStr.substring(0, 4));
-    const month = parseInt(dateStr.substring(4, 6)) - 1;
-    const day = parseInt(dateStr.substring(6, 8));
-    const hour = dateStr.length >= 11 ? parseInt(dateStr.substring(9, 11)) : 0;
-    const minute = dateStr.length >= 13 ? parseInt(dateStr.substring(11, 13)) : 0;
-
-    if (dateStr.endsWith('Z')) {
-      return new Date(Date.UTC(year, month, day, hour, minute));
-    }
-    return new Date(year, month, day, hour, minute);
   };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -110,15 +124,34 @@ const ImportCalendarDialog = ({ open, onOpenChange, onImportComplete }: ImportCa
 
     try {
       const content = await file.text();
-      const events = parseICS(content);
+      console.log('ICS file content length:', content.length);
+      console.log('ICS file preview:', content.substring(0, 500));
 
-      if (events.length === 0) {
-        toast.error('Aucun événement trouvé dans le fichier');
+      let events: ParsedEvent[];
+      
+      try {
+        events = parseICSWithLibrary(content);
+      } catch (parseError) {
+        console.error('Parse error:', parseError);
+        toast.error(parseError instanceof Error ? parseError.message : 'Erreur de parsing du fichier');
         return;
       }
 
-      // Insert events into database
-      const eventsToInsert = events.map(event => ({
+      if (events.length === 0) {
+        toast.error(
+          "Aucun événement n'a été trouvé dans ce fichier .ics. Vérifie que tu as bien exporté ton emploi du temps complet."
+        );
+        return;
+      }
+
+      // Filter out all-day events or handle them differently
+      const timedEvents = events.filter(e => !e.isAllDay);
+      const allDayEvents = events.filter(e => e.isAllDay);
+
+      console.log(`Timed events: ${timedEvents.length}, All-day events: ${allDayEvents.length}`);
+
+      // Insert timed events into database
+      const eventsToInsert = timedEvents.map(event => ({
         user_id: user.id,
         source: 'ics',
         title: event.title,
@@ -128,18 +161,31 @@ const ImportCalendarDialog = ({ open, onOpenChange, onImportComplete }: ImportCa
         is_blocking: true
       }));
 
-      const { error } = await supabase
-        .from('calendar_events')
-        .insert(eventsToInsert);
+      if (eventsToInsert.length > 0) {
+        const { error } = await supabase
+          .from('calendar_events')
+          .insert(eventsToInsert);
 
-      if (error) throw error;
+        if (error) throw error;
+      }
+
+      // Show success message
+      const importedCount = eventsToInsert.length;
+      const skippedCount = allDayEvents.length;
+      
+      let message = `✅ ${importedCount} événement${importedCount > 1 ? 's' : ''} importé${importedCount > 1 ? 's' : ''} depuis ton calendrier.`;
+      if (skippedCount > 0) {
+        message += ` (${skippedCount} événement${skippedCount > 1 ? 's' : ''} "journée entière" ignoré${skippedCount > 1 ? 's' : ''})`;
+      }
+      
+      toast.success(message);
 
       onImportComplete();
       onOpenChange(false);
       setFile(null);
 
     } catch (err) {
-      console.error(err);
+      console.error('Import error:', err);
       toast.error('Erreur lors de l\'import du calendrier');
     } finally {
       setImporting(false);

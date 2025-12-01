@@ -8,19 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { Plus, X, Loader2, GraduationCap } from 'lucide-react';
+import type { Subject } from '@/types/planning';
 
 const SUBJECT_COLORS = [
   '#3B82F6', '#10B981', '#8B5CF6', '#EC4899', '#F97316', '#14B8A6',
   '#EF4444', '#6366F1', '#84CC16', '#F59E0B'
 ];
-
-interface Subject {
-  id: string;
-  name: string;
-  color: string;
-  exam_date: string | null;
-  exam_weight: number;
-}
 
 interface ManageSubjectsDialogProps {
   open: boolean;

@@ -8,23 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { CheckCircle2, Trash2, Loader2, Clock } from 'lucide-react';
-
-interface Subject {
-  id: string;
-  name: string;
-  color: string;
-}
-
-interface RevisionSession {
-  id: string;
-  subject_id: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  notes: string | null;
-  subject?: Subject;
-}
+import type { Subject, RevisionSession } from '@/types/planning';
 
 interface EditSessionDialogProps {
   session: RevisionSession | null;

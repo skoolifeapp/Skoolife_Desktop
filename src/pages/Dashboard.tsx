@@ -4,50 +4,19 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw, LogOut,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
-import { format, startOfWeek, addDays, isSameDay, parseISO, addWeeks, subWeeks } from 'date-fns';
+import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ImportCalendarDialog from '@/components/ImportCalendarDialog';
 import EditSessionDialog from '@/components/EditSessionDialog';
 import ManageSubjectsDialog from '@/components/ManageSubjectsDialog';
-
-interface Profile {
-  first_name: string;
-  weekly_revision_hours: number;
-}
-
-interface Subject {
-  id: string;
-  name: string;
-  color: string;
-  exam_date: string | null;
-  exam_weight: number;
-}
-
-interface RevisionSession {
-  id: string;
-  subject_id: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  notes: string | null;
-  subject?: Subject;
-}
-
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start_datetime: string;
-  end_datetime: string;
-  is_blocking: boolean;
-}
+import WeeklyHourGrid from '@/components/WeeklyHourGrid';
+import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
 const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -445,77 +414,12 @@ const Dashboard = () => {
             </div>
 
             {/* Week grid */}
-            <Card className="border-0 shadow-lg overflow-hidden">
-              <div className="grid grid-cols-7 divide-x divide-border">
-                {weekDays.map((day, index) => {
-                  const daySessions = getSessionsForDay(day);
-                  const dayEvents = getEventsForDay(day);
-                  const isToday = isSameDay(day, new Date());
-
-                  return (
-                    <div key={index} className="min-h-[400px]">
-                      {/* Day header */}
-                      <div className={`p-3 text-center border-b border-border ${isToday ? 'bg-primary/10' : 'bg-secondary/30'}`}>
-                        <p className="text-xs text-muted-foreground uppercase">
-                          {format(day, 'EEE', { locale: fr })}
-                        </p>
-                        <p className={`text-lg font-bold ${isToday ? 'text-primary' : ''}`}>
-                          {format(day, 'd')}
-                        </p>
-                      </div>
-
-                      {/* Day content */}
-                      <div className="p-2 space-y-2">
-                        {/* Calendar events (blocking) */}
-                        {dayEvents.map((event) => (
-                          <div 
-                            key={event.id}
-                            className="p-2 rounded-lg bg-muted/50 text-xs"
-                          >
-                            <p className="font-medium text-muted-foreground truncate">
-                              {event.title}
-                            </p>
-                            <p className="text-muted-foreground/70">
-                              {format(parseISO(event.start_datetime), 'HH:mm')}
-                            </p>
-                          </div>
-                        ))}
-
-                        {/* Revision sessions */}
-                        {daySessions.map((session) => (
-                          <button
-                            key={session.id}
-                            onClick={() => setSelectedSession(session)}
-                            className={`w-full p-2 rounded-lg text-xs text-left transition-all hover:scale-[1.02] ${
-                              session.status === 'done' 
-                                ? 'opacity-60 line-through' 
-                                : ''
-                            }`}
-                            style={{ 
-                              backgroundColor: `${session.subject?.color}20`,
-                              borderLeft: `3px solid ${session.subject?.color}`
-                            }}
-                          >
-                            <p className="font-semibold truncate" style={{ color: session.subject?.color }}>
-                              {session.subject?.name}
-                            </p>
-                            <p className="text-muted-foreground">
-                              {session.start_time.slice(0, 5)} - {session.end_time.slice(0, 5)}
-                            </p>
-                          </button>
-                        ))}
-
-                        {daySessions.length === 0 && dayEvents.length === 0 && (
-                          <p className="text-xs text-muted-foreground/50 text-center py-4">
-                            Aucune session
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
+            <WeeklyHourGrid
+              weekDays={weekDays}
+              sessions={sessions}
+              calendarEvents={calendarEvents}
+              onSessionClick={setSelectedSession}
+            />
 
             {/* Empty state */}
             {sessions.length === 0 && (
