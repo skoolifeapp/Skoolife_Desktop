@@ -70,7 +70,6 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
 
       if (error) throw error;
 
-      toast.success('Session mise à jour ✅');
       onUpdate();
       onClose();
     } catch (err) {
@@ -94,7 +93,6 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
 
       if (error) throw error;
 
-      toast.success(newStatus === 'done' ? 'Bravo ! Session terminée 🎉' : 'Session marquée comme à faire');
       onUpdate();
       onClose();
     } catch (err) {
@@ -117,7 +115,6 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
 
       if (error) throw error;
 
-      toast.success('Session supprimée');
       onUpdate();
       onClose();
     } catch (err) {

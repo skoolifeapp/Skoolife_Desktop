@@ -236,7 +236,6 @@ const Dashboard = () => {
         }
       });
 
-      toast.success(`Planning généré ! ${newSessions.length} sessions créées ✅`);
       fetchData();
 
     } catch (err) {

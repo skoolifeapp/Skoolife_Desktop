@@ -134,7 +134,6 @@ const ImportCalendarDialog = ({ open, onOpenChange, onImportComplete }: ImportCa
 
       if (error) throw error;
 
-      toast.success(`${events.length} événements importés ! 🎉`);
       onImportComplete();
       onOpenChange(false);
       setFile(null);

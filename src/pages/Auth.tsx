@@ -47,8 +47,6 @@ const Auth = () => {
           } else {
             toast.error(error.message);
           }
-        } else {
-          toast.success('Connexion réussie !');
         }
       } else {
         const { error } = await signUp(email, password);
@@ -58,8 +56,6 @@ const Auth = () => {
           } else {
             toast.error(error.message);
           }
-        } else {
-          toast.success('Compte créé ! Bienvenue sur Skoolife 🎉');
         }
       }
     } catch (err) {

@@ -202,7 +202,6 @@ const Onboarding = () => {
         await supabase.from('constraints').insert(constraintsToInsert);
       }
 
-      toast.success('Profil configuré ! 🎉');
       navigate('/app');
     } catch (err) {
       console.error(err);

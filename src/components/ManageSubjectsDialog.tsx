@@ -52,7 +52,6 @@ const ManageSubjectsDialog = ({ open, onOpenChange, subjects, onSubjectsChange }
 
       if (error) throw error;
 
-      toast.success('Matière ajoutée !');
       setNewSubjectName('');
       onSubjectsChange();
     } catch (err) {
@@ -74,7 +73,6 @@ const ManageSubjectsDialog = ({ open, onOpenChange, subjects, onSubjectsChange }
 
       if (error) throw error;
 
-      toast.success('Matière supprimée');
       onSubjectsChange();
     } catch (err) {
       console.error(err);
