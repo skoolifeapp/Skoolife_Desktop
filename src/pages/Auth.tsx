@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { BookOpen, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -72,12 +73,10 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="p-6">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-primary-foreground" />
-          </div>
+        <Link to="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
           <span className="text-xl font-bold text-foreground">Skoolife</span>
-        </div>
+        </Link>
       </header>
 
       {/* Main content */}
