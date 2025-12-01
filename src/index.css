@@ -162,6 +162,20 @@
     border: 1px solid hsl(var(--border) / 0.5);
   }
 
+  /* Hover animations */
+  .hover-scale {
+    @apply transition-transform duration-300 ease-out hover:scale-105;
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-1;
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300 ease-out hover:shadow-glow;
+  }
+
+  /* Entrance animations */
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
@@ -177,6 +191,13 @@
   .animate-fade-in {
     animation: fade-in 0.3s ease-out;
   }
+
+  /* Staggered animations */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
 }
 
 @keyframes float {
