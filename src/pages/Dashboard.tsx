@@ -116,6 +116,13 @@ const Dashboard = () => {
     setGenerating(true);
 
     try {
+      // Fetch user preferences
+      const { data: preferences } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
       // Delete existing planned sessions for this week
       const weekEnd = addDays(weekStart, 6);
       await supabase
@@ -126,31 +133,83 @@ const Dashboard = () => {
         .gte('date', format(weekStart, 'yyyy-MM-dd'))
         .lte('date', format(weekEnd, 'yyyy-MM-dd'));
 
-      // Simple planning algorithm
-      const totalMinutes = (profile?.weekly_revision_hours || 10) * 60;
-      const sessionDuration = 90; // 1h30 per session
-      const sessionsCount = Math.floor(totalMinutes / sessionDuration);
+      // Extract preferences with defaults
+      const preferredDays = preferences?.preferred_days_of_week || [1, 2, 3, 4, 5]; // Mon-Fri by default
+      const dailyStartTime = preferences?.daily_start_time || '08:00';
+      const dailyEndTime = preferences?.daily_end_time || '22:00';
+      const maxHoursPerDay = preferences?.max_hours_per_day || 4;
+      const avoidEarlyMorning = preferences?.avoid_early_morning || false; // Before 9h
+      const avoidLateEvening = preferences?.avoid_late_evening || false; // After 21h
 
-      // Calculate subject weights
-      const totalWeight = subjects.reduce((sum, s) => sum + s.exam_weight, 0);
+      // Parse start/end times
+      const [startHour] = dailyStartTime.split(':').map(Number);
+      const [endHour] = dailyEndTime.split(':').map(Number);
+
+      // Calculate effective start/end hours considering preferences
+      let effectiveStartHour = startHour;
+      let effectiveEndHour = endHour;
+      
+      if (avoidEarlyMorning && effectiveStartHour < 9) {
+        effectiveStartHour = 9;
+      }
+      if (avoidLateEvening && effectiveEndHour > 21) {
+        effectiveEndHour = 21;
+      }
+
+      // Generate time slots based on preferences
+      const sessionDuration = 90; // 1h30 per session
+      const breakBetweenSessions = 30; // 30 min break
+      const timeSlots: { start: string; end: string }[] = [];
+      
+      let currentHour = effectiveStartHour;
+      while (currentHour + 1.5 <= effectiveEndHour) {
+        // Skip lunch time (12:30-14:00)
+        if (currentHour >= 12.5 && currentHour < 14) {
+          currentHour = 14;
+          continue;
+        }
+        
+        const startMinutes = currentHour * 60;
+        const endMinutes = startMinutes + sessionDuration;
+        
+        const formatTimeSlot = (minutes: number) => {
+          const h = Math.floor(minutes / 60);
+          const m = minutes % 60;
+          return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        };
+
+        timeSlots.push({
+          start: formatTimeSlot(startMinutes),
+          end: formatTimeSlot(endMinutes)
+        });
+        
+        currentHour += (sessionDuration + breakBetweenSessions) / 60;
+      }
+
+      // Planning algorithm
+      const totalMinutes = (profile?.weekly_revision_hours || 10) * 60;
+      const sessionsCount = Math.floor(totalMinutes / sessionDuration);
+      const maxSessionsPerDay = Math.floor((maxHoursPerDay * 60) / sessionDuration);
+
+      // Convert preferred days to day offsets (1=Mon becomes 0, 7=Sun becomes 6)
+      const workDays = preferredDays.map(d => (d === 7 ? 6 : d - 1)).sort((a, b) => a - b);
       
       const newSessions: { user_id: string; subject_id: string; date: string; start_time: string; end_time: string; status: string; notes: string | null }[] = [];
       let sessionIndex = 0;
 
-      // Distribute sessions across the week (Mon-Sun)
-      const workDays = [0, 1, 2, 3, 4, 5, 6]; // All days
-      const slotsPerDay = Math.ceil(sessionsCount / 7);
-      
-      // Time slots (avoiding common constraint times)
-      const timeSlots = [
-        { start: '09:00', end: '10:30' },
-        { start: '11:00', end: '12:30' },
-        { start: '14:00', end: '15:30' },
-        { start: '16:00', end: '17:30' },
-        { start: '19:00', end: '20:30' },
-      ];
+      // Sort subjects by exam proximity and weight
+      const sortedSubjects = [...subjects].sort((a, b) => {
+        // Prioritize subjects with closer exam dates
+        if (a.exam_date && b.exam_date) {
+          return new Date(a.exam_date).getTime() - new Date(b.exam_date).getTime();
+        }
+        if (a.exam_date) return -1;
+        if (b.exam_date) return 1;
+        // Then by weight
+        return b.exam_weight - a.exam_weight;
+      });
 
-      for (let dayOffset of workDays) {
+      for (const dayOffset of workDays) {
         const currentDate = addDays(weekStart, dayOffset);
         const dateStr = format(currentDate, 'yyyy-MM-dd');
 
@@ -160,22 +219,24 @@ const Dashboard = () => {
           return isSameDay(eventDate, currentDate) && e.is_blocking;
         });
 
-        let slotsUsed = 0;
+        let slotsUsedToday = 0;
         for (const slot of timeSlots) {
-          if (sessionIndex >= sessionsCount || slotsUsed >= slotsPerDay) break;
+          if (sessionIndex >= sessionsCount) break;
+          if (slotsUsedToday >= maxSessionsPerDay) break;
 
           // Check if slot conflicts with calendar events
           const hasConflict = dayEvents.some(e => {
             const eventStart = format(parseISO(e.start_datetime), 'HH:mm');
             const eventEnd = format(parseISO(e.end_datetime), 'HH:mm');
             return (slot.start >= eventStart && slot.start < eventEnd) ||
-                   (slot.end > eventStart && slot.end <= eventEnd);
+                   (slot.end > eventStart && slot.end <= eventEnd) ||
+                   (slot.start <= eventStart && slot.end >= eventEnd);
           });
 
           if (!hasConflict) {
-            // Select subject based on weighted random
-            const subjectIndex = sessionIndex % subjects.length;
-            const subject = subjects.sort((a, b) => b.exam_weight - a.exam_weight)[subjectIndex];
+            // Select subject based on weighted distribution
+            const subjectIndex = sessionIndex % sortedSubjects.length;
+            const subject = sortedSubjects[subjectIndex];
 
             newSessions.push({
               user_id: user.id,
@@ -188,7 +249,7 @@ const Dashboard = () => {
             });
 
             sessionIndex++;
-            slotsUsed++;
+            slotsUsedToday++;
           }
         }
       }
@@ -209,7 +270,15 @@ const Dashboard = () => {
         config_json: {
           weekly_hours: profile?.weekly_revision_hours,
           subjects_count: subjects.length,
-          sessions_generated: newSessions.length
+          sessions_generated: newSessions.length,
+          preferences: {
+            preferred_days: preferredDays,
+            daily_start: dailyStartTime,
+            daily_end: dailyEndTime,
+            max_hours_per_day: maxHoursPerDay,
+            avoid_early_morning: avoidEarlyMorning,
+            avoid_late_evening: avoidLateEvening
+          }
         }
       });
 
