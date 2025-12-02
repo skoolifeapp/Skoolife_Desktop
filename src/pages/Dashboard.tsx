@@ -242,9 +242,15 @@ const Dashboard = () => {
     });
   };
 
+  // Calculate actual planned hours based on session durations
   const totalPlannedHours = sessions
     .filter(s => s.status === 'planned')
-    .length * 1.5;
+    .reduce((total, session) => {
+      const [startH, startM] = session.start_time.split(':').map(Number);
+      const [endH, endM] = session.end_time.split(':').map(Number);
+      const durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+      return total + durationMinutes / 60;
+    }, 0);
 
   const completedSessions = sessions.filter(s => s.status === 'done').length;
 
