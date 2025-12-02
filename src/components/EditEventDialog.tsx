@@ -307,6 +307,7 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
   };
 
   return (
+    <>
     <Dialog open={!!event} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -489,72 +490,73 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
           </form>
         </Form>
       </DialogContent>
-
-      {/* Edit series dialog */}
-      <AlertDialog open={showEditSeriesDialog} onOpenChange={(open) => {
-        setShowEditSeriesDialog(open);
-        if (!open) setPendingValues(null);
-      }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Modifier la récurrence</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cet évènement fait partie d'une série récurrente. Que souhaitez-vous modifier ?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <Button
-              variant="outline"
-              onClick={handleEditThisOnly}
-              disabled={saving}
-            >
-              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Cette occurrence uniquement
-            </Button>
-            <AlertDialogAction
-              onClick={updateAllRecurrences}
-              disabled={savingAll}
-            >
-              {savingAll && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Toute la série
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Delete series dialog */}
-      <AlertDialog open={showDeleteSeriesDialog} onOpenChange={setShowDeleteSeriesDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer la récurrence</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cet évènement fait partie d'une série récurrente. Que souhaitez-vous supprimer ?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <Button
-              variant="outline"
-              onClick={handleDeleteThisOnly}
-              disabled={deleting}
-            >
-              {deleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Cette occurrence uniquement
-            </Button>
-            <AlertDialogAction
-              onClick={deleteAllRecurrences}
-              disabled={deletingAll}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deletingAll && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Toute la série
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Dialog>
-  );
+
+    {/* Edit series dialog - outside main dialog for proper overlay */}
+    <AlertDialog open={showEditSeriesDialog} onOpenChange={(open) => {
+      setShowEditSeriesDialog(open);
+      if (!open) setPendingValues(null);
+    }}>
+      <AlertDialogContent className="z-[100]">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Modifier la récurrence</AlertDialogTitle>
+          <AlertDialogDescription>
+            Cet évènement fait partie d'une série récurrente. Que souhaitez-vous modifier ?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <Button
+            variant="outline"
+            onClick={handleEditThisOnly}
+            disabled={saving}
+          >
+            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Cette occurrence uniquement
+          </Button>
+          <AlertDialogAction
+            onClick={updateAllRecurrences}
+            disabled={savingAll}
+          >
+            {savingAll && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Toute la série
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    {/* Delete series dialog - outside main dialog for proper overlay */}
+    <AlertDialog open={showDeleteSeriesDialog} onOpenChange={setShowDeleteSeriesDialog}>
+      <AlertDialogContent className="z-[100]">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Supprimer la récurrence</AlertDialogTitle>
+          <AlertDialogDescription>
+            Cet évènement fait partie d'une série récurrente. Que souhaitez-vous supprimer ?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+          <AlertDialogCancel>Annuler</AlertDialogCancel>
+          <Button
+            variant="outline"
+            onClick={handleDeleteThisOnly}
+            disabled={deleting}
+          >
+            {deleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Cette occurrence uniquement
+          </Button>
+          <AlertDialogAction
+            onClick={deleteAllRecurrences}
+            disabled={deletingAll}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {deletingAll && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Toute la série
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
+);
 };
 
 export default EditEventDialog;
