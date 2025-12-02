@@ -7,8 +7,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw, LogOut,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import logo from '@/assets/logo.png';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -34,6 +45,7 @@ const Dashboard = () => {
   const [selectedSession, setSelectedSession] = useState<RevisionSession | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [gridClickData, setGridClickData] = useState<GridClickData | null>(null);
+  const [deletingEvents, setDeletingEvents] = useState(false);
   
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -298,6 +310,26 @@ const Dashboard = () => {
     navigate('/');
   };
 
+  const handleDeleteAllEvents = async () => {
+    if (!user) return;
+    
+    setDeletingEvents(true);
+    try {
+      const { error } = await supabase
+        .from('calendar_events')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la suppression des événements');
+    } finally {
+      setDeletingEvents(false);
+    }
+  };
+
   const handleGridClick = (data: GridClickData) => {
     setGridClickData(data);
     setAddEventDialogOpen(true);
@@ -531,6 +563,42 @@ const Dashboard = () => {
                   <Plus className="w-4 h-4" />
                   Ajouter un évènement
                 </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
+                      disabled={calendarEvents.length === 0}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer tous les événements ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cette action supprimera définitivement tous les {calendarEvents.length} événements de ton calendrier. 
+                        Cette action est irréversible.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDeleteAllEvents}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        disabled={deletingEvents}
+                      >
+                        {deletingEvents ? (
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                          <Trash2 className="w-4 h-4 mr-2" />
+                        )}
+                        Supprimer tout
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                 <Button 
                   variant="outline" 
                   size="icon"
