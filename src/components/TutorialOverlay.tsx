@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowDown, ArrowLeft, X } from "lucide-react";
+import { ArrowDown, ArrowUp, X } from "lucide-react";
 
 interface TutorialStep {
   title: string;
   description: string;
   targetId: string;
-  arrowDirection: "down" | "left";
+  position: "above" | "below";
 }
 
 const tutorialSteps: TutorialStep[] = [
@@ -14,25 +14,25 @@ const tutorialSteps: TutorialStep[] = [
     title: "1. Importer votre emploi du temps",
     description: "Commencez par importer le calendrier de votre école au format .ics pour bloquer automatiquement vos heures de cours.",
     targetId: "import-calendar-btn",
-    arrowDirection: "down",
+    position: "above",
   },
   {
     title: "2. Ajouter vos évènements",
     description: "Ajoutez vos activités personnelles, travail ou autres engagements pour que le planning les prenne en compte.",
     targetId: "add-event-btn",
-    arrowDirection: "down",
+    position: "below",
   },
   {
     title: "3. Configurer vos matières",
     description: "Ajoutez vos matières avec leurs dates d'examen et leur importance pour prioriser vos révisions.",
     targetId: "manage-subjects-btn",
-    arrowDirection: "down",
+    position: "above",
   },
   {
     title: "4. Générer votre planning",
     description: "Une fois tout configuré, générez automatiquement votre planning de révisions optimisé !",
     targetId: "generate-planning-btn",
-    arrowDirection: "down",
+    position: "above",
   },
 ];
 
@@ -42,27 +42,28 @@ interface TutorialOverlayProps {
 
 export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [targetPosition, setTargetPosition] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
     const updateTargetPosition = () => {
       const targetElement = document.getElementById(tutorialSteps[currentStep].targetId);
       if (targetElement) {
         const rect = targetElement.getBoundingClientRect();
-        setTargetPosition({
-          top: rect.top + window.scrollY,
-          left: rect.left + window.scrollX,
-          width: rect.width,
-          height: rect.height,
-        });
+        setTargetRect(rect);
+        
+        // Scroll to make button visible if needed
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     };
 
-    updateTargetPosition();
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(updateTargetPosition, 100);
+    
     window.addEventListener("resize", updateTargetPosition);
     window.addEventListener("scroll", updateTargetPosition);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener("resize", updateTargetPosition);
       window.removeEventListener("scroll", updateTargetPosition);
     };
@@ -81,39 +82,110 @@ export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
   };
 
   const step = tutorialSteps[currentStep];
+  const padding = 8;
+
+  // Calculate card position
+  const getCardStyle = () => {
+    if (!targetRect) return { opacity: 0 };
+    
+    const cardWidth = 340;
+    const cardHeight = 200;
+    const arrowGap = 20;
+    
+    let top: number;
+    let left: number;
+    
+    if (step.position === "above") {
+      top = targetRect.top - cardHeight - arrowGap;
+      // If card would be off-screen at top, place it below
+      if (top < 20) {
+        top = targetRect.bottom + arrowGap;
+      }
+    } else {
+      top = targetRect.bottom + arrowGap;
+      // If card would be off-screen at bottom, place it above
+      if (top + cardHeight > window.innerHeight - 20) {
+        top = targetRect.top - cardHeight - arrowGap;
+      }
+    }
+    
+    // Center horizontally relative to button
+    left = targetRect.left + (targetRect.width / 2) - (cardWidth / 2);
+    
+    // Keep card within viewport horizontally
+    if (left < 20) left = 20;
+    if (left + cardWidth > window.innerWidth - 20) {
+      left = window.innerWidth - cardWidth - 20;
+    }
+    
+    return {
+      position: 'fixed' as const,
+      top: `${top}px`,
+      left: `${left}px`,
+      width: `${cardWidth}px`,
+      zIndex: 60,
+    };
+  };
+
+  // Determine if card is above or below target for arrow direction
+  const isCardAbove = () => {
+    if (!targetRect) return true;
+    const cardStyle = getCardStyle();
+    const cardTop = parseInt(cardStyle.top as string);
+    return cardTop < targetRect.top;
+  };
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* Overlay sombre */}
-      <div className="absolute inset-0 bg-black/60" />
+      {/* SVG overlay with hole cut out for the target button */}
+      <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }}>
+        <defs>
+          <mask id="tutorial-mask">
+            <rect x="0" y="0" width="100%" height="100%" fill="white" />
+            {targetRect && (
+              <rect
+                x={targetRect.left - padding}
+                y={targetRect.top - padding}
+                width={targetRect.width + padding * 2}
+                height={targetRect.height + padding * 2}
+                rx="12"
+                fill="black"
+              />
+            )}
+          </mask>
+        </defs>
+        <rect
+          x="0"
+          y="0"
+          width="100%"
+          height="100%"
+          fill="rgba(0, 0, 0, 0.7)"
+          mask="url(#tutorial-mask)"
+          style={{ pointerEvents: 'auto' }}
+        />
+      </svg>
 
-      {/* Zone highlight autour du bouton ciblé */}
-      {targetPosition && (
+      {/* Highlight ring around the target button */}
+      {targetRect && (
         <div
-          className="absolute bg-transparent rounded-lg ring-4 ring-primary ring-offset-4 ring-offset-transparent z-10"
+          className="fixed rounded-xl ring-4 ring-primary ring-offset-4 ring-offset-transparent animate-pulse pointer-events-none"
           style={{
-            top: targetPosition.top - 8,
-            left: targetPosition.left - 8,
-            width: targetPosition.width + 16,
-            height: targetPosition.height + 16,
+            top: targetRect.top - padding,
+            left: targetRect.left - padding,
+            width: targetRect.width + padding * 2,
+            height: targetRect.height + padding * 2,
+            zIndex: 55,
           }}
         />
       )}
 
-      {/* Carte du tutoriel */}
-      {targetPosition && (
+      {/* Tutorial card */}
+      {targetRect && (
         <div
-          className="absolute z-20 bg-card border border-border rounded-xl shadow-2xl p-6 max-w-sm animate-fade-in"
-          style={{
-            top: step.arrowDirection === "down" 
-              ? targetPosition.top - 200 
-              : targetPosition.top + (targetPosition.height / 2) - 80,
-            left: step.arrowDirection === "down"
-              ? targetPosition.left + (targetPosition.width / 2) - 160
-              : targetPosition.left + targetPosition.width + 60,
-          }}
+          className="bg-card border border-border rounded-xl shadow-2xl p-6 animate-fade-in"
+          style={getCardStyle()}
         >
-          {/* Bouton fermer */}
+          {/* Close button */}
           <button
             onClick={handleSkip}
             className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
@@ -121,17 +193,17 @@ export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
             <X className="h-4 w-4" />
           </button>
 
-          {/* Indicateur d'étape */}
+          {/* Step indicators */}
           <div className="flex gap-1.5 mb-4">
             {tutorialSteps.map((_, index) => (
               <div
                 key={index}
-                className={`h-1.5 rounded-full transition-all ${
+                className={`h-2 rounded-full transition-all ${
                   index === currentStep
-                    ? "w-6 bg-primary"
+                    ? "w-8 bg-primary"
                     : index < currentStep
-                    ? "w-1.5 bg-primary/60"
-                    : "w-1.5 bg-muted"
+                    ? "w-2 bg-primary/60"
+                    : "w-2 bg-muted"
                 }`}
               />
             ))}
@@ -140,7 +212,7 @@ export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
           <h3 className="text-lg font-semibold text-foreground mb-2">
             {step.title}
           </h3>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
             {step.description}
           </p>
 
@@ -156,18 +228,16 @@ export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
             </Button>
           </div>
 
-          {/* Flèche vers le bouton */}
+          {/* Arrow pointing to button */}
           <div
-            className={`absolute ${
-              step.arrowDirection === "down"
-                ? "bottom-0 left-1/2 -translate-x-1/2 translate-y-full"
-                : "left-0 top-1/2 -translate-y-1/2 -translate-x-full"
+            className={`absolute left-1/2 -translate-x-1/2 ${
+              isCardAbove() ? "bottom-0 translate-y-full" : "top-0 -translate-y-full"
             }`}
           >
-            {step.arrowDirection === "down" ? (
+            {isCardAbove() ? (
               <ArrowDown className="h-8 w-8 text-primary animate-bounce" />
             ) : (
-              <ArrowLeft className="h-8 w-8 text-primary animate-pulse" />
+              <ArrowUp className="h-8 w-8 text-primary animate-bounce" />
             )}
           </div>
         </div>
