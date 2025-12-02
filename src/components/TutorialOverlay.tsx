@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowDown, ArrowUp, X } from "lucide-react";
 
@@ -7,9 +7,10 @@ interface TutorialStep {
   description: string;
   targetId: string;
   position: "above" | "below";
+  conditional?: boolean; // Only show when target element exists
 }
 
-const tutorialSteps: TutorialStep[] = [
+const baseTutorialSteps: TutorialStep[] = [
   {
     title: "1. Importer votre emploi du temps",
     description: "Commencez par importer le calendrier de votre école au format .ics pour bloquer automatiquement vos heures de cours.",
@@ -23,24 +24,27 @@ const tutorialSteps: TutorialStep[] = [
     position: "below",
   },
   {
-    title: "3. Modifier vos évènements",
-    description: "Cliquez sur un évènement pour le modifier, ou glissez-déposez le directement dans la grille pour ajuster vos horaires selon vos besoins.",
-    targetId: "weekly-grid",
-    position: "above",
-  },
-  {
-    title: "4. Configurer vos matières",
+    title: "3. Configurer vos matières",
     description: "Ajoutez vos matières avec leurs dates d'examen et leur importance pour prioriser vos révisions.",
     targetId: "manage-subjects-btn",
     position: "above",
   },
   {
-    title: "5. Générer votre planning",
+    title: "4. Générer votre planning",
     description: "Une fois tout configuré, générez automatiquement votre planning de révisions optimisé !",
     targetId: "generate-planning-btn",
     position: "above",
   },
 ];
+
+// This step only appears when there's an event in the grid
+const eventModificationStep: TutorialStep = {
+  title: "Modifier vos évènements",
+  description: "Cliquez sur un évènement pour le modifier, ou glissez-déposez le directement dans la grille pour ajuster vos horaires selon vos besoins.",
+  targetId: "first-calendar-event",
+  position: "above",
+  conditional: true,
+};
 
 interface TutorialOverlayProps {
   onComplete: () => void;
@@ -49,10 +53,44 @@ interface TutorialOverlayProps {
 export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const [hasEventInGrid, setHasEventInGrid] = useState(false);
+  const [eventStepShown, setEventStepShown] = useState(false);
+
+  // Build dynamic tutorial steps based on whether event modification step should show
+  const tutorialSteps = useMemo(() => {
+    // After step 4 (base steps), check if we should add the event step
+    if (eventStepShown) {
+      return [...baseTutorialSteps, eventModificationStep];
+    }
+    return baseTutorialSteps;
+  }, [eventStepShown]);
+
+  // Check for events in grid periodically
+  useEffect(() => {
+    const checkForEvent = () => {
+      const firstEvent = document.getElementById('first-calendar-event');
+      if (firstEvent && !hasEventInGrid) {
+        setHasEventInGrid(true);
+      }
+    };
+
+    // Check immediately and then periodically
+    checkForEvent();
+    const interval = setInterval(checkForEvent, 500);
+
+    return () => clearInterval(interval);
+  }, [hasEventInGrid]);
+
+  // When user finishes base tutorial steps and event exists, show the event step
+  useEffect(() => {
+    if (currentStep === baseTutorialSteps.length && hasEventInGrid && !eventStepShown) {
+      setEventStepShown(true);
+    }
+  }, [currentStep, hasEventInGrid, eventStepShown]);
 
   useEffect(() => {
     const updateTargetPosition = () => {
-      const targetElement = document.getElementById(tutorialSteps[currentStep].targetId);
+      const targetElement = document.getElementById(tutorialSteps[currentStep]?.targetId);
       if (targetElement) {
         const rect = targetElement.getBoundingClientRect();
         setTargetRect(rect);
@@ -73,10 +111,14 @@ export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
       window.removeEventListener("resize", updateTargetPosition);
       window.removeEventListener("scroll", updateTargetPosition);
     };
-  }, [currentStep]);
+  }, [currentStep, tutorialSteps]);
 
   const handleNext = () => {
-    if (currentStep < tutorialSteps.length - 1) {
+    // If we're at the last base step and there's an event, show event step
+    if (currentStep === baseTutorialSteps.length - 1 && hasEventInGrid && !eventStepShown) {
+      setEventStepShown(true);
+      setCurrentStep(currentStep + 1);
+    } else if (currentStep < tutorialSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       onComplete();
