@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw, LogOut,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns';
@@ -270,10 +270,18 @@ const Dashboard = () => {
             <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
             <span className="text-xl font-bold text-foreground">Skoolife</span>
           </Link>
-          <Button variant="ghost" size="sm" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Déconnexion
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/settings">
+                <Settings className="w-4 h-4 mr-2" />
+                Paramètres
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Déconnexion
+            </Button>
+          </div>
         </div>
       </header>
 
