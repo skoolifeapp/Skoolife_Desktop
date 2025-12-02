@@ -2,6 +2,13 @@ import { format, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEffect, useRef, useState } from 'react';
 import type { RevisionSession, CalendarEvent } from '@/types/planning';
+import GridClickPopover from './GridClickPopover';
+
+interface GridClickData {
+  date: string;
+  startTime: string;
+  endTime: string;
+}
 
 interface WeeklyHourGridProps {
   weekDays: Date[];
@@ -9,6 +16,7 @@ interface WeeklyHourGridProps {
   calendarEvents: CalendarEvent[];
   onSessionClick: (session: RevisionSession) => void;
   onEventClick?: (event: CalendarEvent) => void;
+  onGridClick?: (data: GridClickData, type: 'session' | 'event') => void;
 }
 
 // Grid configuration - Full 24h display
@@ -113,9 +121,12 @@ const parseSmartDateTime = (datetimeStr: string): { hours: number; minutes: numb
   }
 };
 
-const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, onEventClick }: WeeklyHourGridProps) => {
+const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, onEventClick, onGridClick }: WeeklyHourGridProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
+  const [clickedSlot, setClickedSlot] = useState<GridClickData | null>(null);
 
   // Update current time every minute
   useEffect(() => {
@@ -138,6 +149,50 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
     const hours = currentTime.getHours();
     const minutes = currentTime.getMinutes();
     return (hours - START_HOUR) * HOUR_HEIGHT + (minutes / 60) * HOUR_HEIGHT;
+  };
+
+  // Handle click on empty grid area
+  const handleGridClick = (e: React.MouseEvent<HTMLDivElement>, day: Date) => {
+    if (!onGridClick) return;
+    
+    // Get click position relative to the grid
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickY = e.clientY - rect.top;
+    
+    // Calculate the hour from click position
+    const clickedMinutes = (clickY / HOUR_HEIGHT) * 60 + START_HOUR * 60;
+    const startHour = Math.floor(clickedMinutes / 60);
+    const startMinute = Math.floor((clickedMinutes % 60) / 15) * 15; // Round to 15 min
+    
+    // Default to 1h30 session
+    const endMinutes = startHour * 60 + startMinute + 90;
+    const endHour = Math.floor(endMinutes / 60);
+    const endMinute = endMinutes % 60;
+    
+    const formatTime = (h: number, m: number) => 
+      `${String(Math.min(23, h)).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    
+    const slotData: GridClickData = {
+      date: format(day, 'yyyy-MM-dd'),
+      startTime: formatTime(startHour, startMinute),
+      endTime: formatTime(Math.min(24, endHour), endMinute)
+    };
+    
+    setClickedSlot(slotData);
+    setPopoverPosition({ x: e.clientX, y: e.clientY });
+    setPopoverOpen(true);
+  };
+
+  const handleAddSession = () => {
+    if (clickedSlot && onGridClick) {
+      onGridClick(clickedSlot, 'session');
+    }
+  };
+
+  const handleAddEvent = () => {
+    if (clickedSlot && onGridClick) {
+      onGridClick(clickedSlot, 'event');
+    }
   };
   
   const getSessionsForDay = (date: Date) => {
@@ -276,9 +331,14 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
             return (
               <div 
                 key={dayIndex}
-                className={`relative border-r border-border last:border-r-0 ${
+                className={`relative border-r border-border last:border-r-0 cursor-pointer ${
                   isToday ? 'bg-primary/5' : ''
                 }`}
+                onClick={(e) => {
+                  // Only trigger if clicking on empty space (not on an event/session)
+                  if ((e.target as HTMLElement).closest('button')) return;
+                  handleGridClick(e, day);
+                }}
               >
                 {/* Hour grid lines */}
                 {HOURS.map(hour => (
@@ -374,6 +434,15 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
           })}
         </div>
       </div>
+
+      {/* Grid click popover */}
+      <GridClickPopover
+        open={popoverOpen}
+        onOpenChange={setPopoverOpen}
+        position={popoverPosition}
+        onAddEvent={handleAddEvent}
+        onAddSession={handleAddSession}
+      />
     </div>
   );
 };

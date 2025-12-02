@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -110,6 +110,9 @@ interface AddEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onEventAdded: () => void;
+  initialDate?: Date;
+  initialStartTime?: string;
+  initialEndTime?: string;
 }
 
 // Helper to format date as YYYY-MM-DD without timezone issues
@@ -120,7 +123,7 @@ const formatLocalDate = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
-const AddEventDialog = ({ open, onOpenChange, onEventAdded }: AddEventDialogProps) => {
+const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initialStartTime, initialEndTime }: AddEventDialogProps) => {
   const { user } = useAuth();
   const [saving, setSaving] = useState(false);
 
@@ -129,14 +132,32 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded }: AddEventDialogProp
     defaultValues: {
       title: '',
       event_type: 'autre',
-      start_time: '09:00',
-      end_time: '10:30',
+      date: initialDate,
+      start_time: initialStartTime || '09:00',
+      end_time: initialEndTime || '10:30',
       recurrence: 'none',
       recurrence_end_date: null,
       custom_days: [],
       is_blocking: true,
     },
   });
+
+  // Reset form with initial values when dialog opens
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        title: '',
+        event_type: 'autre',
+        date: initialDate,
+        start_time: initialStartTime || '09:00',
+        end_time: initialEndTime || '10:30',
+        recurrence: 'none',
+        recurrence_end_date: null,
+        custom_days: [],
+        is_blocking: true,
+      });
+    }
+  }, [open, initialDate, initialStartTime, initialEndTime]);
 
   const recurrence = form.watch('recurrence');
   const customDays = form.watch('custom_days') || [];
