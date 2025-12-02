@@ -158,7 +158,8 @@ const ImportCalendarDialog = ({ open, onOpenChange, onImportComplete }: ImportCa
         start_datetime: event.start.toISOString(),
         end_datetime: event.end.toISOString(),
         location: event.location || null,
-        is_blocking: true
+        is_blocking: true,
+        event_type: 'cours'
       }));
 
       if (eventsToInsert.length > 0) {
