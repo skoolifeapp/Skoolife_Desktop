@@ -168,12 +168,15 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded }: AddEventDialogProp
 
       const createEventForDate = (date: Date, source: string) => {
         const dateStr = formatLocalDate(date);
+        // Create Date objects with local time, then convert to UTC ISO string
+        const startDate = new Date(`${dateStr}T${values.start_time}:00`);
+        const endDate = new Date(`${dateStr}T${values.end_time}:00`);
         return {
           user_id: user.id,
           title: values.title,
           event_type: values.event_type,
-          start_datetime: `${dateStr}T${values.start_time}:00`,
-          end_datetime: `${dateStr}T${values.end_time}:00`,
+          start_datetime: startDate.toISOString(),
+          end_datetime: endDate.toISOString(),
           source,
           is_blocking: values.is_blocking,
         };

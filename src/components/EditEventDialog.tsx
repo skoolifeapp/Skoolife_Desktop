@@ -117,13 +117,17 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
       const day = String(values.date.getDate()).padStart(2, '0');
       const dateStr = `${year}-${month}-${day}`;
 
+      // Create Date objects with local time, then convert to UTC ISO string
+      const startDate = new Date(`${dateStr}T${values.start_time}:00`);
+      const endDate = new Date(`${dateStr}T${values.end_time}:00`);
+
       const { error } = await supabase
         .from('calendar_events')
         .update({
           title: values.title,
           event_type: values.event_type,
-          start_datetime: `${dateStr}T${values.start_time}:00`,
-          end_datetime: `${dateStr}T${values.end_time}:00`,
+          start_datetime: startDate.toISOString(),
+          end_datetime: endDate.toISOString(),
           is_blocking: values.is_blocking,
         })
         .eq('id', event.id);
