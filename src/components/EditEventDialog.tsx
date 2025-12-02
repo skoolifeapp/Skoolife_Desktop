@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarIcon, Loader2, Trash2, Repeat } from 'lucide-react';
+import { CalendarIcon, Loader2, Trash2, Repeat, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -13,17 +13,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import {
   Form,
   FormControl,
@@ -76,6 +67,7 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+type DialogMode = 'edit' | 'confirm-delete' | 'confirm-edit';
 
 interface EditEventDialogProps {
   event: CalendarEvent | null;
@@ -84,11 +76,10 @@ interface EditEventDialogProps {
 }
 
 const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => {
+  const [mode, setMode] = useState<DialogMode>('edit');
   const [saving, setSaving] = useState(false);
   const [savingAll, setSavingAll] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [showDeleteSeriesDialog, setShowDeleteSeriesDialog] = useState(false);
-  const [showEditSeriesDialog, setShowEditSeriesDialog] = useState(false);
   const [deletingAll, setDeletingAll] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
@@ -105,9 +96,11 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
     },
   });
 
-  // Populate form when event changes
+  // Reset mode and populate form when event changes
   useEffect(() => {
     if (event) {
+      setMode('edit');
+      setPendingValues(null);
       const startDate = parseISO(event.start_datetime);
       const endDate = parseISO(event.end_datetime);
       
@@ -122,13 +115,19 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
     }
   }, [event, form]);
 
+  const handleClose = () => {
+    setMode('edit');
+    setPendingValues(null);
+    onClose();
+  };
+
   const onSubmit = async (values: FormValues) => {
     if (!event) return;
 
-    // If it's a recurring event, ask whether to edit this one or all
+    // If it's a recurring event, show confirmation
     if (isRecurring) {
       setPendingValues(values);
-      setShowEditSeriesDialog(true);
+      setMode('confirm-edit');
       return;
     }
 
@@ -142,13 +141,11 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
     setSaving(true);
 
     try {
-      // Format date as YYYY-MM-DD without timezone conversion
       const year = values.date.getFullYear();
       const month = String(values.date.getMonth() + 1).padStart(2, '0');
       const day = String(values.date.getDate()).padStart(2, '0');
       const dateStr = `${year}-${month}-${day}`;
 
-      // Create Date objects with local time, then convert to UTC ISO string
       const startDate = new Date(`${dateStr}T${values.start_time}:00`);
       const endDate = new Date(`${dateStr}T${values.end_time}:00`);
 
@@ -166,7 +163,7 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
       if (error) throw error;
 
       toast.success('Évènement modifié');
-      onClose();
+      handleClose();
       onUpdate();
     } catch (err) {
       console.error('Error updating event:', err);
@@ -182,7 +179,6 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
     setSavingAll(true);
 
     try {
-      // Fetch all events in the series to update their times while keeping their dates
       const { data: seriesEvents, error: fetchError } = await supabase
         .from('calendar_events')
         .select('id, start_datetime')
@@ -190,7 +186,6 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
 
       if (fetchError) throw fetchError;
 
-      // Update each event individually to preserve its date
       const updatePromises = (seriesEvents || []).map(async (seriesEvent) => {
         const eventDate = parseISO(seriesEvent.start_datetime);
         const year = eventDate.getFullYear();
@@ -217,9 +212,7 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
 
       const count = seriesEvents?.length || 0;
       toast.success(`${count} évènement${count > 1 ? 's' : ''} modifié${count > 1 ? 's' : ''}`);
-      setShowEditSeriesDialog(false);
-      setPendingValues(null);
-      onClose();
+      handleClose();
       onUpdate();
     } catch (err) {
       console.error('Error updating recurrence series:', err);
@@ -231,23 +224,19 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
 
   const handleEditThisOnly = async () => {
     if (pendingValues) {
-      setShowEditSeriesDialog(false);
       await updateSingleEvent(pendingValues);
-      setPendingValues(null);
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
     if (!event) return;
 
-    // If it's a recurring event, show the dialog to choose
     if (isRecurring) {
-      setShowDeleteSeriesDialog(true);
+      setMode('confirm-delete');
       return;
     }
 
-    // Otherwise delete single event
-    await deleteSingleEvent();
+    deleteSingleEvent();
   };
 
   const deleteSingleEvent = async () => {
@@ -264,7 +253,7 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
       if (error) throw error;
 
       toast.success('Évènement supprimé');
-      onClose();
+      handleClose();
       onUpdate();
     } catch (err) {
       console.error('Error deleting event:', err);
@@ -290,8 +279,7 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
 
       const count = data?.length || 0;
       toast.success(`${count} évènement${count > 1 ? 's' : ''} supprimé${count > 1 ? 's' : ''}`);
-      setShowDeleteSeriesDialog(false);
-      onClose();
+      handleClose();
       onUpdate();
     } catch (err) {
       console.error('Error deleting recurrence series:', err);
@@ -301,22 +289,108 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
     }
   };
 
-  const handleDeleteThisOnly = async () => {
-    setShowDeleteSeriesDialog(false);
-    await deleteSingleEvent();
-  };
+  // Render content based on mode
+  const renderContent = () => {
+    if (mode === 'confirm-delete') {
+      return (
+        <>
+          <DialogHeader>
+            <DialogTitle>Supprimer la récurrence</DialogTitle>
+            <DialogDescription>
+              Cet évènement fait partie d'une série récurrente. Que souhaites-tu supprimer ?
+            </DialogDescription>
+          </DialogHeader>
 
-  return (
-    <>
-    <Dialog open={!!event} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <div className="flex flex-col gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setMode('edit')}
+              className="justify-start"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Retour
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={deleteSingleEvent}
+              disabled={deleting}
+              className="justify-center"
+            >
+              {deleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Cette occurrence uniquement
+            </Button>
+            
+            <Button
+              variant="destructive"
+              onClick={deleteAllRecurrences}
+              disabled={deletingAll}
+              className="justify-center"
+            >
+              {deletingAll && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Toute la série
+            </Button>
+          </div>
+        </>
+      );
+    }
+
+    if (mode === 'confirm-edit') {
+      return (
+        <>
+          <DialogHeader>
+            <DialogTitle>Modifier la récurrence</DialogTitle>
+            <DialogDescription>
+              Cet évènement fait partie d'une série récurrente. Que souhaites-tu modifier ?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setMode('edit');
+                setPendingValues(null);
+              }}
+              className="justify-start"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Retour
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={handleEditThisOnly}
+              disabled={saving}
+              className="justify-center"
+            >
+              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Cette occurrence uniquement
+            </Button>
+            
+            <Button
+              variant="default"
+              onClick={updateAllRecurrences}
+              disabled={savingAll}
+              className="justify-center"
+            >
+              {savingAll && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Toute la série
+            </Button>
+          </div>
+        </>
+      );
+    }
+
+    // Default: edit mode
+    return (
+      <>
         <DialogHeader>
           <DialogTitle>Modifier l'évènement</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-            {/* Title */}
             <FormField
               control={form.control}
               name="title"
@@ -331,7 +405,6 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
               )}
             />
 
-            {/* Event Type */}
             <FormField
               control={form.control}
               name="event_type"
@@ -357,7 +430,6 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
               )}
             />
 
-            {/* Date */}
             <FormField
               control={form.control}
               name="date"
@@ -398,7 +470,6 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
               )}
             />
 
-            {/* Time inputs */}
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -428,7 +499,6 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
               />
             </div>
 
-            {/* Is blocking */}
             <FormField
               control={form.control}
               name="is_blocking"
@@ -452,7 +522,6 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
               )}
             />
 
-            {/* Recurring event notice */}
             {isRecurring && (
               <div className="flex items-center gap-2 p-3 bg-muted rounded-md text-sm">
                 <Repeat className="w-4 h-4 text-muted-foreground" />
@@ -462,12 +531,11 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
               </div>
             )}
 
-            {/* Buttons */}
             <div className="flex gap-3 pt-2">
               <Button
                 type="button"
                 variant="destructive"
-                onClick={handleDelete}
+                onClick={handleDeleteClick}
                 disabled={deleting || saving}
               >
                 {deleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -478,7 +546,7 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
               <Button
                 type="button"
                 variant="outline"
-                onClick={onClose}
+                onClick={handleClose}
               >
                 Annuler
               </Button>
@@ -489,74 +557,17 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
             </div>
           </form>
         </Form>
+      </>
+    );
+  };
+
+  return (
+    <Dialog open={!!event} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        {renderContent()}
       </DialogContent>
     </Dialog>
-
-    {/* Edit series dialog - outside main dialog for proper overlay */}
-    <AlertDialog open={showEditSeriesDialog} onOpenChange={(open) => {
-      setShowEditSeriesDialog(open);
-      if (!open) setPendingValues(null);
-    }}>
-      <AlertDialogContent className="z-[100]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Modifier la récurrence</AlertDialogTitle>
-          <AlertDialogDescription>
-            Cet évènement fait partie d'une série récurrente. Que souhaitez-vous modifier ?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-          <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <Button
-            variant="outline"
-            onClick={handleEditThisOnly}
-            disabled={saving}
-          >
-            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Cette occurrence uniquement
-          </Button>
-          <AlertDialogAction
-            onClick={updateAllRecurrences}
-            disabled={savingAll}
-          >
-            {savingAll && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Toute la série
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-
-    {/* Delete series dialog - outside main dialog for proper overlay */}
-    <AlertDialog open={showDeleteSeriesDialog} onOpenChange={setShowDeleteSeriesDialog}>
-      <AlertDialogContent className="z-[100]">
-        <AlertDialogHeader>
-          <AlertDialogTitle>Supprimer la récurrence</AlertDialogTitle>
-          <AlertDialogDescription>
-            Cet évènement fait partie d'une série récurrente. Que souhaitez-vous supprimer ?
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-          <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <Button
-            variant="outline"
-            onClick={handleDeleteThisOnly}
-            disabled={deleting}
-          >
-            {deleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Cette occurrence uniquement
-          </Button>
-          <AlertDialogAction
-            onClick={deleteAllRecurrences}
-            disabled={deletingAll}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            {deletingAll && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Toute la série
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
-  </>
-);
+  );
 };
 
 export default EditEventDialog;
