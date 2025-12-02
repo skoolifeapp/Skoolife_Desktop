@@ -17,15 +17,8 @@ import EditSessionDialog from '@/components/EditSessionDialog';
 import EditEventDialog from '@/components/EditEventDialog';
 import ManageSubjectsDialog from '@/components/ManageSubjectsDialog';
 import AddEventDialog from '@/components/AddEventDialog';
-import AddSessionDialog from '@/components/AddSessionDialog';
-import WeeklyHourGrid from '@/components/WeeklyHourGrid';
+import WeeklyHourGrid, { type GridClickData } from '@/components/WeeklyHourGrid';
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
-
-interface GridClickData {
-  date: string;
-  startTime: string;
-  endTime: string;
-}
 
 const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -38,7 +31,6 @@ const Dashboard = () => {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [subjectsDialogOpen, setSubjectsDialogOpen] = useState(false);
   const [addEventDialogOpen, setAddEventDialogOpen] = useState(false);
-  const [addSessionDialogOpen, setAddSessionDialogOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<RevisionSession | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [gridClickData, setGridClickData] = useState<GridClickData | null>(null);
@@ -237,13 +229,9 @@ const Dashboard = () => {
     navigate('/');
   };
 
-  const handleGridClick = (data: GridClickData, type: 'session' | 'event') => {
+  const handleGridClick = (data: GridClickData) => {
     setGridClickData(data);
-    if (type === 'session') {
-      setAddSessionDialogOpen(true);
-    } else {
-      setAddEventDialogOpen(true);
-    }
+    setAddEventDialogOpen(true);
   };
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -507,18 +495,6 @@ const Dashboard = () => {
         }}
         onEventAdded={fetchData}
         initialDate={gridClickData ? new Date(gridClickData.date) : undefined}
-        initialStartTime={gridClickData?.startTime}
-        initialEndTime={gridClickData?.endTime}
-      />
-      <AddSessionDialog
-        open={addSessionDialogOpen}
-        onOpenChange={(open) => {
-          setAddSessionDialogOpen(open);
-          if (!open) setGridClickData(null);
-        }}
-        subjects={subjects}
-        onSessionAdded={fetchData}
-        initialDate={gridClickData?.date}
         initialStartTime={gridClickData?.startTime}
         initialEndTime={gridClickData?.endTime}
       />
