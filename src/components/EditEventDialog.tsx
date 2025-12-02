@@ -85,9 +85,12 @@ interface EditEventDialogProps {
 
 const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => {
   const [saving, setSaving] = useState(false);
+  const [savingAll, setSavingAll] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteSeriesDialog, setShowDeleteSeriesDialog] = useState(false);
+  const [showEditSeriesDialog, setShowEditSeriesDialog] = useState(false);
   const [deletingAll, setDeletingAll] = useState(false);
+  const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
 
   const isRecurring = event?.recurrence_group_id != null;
 
@@ -120,6 +123,20 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
   }, [event, form]);
 
   const onSubmit = async (values: FormValues) => {
+    if (!event) return;
+
+    // If it's a recurring event, ask whether to edit this one or all
+    if (isRecurring) {
+      setPendingValues(values);
+      setShowEditSeriesDialog(true);
+      return;
+    }
+
+    // Otherwise update single event
+    await updateSingleEvent(values);
+  };
+
+  const updateSingleEvent = async (values: FormValues) => {
     if (!event) return;
 
     setSaving(true);
@@ -156,6 +173,67 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
       toast.error('Erreur lors de la modification');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const updateAllRecurrences = async () => {
+    if (!event || !event.recurrence_group_id || !pendingValues) return;
+
+    setSavingAll(true);
+
+    try {
+      // Fetch all events in the series to update their times while keeping their dates
+      const { data: seriesEvents, error: fetchError } = await supabase
+        .from('calendar_events')
+        .select('id, start_datetime')
+        .eq('recurrence_group_id', event.recurrence_group_id);
+
+      if (fetchError) throw fetchError;
+
+      // Update each event individually to preserve its date
+      const updatePromises = (seriesEvents || []).map(async (seriesEvent) => {
+        const eventDate = parseISO(seriesEvent.start_datetime);
+        const year = eventDate.getFullYear();
+        const month = String(eventDate.getMonth() + 1).padStart(2, '0');
+        const day = String(eventDate.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+
+        const startDate = new Date(`${dateStr}T${pendingValues.start_time}:00`);
+        const endDate = new Date(`${dateStr}T${pendingValues.end_time}:00`);
+
+        return supabase
+          .from('calendar_events')
+          .update({
+            title: pendingValues.title,
+            event_type: pendingValues.event_type,
+            start_datetime: startDate.toISOString(),
+            end_datetime: endDate.toISOString(),
+            is_blocking: pendingValues.is_blocking,
+          })
+          .eq('id', seriesEvent.id);
+      });
+
+      await Promise.all(updatePromises);
+
+      const count = seriesEvents?.length || 0;
+      toast.success(`${count} évènement${count > 1 ? 's' : ''} modifié${count > 1 ? 's' : ''}`);
+      setShowEditSeriesDialog(false);
+      setPendingValues(null);
+      onClose();
+      onUpdate();
+    } catch (err) {
+      console.error('Error updating recurrence series:', err);
+      toast.error('Erreur lors de la modification de la série');
+    } finally {
+      setSavingAll(false);
+    }
+  };
+
+  const handleEditThisOnly = async () => {
+    if (pendingValues) {
+      setShowEditSeriesDialog(false);
+      await updateSingleEvent(pendingValues);
+      setPendingValues(null);
     }
   };
 
@@ -411,6 +489,39 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
           </form>
         </Form>
       </DialogContent>
+
+      {/* Edit series dialog */}
+      <AlertDialog open={showEditSeriesDialog} onOpenChange={(open) => {
+        setShowEditSeriesDialog(open);
+        if (!open) setPendingValues(null);
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Modifier la récurrence</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cet évènement fait partie d'une série récurrente. Que souhaitez-vous modifier ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={handleEditThisOnly}
+              disabled={saving}
+            >
+              {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Cette occurrence uniquement
+            </Button>
+            <AlertDialogAction
+              onClick={updateAllRecurrences}
+              disabled={savingAll}
+            >
+              {savingAll && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Toute la série
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete series dialog */}
       <AlertDialog open={showDeleteSeriesDialog} onOpenChange={setShowDeleteSeriesDialog}>
