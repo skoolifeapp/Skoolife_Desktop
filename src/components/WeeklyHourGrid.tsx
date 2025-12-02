@@ -1,6 +1,6 @@
 import { format, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { RevisionSession, CalendarEvent } from '@/types/planning';
 
 interface WeeklyHourGridProps {
@@ -115,6 +115,15 @@ const parseSmartDateTime = (datetimeStr: string): { hours: number; minutes: numb
 
 const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, onEventClick }: WeeklyHourGridProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, []);
 
   // Auto-scroll to DEFAULT_SCROLL_HOUR on mount
   useEffect(() => {
@@ -123,6 +132,13 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
       scrollContainerRef.current.scrollTop = scrollPosition;
     }
   }, []);
+
+  // Calculate current time line position
+  const getCurrentTimePosition = () => {
+    const hours = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+    return (hours - START_HOUR) * HOUR_HEIGHT + (minutes / 60) * HOUR_HEIGHT;
+  };
   
   const getSessionsForDay = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -272,6 +288,17 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                     style={{ height: HOUR_HEIGHT }}
                   />
                 ))}
+
+                {/* Current time indicator (only on today) */}
+                {isToday && (
+                  <div 
+                    className="absolute left-0 right-0 z-30 pointer-events-none flex items-center"
+                    style={{ top: `${getCurrentTimePosition()}px` }}
+                  >
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 -ml-1" />
+                    <div className="flex-1 h-0.5 bg-red-500" />
+                  </div>
+                )}
 
                 {/* Render all positioned blocks */}
                 {positionedBlocks.map((block) => {
