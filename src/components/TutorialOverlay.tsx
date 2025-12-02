@@ -25,7 +25,7 @@ const tutorialSteps: TutorialStep[] = [
   {
     title: "3. Modifier vos évènements",
     description: "Cliquez sur un évènement pour le modifier, ou glissez-déposez le directement dans la grille pour ajuster vos horaires selon vos besoins.",
-    targetId: "first-calendar-item",
+    targetId: "weekly-grid",
     position: "above",
   },
   {
@@ -52,16 +52,7 @@ export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
 
   useEffect(() => {
     const updateTargetPosition = () => {
-      const targetId = tutorialSteps[currentStep].targetId;
-      let targetElement: HTMLElement | null = null;
-      
-      // Special handling for first calendar item
-      if (targetId === "first-calendar-item") {
-        targetElement = document.querySelector('[data-calendar-item]') as HTMLElement;
-      } else {
-        targetElement = document.getElementById(targetId);
-      }
-      
+      const targetElement = document.getElementById(tutorialSteps[currentStep].targetId);
       if (targetElement) {
         const rect = targetElement.getBoundingClientRect();
         setTargetRect(rect);
