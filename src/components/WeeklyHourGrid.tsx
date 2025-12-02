@@ -18,6 +18,73 @@ const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR
 const HOUR_HEIGHT = 60; // pixels per hour
 const DEFAULT_SCROLL_HOUR = 7; // Auto-scroll to this hour on load
 
+// Types for overlap calculation
+interface TimeBlock {
+  id: string;
+  startMinutes: number;
+  endMinutes: number;
+  type: 'session' | 'event';
+  data: RevisionSession | CalendarEvent;
+}
+
+interface PositionedBlock extends TimeBlock {
+  column: number;
+  totalColumns: number;
+}
+
+// Check if two time blocks overlap
+const blocksOverlap = (a: TimeBlock, b: TimeBlock): boolean => {
+  return a.startMinutes < b.endMinutes && a.endMinutes > b.startMinutes;
+};
+
+// Calculate positions for overlapping blocks (Google Calendar style)
+const calculateOverlapPositions = (blocks: TimeBlock[]): PositionedBlock[] => {
+  if (blocks.length === 0) return [];
+
+  // Sort by start time, then by end time (longer events first)
+  const sorted = [...blocks].sort((a, b) => {
+    if (a.startMinutes !== b.startMinutes) return a.startMinutes - b.startMinutes;
+    return b.endMinutes - a.endMinutes;
+  });
+
+  const positioned: PositionedBlock[] = [];
+  const columns: TimeBlock[][] = [];
+
+  for (const block of sorted) {
+    // Find the first column where this block doesn't overlap with existing blocks
+    let columnIndex = 0;
+    let placed = false;
+
+    while (!placed) {
+      if (!columns[columnIndex]) {
+        columns[columnIndex] = [];
+      }
+
+      // Check if block overlaps with any block in this column
+      const hasOverlap = columns[columnIndex].some(existing => blocksOverlap(block, existing));
+
+      if (!hasOverlap) {
+        columns[columnIndex].push(block);
+        positioned.push({ ...block, column: columnIndex, totalColumns: 0 });
+        placed = true;
+      } else {
+        columnIndex++;
+      }
+    }
+  }
+
+  // Calculate total columns for each group of overlapping blocks
+  const totalColumns = columns.length;
+
+  // For each block, find how many columns are actually used in its time range
+  return positioned.map(block => {
+    // Find all blocks that overlap with this one
+    const overlappingBlocks = positioned.filter(other => blocksOverlap(block, other));
+    const maxColumn = Math.max(...overlappingBlocks.map(b => b.column)) + 1;
+    return { ...block, totalColumns: maxColumn };
+  });
+};
+
 // Smart datetime parser that handles both UTC ISO strings and local datetime strings
 const parseSmartDateTime = (datetimeStr: string): { hours: number; minutes: number; date: Date } => {
   // Check if it's a UTC/ISO string (contains 'Z' or timezone offset like '+00:00' or '-05:00')
@@ -162,6 +229,34 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
             const dayEvents = getEventsForDay(day);
             const isToday = isSameDay(day, new Date());
 
+            // Convert all items to TimeBlocks for overlap calculation
+            const timeBlocks: TimeBlock[] = [
+              ...dayEvents.map(event => {
+                const startParsed = parseSmartDateTime(event.start_datetime);
+                const endParsed = parseSmartDateTime(event.end_datetime);
+                return {
+                  id: event.id,
+                  startMinutes: startParsed.hours * 60 + startParsed.minutes,
+                  endMinutes: endParsed.hours * 60 + endParsed.minutes,
+                  type: 'event' as const,
+                  data: event
+                };
+              }),
+              ...daySessions.map(session => {
+                const [sh, sm] = session.start_time.split(':').map(Number);
+                const [eh, em] = session.end_time.split(':').map(Number);
+                return {
+                  id: session.id,
+                  startMinutes: sh * 60 + sm,
+                  endMinutes: eh * 60 + em,
+                  type: 'session' as const,
+                  data: session
+                };
+              })
+            ];
+
+            const positionedBlocks = calculateOverlapPositions(timeBlocks);
+
             return (
               <div 
                 key={dayIndex}
@@ -178,63 +273,74 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                   />
                 ))}
 
-                {/* Calendar events (ICS imports and manual events) */}
-                {dayEvents.map((event) => {
-                  const style = getItemStyle(event.start_datetime, event.end_datetime, true);
-                  const isClickable = !!onEventClick;
-                  
-                  return (
-                    <button
-                      key={event.id}
-                      onClick={() => onEventClick?.(event)}
-                      disabled={!isClickable}
-                      className={cn(
-                        "absolute left-1 right-1 rounded-md px-2 py-1 overflow-hidden bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 z-10 flex flex-col items-start justify-start text-left",
-                        isClickable && "cursor-pointer transition-all hover:scale-[1.02] hover:shadow-md"
-                      )}
-                      style={style}
-                      title={`${event.title}\n${formatTimeRange(event.start_datetime, event.end_datetime, true)}`}
-                    >
-                      <p className="text-xs font-medium text-blue-800 dark:text-blue-200 truncate">
-                        {event.title}
-                      </p>
-                      <p className="text-[10px] text-blue-600 dark:text-blue-300">
-                        {formatTimeRange(event.start_datetime, event.end_datetime, true)}
-                      </p>
-                    </button>
-                  );
-                })}
+                {/* Render all positioned blocks */}
+                {positionedBlocks.map((block) => {
+                  const widthPercent = 100 / block.totalColumns;
+                  const leftPercent = block.column * widthPercent;
+                  const gap = 2; // px gap between columns
 
-                {/* Revision sessions */}
-                {daySessions.map((session) => {
-                  const style = getItemStyle(session.start_time, session.end_time, false);
-                  const isDone = session.status === 'done';
-                  
-                  return (
-                    <button
-                      key={session.id}
-                      onClick={() => onSessionClick(session)}
-                      className={`absolute left-1 right-1 rounded-md px-2 py-1 overflow-hidden flex flex-col items-start justify-start text-left transition-all hover:scale-[1.02] hover:shadow-md z-20 ${
-                        isDone ? 'opacity-60' : ''
-                      }`}
-                      style={{
-                        ...style,
-                        backgroundColor: `${session.subject?.color}25`,
-                        borderLeft: `3px solid ${session.subject?.color}`,
-                      }}
-                      title={`${session.subject?.name}\n${formatTimeRange(session.start_time, session.end_time)}`}
-                    >
-                      <p 
-                        className={`text-xs font-semibold truncate ${isDone ? 'line-through' : ''}`}
-                        style={{ color: session.subject?.color }}
+                  if (block.type === 'event') {
+                    const event = block.data as CalendarEvent;
+                    const style = getItemStyle(event.start_datetime, event.end_datetime, true);
+                    const isClickable = !!onEventClick;
+                    
+                    return (
+                      <button
+                        key={event.id}
+                        onClick={() => onEventClick?.(event)}
+                        disabled={!isClickable}
+                        className={cn(
+                          "absolute rounded-md px-1 py-1 overflow-hidden bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 z-10 flex flex-col items-start justify-start text-left",
+                          isClickable && "cursor-pointer transition-all hover:shadow-md"
+                        )}
+                        style={{
+                          ...style,
+                          left: `calc(${leftPercent}% + ${gap}px)`,
+                          width: `calc(${widthPercent}% - ${gap * 2}px)`,
+                        }}
+                        title={`${event.title}\n${formatTimeRange(event.start_datetime, event.end_datetime, true)}`}
                       >
-                        {session.subject?.name}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {formatTimeRange(session.start_time, session.end_time)}
-                      </p>
-                    </button>
-                  );
+                        <p className="text-xs font-medium text-blue-800 dark:text-blue-200 truncate w-full">
+                          {event.title}
+                        </p>
+                        <p className="text-[10px] text-blue-600 dark:text-blue-300">
+                          {formatTimeRange(event.start_datetime, event.end_datetime, true)}
+                        </p>
+                      </button>
+                    );
+                  } else {
+                    const session = block.data as RevisionSession;
+                    const style = getItemStyle(session.start_time, session.end_time, false);
+                    const isDone = session.status === 'done';
+                    
+                    return (
+                      <button
+                        key={session.id}
+                        onClick={() => onSessionClick(session)}
+                        className={`absolute rounded-md px-1 py-1 overflow-hidden flex flex-col items-start justify-start text-left transition-all hover:shadow-md z-20 ${
+                          isDone ? 'opacity-60' : ''
+                        }`}
+                        style={{
+                          ...style,
+                          left: `calc(${leftPercent}% + ${gap}px)`,
+                          width: `calc(${widthPercent}% - ${gap * 2}px)`,
+                          backgroundColor: `${session.subject?.color}25`,
+                          borderLeft: `3px solid ${session.subject?.color}`,
+                        }}
+                        title={`${session.subject?.name}\n${formatTimeRange(session.start_time, session.end_time)}`}
+                      >
+                        <p 
+                          className={`text-xs font-semibold truncate w-full ${isDone ? 'line-through' : ''}`}
+                          style={{ color: session.subject?.color }}
+                        >
+                          {session.subject?.name}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {formatTimeRange(session.start_time, session.end_time)}
+                        </p>
+                      </button>
+                    );
+                  }
                 })}
               </div>
             );
