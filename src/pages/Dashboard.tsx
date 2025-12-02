@@ -234,6 +234,47 @@ const Dashboard = () => {
     setAddEventDialogOpen(true);
   };
 
+  const handleSessionMove = async (sessionId: string, data: { date: string; startTime: string; endTime: string }) => {
+    try {
+      const { error } = await supabase
+        .from('revision_sessions')
+        .update({
+          date: data.date,
+          start_time: data.startTime,
+          end_time: data.endTime,
+        })
+        .eq('id', sessionId);
+
+      if (error) throw error;
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors du déplacement de la session');
+    }
+  };
+
+  const handleEventMove = async (eventId: string, data: { date: string; startTime: string; endTime: string }) => {
+    try {
+      // Create datetime strings from the date and times
+      const startDatetime = new Date(`${data.date}T${data.startTime}:00`);
+      const endDatetime = new Date(`${data.date}T${data.endTime}:00`);
+
+      const { error } = await supabase
+        .from('calendar_events')
+        .update({
+          start_datetime: startDatetime.toISOString(),
+          end_datetime: endDatetime.toISOString(),
+        })
+        .eq('id', eventId);
+
+      if (error) throw error;
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors du déplacement de l\'évènement');
+    }
+  };
+
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   const getSessionsForDay = (date: Date) => {
@@ -453,6 +494,8 @@ const Dashboard = () => {
               onSessionClick={setSelectedSession}
               onEventClick={setSelectedEvent}
               onGridClick={handleGridClick}
+              onSessionMove={handleSessionMove}
+              onEventMove={handleEventMove}
             />
 
             {/* Empty state */}
