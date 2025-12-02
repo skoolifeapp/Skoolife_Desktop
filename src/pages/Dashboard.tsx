@@ -29,6 +29,7 @@ import EditEventDialog from '@/components/EditEventDialog';
 import ManageSubjectsDialog from '@/components/ManageSubjectsDialog';
 import AddEventDialog from '@/components/AddEventDialog';
 import WeeklyHourGrid, { type GridClickData } from '@/components/WeeklyHourGrid';
+import { TutorialOverlay } from '@/components/TutorialOverlay';
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
 const Dashboard = () => {
@@ -46,6 +47,7 @@ const Dashboard = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [gridClickData, setGridClickData] = useState<GridClickData | null>(null);
   const [deletingEvents, setDeletingEvents] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -79,6 +81,12 @@ const Dashboard = () => {
       }
 
       setProfile(profileData);
+
+      // Check if tutorial should be shown (first visit after onboarding)
+      const tutorialSeen = localStorage.getItem(`tutorial_seen_${user.id}`);
+      if (!tutorialSeen) {
+        setShowTutorial(true);
+      }
 
       // Fetch subjects
       const { data: subjectsData } = await supabase
@@ -513,6 +521,7 @@ const Dashboard = () => {
             {/* Actions */}
             <div className="space-y-3">
               <Button 
+                id="generate-planning-btn"
                 variant="hero" 
                 size="lg" 
                 className="w-full"
@@ -527,6 +536,7 @@ const Dashboard = () => {
                 {generating ? 'Génération...' : 'Générer mon planning'}
               </Button>
               <Button 
+                id="import-calendar-btn"
                 variant="outline" 
                 size="lg" 
                 className="w-full"
@@ -536,6 +546,7 @@ const Dashboard = () => {
                 Importer calendrier (.ics)
               </Button>
               <Button 
+                id="manage-subjects-btn"
                 variant="secondary" 
                 size="lg" 
                 className="w-full"
@@ -556,6 +567,7 @@ const Dashboard = () => {
               </h2>
               <div className="flex items-center gap-2">
                 <Button 
+                  id="add-event-btn"
                   variant="outline" 
                   size="sm"
                   onClick={() => setAddEventDialogOpen(true)}
@@ -689,6 +701,16 @@ const Dashboard = () => {
         onClose={() => setSelectedEvent(null)}
         onUpdate={fetchData}
       />
+
+      {/* Tutorial overlay */}
+      {showTutorial && user && (
+        <TutorialOverlay
+          onComplete={() => {
+            setShowTutorial(false);
+            localStorage.setItem(`tutorial_seen_${user.id}`, 'true');
+          }}
+        />
+      )}
     </div>
   );
 };
