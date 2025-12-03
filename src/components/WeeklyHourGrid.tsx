@@ -512,7 +512,13 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                     const session = block.data as RevisionSession;
                     const style = getItemStyle(session.start_time, session.end_time, false);
                     const isDone = session.status === 'done';
+                    const isSkipped = session.status === 'skipped';
                     const isDraggable = !!onSessionMove;
+                    
+                    // Determine border color based on status
+                    let borderColor = session.subject?.color || '#FFC107';
+                    if (isDone) borderColor = '#22c55e'; // green-500
+                    if (isSkipped) borderColor = '#ef4444'; // red-500
                     
                     return (
                       <div
@@ -523,24 +529,28 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         onClick={() => onSessionClick(session)}
                         className={cn(
                           "absolute rounded-md px-1 py-1 overflow-hidden flex flex-col items-start justify-start text-left transition-all hover:shadow-md z-20",
-                          isDone && "opacity-60",
+                          isSkipped && "opacity-50",
                           isDraggable && "cursor-grab active:cursor-grabbing"
                         )}
                         style={{
                           ...style,
                           left: `calc(${leftPercent}% + ${gap}px)`,
                           width: `calc(${widthPercent}% - ${gap * 2}px)`,
-                          backgroundColor: `${session.subject?.color}25`,
-                          borderLeft: `3px solid ${session.subject?.color}`,
+                          backgroundColor: isDone ? 'rgba(34, 197, 94, 0.15)' : isSkipped ? 'rgba(239, 68, 68, 0.1)' : `${session.subject?.color}25`,
+                          borderLeft: `3px solid ${borderColor}`,
                         }}
-                        title={`${session.subject?.name}\n${formatTimeRange(session.start_time, session.end_time)}`}
+                        title={`${session.subject?.name}\n${formatTimeRange(session.start_time, session.end_time)}${isDone ? ' ✓' : isSkipped ? ' ✗' : ''}`}
                       >
-                        <p 
-                          className={`text-xs font-semibold truncate w-full ${isDone ? 'line-through' : ''}`}
-                          style={{ color: session.subject?.color }}
-                        >
-                          {session.subject?.name}
-                        </p>
+                        <div className="flex items-center gap-1 w-full">
+                          <p 
+                            className={`text-xs font-semibold truncate flex-1 ${isDone ? 'line-through' : ''}`}
+                            style={{ color: isDone ? '#22c55e' : isSkipped ? '#ef4444' : session.subject?.color }}
+                          >
+                            {session.subject?.name}
+                          </p>
+                          {isDone && <span className="text-green-500 text-xs">✓</span>}
+                          {isSkipped && <span className="text-red-500 text-xs">✗</span>}
+                        </div>
                         <p className="text-[10px] text-muted-foreground">
                           {formatTimeRange(session.start_time, session.end_time)}
                         </p>

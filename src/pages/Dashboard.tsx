@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw, LogOut,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2, TrendingUp
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -30,6 +30,7 @@ import ManageSubjectsDialog from '@/components/ManageSubjectsDialog';
 import AddEventDialog from '@/components/AddEventDialog';
 import WeeklyHourGrid, { type GridClickData } from '@/components/WeeklyHourGrid';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
+import { SessionStatusDialog } from '@/components/SessionStatusDialog';
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
 const Dashboard = () => {
@@ -48,6 +49,8 @@ const Dashboard = () => {
   const [gridClickData, setGridClickData] = useState<GridClickData | null>(null);
   const [deletingEvents, setDeletingEvents] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [sessionPopoverOpen, setSessionPopoverOpen] = useState<string | null>(null);
+  const [editSessionDialogOpen, setEditSessionDialogOpen] = useState(false);
   
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -384,6 +387,27 @@ const Dashboard = () => {
     }
   };
 
+  const handleSessionStatusUpdate = async (sessionId: string, status: 'done' | 'skipped') => {
+    try {
+      const { error } = await supabase
+        .from('revision_sessions')
+        .update({ status })
+        .eq('id', sessionId);
+
+      if (error) throw error;
+      toast.success(status === 'done' ? 'Session marquée comme terminée' : 'Session marquée comme manquée');
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
+  const handleSessionClick = (session: RevisionSession) => {
+    setSelectedSession(session);
+    setSessionPopoverOpen(session.id);
+  };
+
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   const getSessionsForDay = (date: Date) => {
@@ -433,6 +457,12 @@ const Dashboard = () => {
             <span className="text-xl font-bold text-foreground">Skoolife</span>
           </Link>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/progression">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Progression
+              </Link>
+            </Button>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/settings">
                 <Settings className="w-4 h-4 mr-2" />
@@ -640,7 +670,7 @@ const Dashboard = () => {
               weekDays={weekDays}
               sessions={sessions}
               calendarEvents={calendarEvents}
-              onSessionClick={setSelectedSession}
+              onSessionClick={handleSessionClick}
               onEventClick={setSelectedEvent}
               onGridClick={handleGridClick}
               onSessionMove={handleSessionMove}
@@ -691,15 +721,35 @@ const Dashboard = () => {
         initialEndTime={gridClickData?.endTime}
       />
       <EditSessionDialog
-        session={selectedSession}
+        session={editSessionDialogOpen ? selectedSession : null}
         subjects={subjects}
-        onClose={() => setSelectedSession(null)}
+        onClose={() => {
+          setEditSessionDialogOpen(false);
+          setSelectedSession(null);
+        }}
         onUpdate={fetchData}
       />
       <EditEventDialog
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
         onUpdate={fetchData}
+      />
+      
+      {/* Session status dialog */}
+      <SessionStatusDialog
+        session={selectedSession}
+        open={sessionPopoverOpen !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSessionPopoverOpen(null);
+          }
+        }}
+        onMarkDone={() => selectedSession && handleSessionStatusUpdate(selectedSession.id, 'done')}
+        onMarkSkipped={() => selectedSession && handleSessionStatusUpdate(selectedSession.id, 'skipped')}
+        onEdit={() => {
+          setSessionPopoverOpen(null);
+          setEditSessionDialogOpen(true);
+        }}
       />
 
       {/* Tutorial overlay */}
