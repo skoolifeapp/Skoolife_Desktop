@@ -162,7 +162,6 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
 
       if (error) throw error;
 
-      toast.success('Évènement modifié');
       handleClose();
       onUpdate();
     } catch (err) {
@@ -210,8 +209,6 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
 
       await Promise.all(updatePromises);
 
-      const count = seriesEvents?.length || 0;
-      toast.success(`${count} évènement${count > 1 ? 's' : ''} modifié${count > 1 ? 's' : ''}`);
       handleClose();
       onUpdate();
     } catch (err) {
@@ -252,7 +249,6 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
 
       if (error) throw error;
 
-      toast.success('Évènement supprimé');
       handleClose();
       onUpdate();
     } catch (err) {
@@ -277,8 +273,6 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
 
       if (error) throw error;
 
-      const count = data?.length || 0;
-      toast.success(`${count} évènement${count > 1 ? 's' : ''} supprimé${count > 1 ? 's' : ''}`);
       handleClose();
       onUpdate();
     } catch (err) {

@@ -255,13 +255,6 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initial
 
       if (error) throw error;
 
-      const count = eventsToInsert.length;
-      toast.success(
-        count === 1 
-          ? 'Évènement ajouté à ton planning' 
-          : `${count} évènements ajoutés à ton planning`
-      );
-
       form.reset();
       onOpenChange(false);
       onEventAdded();

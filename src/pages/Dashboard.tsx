@@ -637,7 +637,6 @@ const Dashboard = () => {
         .eq('id', sessionId);
 
       if (error) throw error;
-      toast.success(status === 'done' ? 'Session marquée comme terminée' : 'Session marquée comme manquée');
       fetchData();
     } catch (err) {
       console.error(err);
