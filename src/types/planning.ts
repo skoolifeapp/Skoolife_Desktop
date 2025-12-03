@@ -4,6 +4,7 @@ export interface Subject {
   color: string;
   exam_date: string | null;
   exam_weight: number;
+  target_hours: number | null;
 }
 
 export interface RevisionSession {

@@ -216,6 +216,7 @@ export type Database = {
           exam_weight: number | null
           id: string
           name: string
+          target_hours: number | null
           user_id: string
         }
         Insert: {
@@ -225,6 +226,7 @@ export type Database = {
           exam_weight?: number | null
           id?: string
           name: string
+          target_hours?: number | null
           user_id: string
         }
         Update: {
@@ -234,6 +236,7 @@ export type Database = {
           exam_weight?: number | null
           id?: string
           name?: string
+          target_hours?: number | null
           user_id?: string
         }
         Relationships: []

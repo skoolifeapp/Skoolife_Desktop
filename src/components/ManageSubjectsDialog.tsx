@@ -171,17 +171,31 @@ const ManageSubjectsDialog = ({ open, onOpenChange, subjects, onSubjectsChange }
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">
-                      Importance ({subject.exam_weight}/5)
+                      Objectif (heures)
                     </Label>
-                    <Slider
-                      value={[subject.exam_weight]}
-                      onValueChange={([v]) => updateSubject(subject.id, { exam_weight: v })}
-                      min={1}
-                      max={5}
-                      step={1}
-                      className="py-3"
+                    <Input
+                      type="number"
+                      min={0}
+                      max={200}
+                      placeholder="Ex: 20"
+                      value={subject.target_hours || ''}
+                      onChange={(e) => updateSubject(subject.id, { target_hours: e.target.value ? parseInt(e.target.value) : null })}
+                      className="h-10"
                     />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">
+                    Priorité ({subject.exam_weight}/5)
+                  </Label>
+                  <Slider
+                    value={[subject.exam_weight]}
+                    onValueChange={([v]) => updateSubject(subject.id, { exam_weight: v })}
+                    min={1}
+                    max={5}
+                    step={1}
+                    className="py-3"
+                  />
                 </div>
               </div>
             ))}

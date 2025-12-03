@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw, LogOut,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2, TrendingUp
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2, TrendingUp, Sparkles
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -40,6 +40,7 @@ const Dashboard = () => {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [adjusting, setAdjusting] = useState(false);
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [subjectsDialogOpen, setSubjectsDialogOpen] = useState(false);
@@ -315,6 +316,234 @@ const Dashboard = () => {
     }
   };
 
+  const adjustWeek = async () => {
+    if (!user) return;
+
+    // Check if any subject has target_hours defined
+    const subjectsWithGoals = subjects.filter(s => s.target_hours && s.target_hours > 0);
+    if (subjectsWithGoals.length === 0) {
+      toast.error("Tu n'as pas encore défini d'objectifs par matière. Va dans 'Gérer mes matières' pour les ajouter.");
+      return;
+    }
+
+    setAdjusting(true);
+
+    try {
+      // Fetch user preferences
+      const { data: preferences } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      // Fetch all past sessions to calculate hours already done
+      const { data: allSessions } = await supabase
+        .from('revision_sessions')
+        .select('*')
+        .eq('user_id', user.id);
+
+      // Calculate hours already done per subject
+      const hoursPerSubject: Record<string, number> = {};
+      (allSessions || []).forEach(session => {
+        const [startH, startM] = session.start_time.split(':').map(Number);
+        const [endH, endM] = session.end_time.split(':').map(Number);
+        const durationHours = ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
+        hoursPerSubject[session.subject_id] = (hoursPerSubject[session.subject_id] || 0) + durationHours;
+      });
+
+      // Calculate remaining hours per subject with goals
+      const today = new Date();
+      const subjectsNeedingHours = subjectsWithGoals
+        .map(subject => {
+          const hoursDone = hoursPerSubject[subject.id] || 0;
+          const remaining = (subject.target_hours || 0) - hoursDone;
+          const examDate = subject.exam_date ? parseISO(subject.exam_date) : null;
+          const daysUntilExam = examDate ? Math.ceil((examDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 999;
+          return {
+            ...subject,
+            hoursDone,
+            remaining: Math.max(0, remaining),
+            daysUntilExam
+          };
+        })
+        .filter(s => s.remaining > 0 && s.daysUntilExam > 0)
+        .sort((a, b) => {
+          // Sort by priority (exam_weight desc), then by exam proximity, then by remaining hours
+          if (b.exam_weight !== a.exam_weight) return b.exam_weight - a.exam_weight;
+          if (a.daysUntilExam !== b.daysUntilExam) return a.daysUntilExam - b.daysUntilExam;
+          return b.remaining - a.remaining;
+        });
+
+      if (subjectsNeedingHours.length === 0) {
+        toast.info("Tous tes objectifs sont déjà couverts, rien à ajouter pour cette semaine 👌");
+        setAdjusting(false);
+        return;
+      }
+
+      // Get current week bounds
+      const weekEnd = addDays(weekStart, 6);
+      
+      // Extract preferences with defaults
+      const preferredDays = preferences?.preferred_days_of_week || [1, 2, 3, 4, 5];
+      const dailyStartTime = preferences?.daily_start_time || '08:00';
+      const dailyEndTime = preferences?.daily_end_time || '22:00';
+      const maxHoursPerDay = preferences?.max_hours_per_day || 4;
+      const sessionDuration = (preferences as any)?.session_duration_minutes || 90;
+      const avoidEarlyMorning = preferences?.avoid_early_morning || false;
+      const avoidLateEvening = preferences?.avoid_late_evening || false;
+
+      // Parse start/end times
+      const [startHour] = dailyStartTime.split(':').map(Number);
+      const [endHour] = dailyEndTime.split(':').map(Number);
+
+      // Calculate effective start/end hours
+      let effectiveStartHour = startHour;
+      let effectiveEndHour = endHour;
+      if (avoidEarlyMorning && effectiveStartHour < 9) effectiveStartHour = 9;
+      if (avoidLateEvening && effectiveEndHour > 21) effectiveEndHour = 21;
+
+      // Get existing sessions and events for the week
+      const weekSessions = sessions.filter(s => {
+        const sessionDate = parseISO(s.date);
+        return sessionDate >= weekStart && sessionDate <= weekEnd;
+      });
+
+      const weekEvents = calendarEvents.filter(e => {
+        const eventDate = parseISO(e.start_datetime);
+        return eventDate >= weekStart && eventDate <= weekEnd && e.is_blocking;
+      });
+
+      // Convert preferred days to day offsets
+      const workDays = preferredDays.map(d => (d === 7 ? 6 : d - 1)).sort((a, b) => a - b);
+      
+      // Find available slots for each day
+      const newSessions: { user_id: string; subject_id: string; date: string; start_time: string; end_time: string; status: string; notes: string | null }[] = [];
+      let subjectIndex = 0;
+
+      for (const dayOffset of workDays) {
+        const currentDate = addDays(weekStart, dayOffset);
+        
+        // Skip past days
+        if (currentDate < today && !isSameDay(currentDate, today)) continue;
+        
+        const dateStr = format(currentDate, 'yyyy-MM-dd');
+
+        // Get existing blocks for this day
+        const dayEvents = weekEvents.filter(e => isSameDay(parseISO(e.start_datetime), currentDate));
+        const daySessions = weekSessions.filter(s => s.date === dateStr);
+
+        // Calculate hours already scheduled today
+        const hoursScheduledToday = daySessions.reduce((acc, s) => {
+          const [sh, sm] = s.start_time.split(':').map(Number);
+          const [eh, em] = s.end_time.split(':').map(Number);
+          return acc + ((eh * 60 + em) - (sh * 60 + sm)) / 60;
+        }, 0);
+
+        // Build list of blocked time ranges
+        const blockedRanges: { start: number; end: number }[] = [];
+        
+        // Add events as blocked
+        dayEvents.forEach(e => {
+          const eventStart = parseISO(e.start_datetime);
+          const eventEnd = parseISO(e.end_datetime);
+          blockedRanges.push({
+            start: eventStart.getHours() * 60 + eventStart.getMinutes(),
+            end: eventEnd.getHours() * 60 + eventEnd.getMinutes()
+          });
+        });
+
+        // Add existing sessions as blocked
+        daySessions.forEach(s => {
+          const [sh, sm] = s.start_time.split(':').map(Number);
+          const [eh, em] = s.end_time.split(':').map(Number);
+          blockedRanges.push({ start: sh * 60 + sm, end: eh * 60 + em });
+        });
+
+        // Add lunch break as blocked (12:30-14:00)
+        blockedRanges.push({ start: 12.5 * 60, end: 14 * 60 });
+
+        // Sort blocked ranges
+        blockedRanges.sort((a, b) => a.start - b.start);
+
+        // Find free slots
+        const freeSlots: { start: number; end: number }[] = [];
+        let cursor = effectiveStartHour * 60;
+        const dayEnd = effectiveEndHour * 60;
+
+        for (const block of blockedRanges) {
+          if (cursor < block.start && block.start <= dayEnd) {
+            freeSlots.push({ start: cursor, end: Math.min(block.start, dayEnd) });
+          }
+          cursor = Math.max(cursor, block.end);
+        }
+        if (cursor < dayEnd) {
+          freeSlots.push({ start: cursor, end: dayEnd });
+        }
+
+        // Try to place sessions in free slots
+        let hoursAddedToday = 0;
+        const maxToAddToday = maxHoursPerDay - hoursScheduledToday;
+
+        for (const slot of freeSlots) {
+          if (hoursAddedToday >= maxToAddToday) break;
+          if (subjectsNeedingHours.length === 0) break;
+
+          const slotDuration = slot.end - slot.start;
+          if (slotDuration < sessionDuration) continue;
+
+          // Place session
+          const sessionStart = slot.start;
+          const sessionEnd = sessionStart + sessionDuration;
+
+          const formatTime = (minutes: number) => {
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+          };
+
+          // Pick subject using round-robin based on priority
+          const subject = subjectsNeedingHours[subjectIndex % subjectsNeedingHours.length];
+
+          newSessions.push({
+            user_id: user.id,
+            subject_id: subject.id,
+            date: dateStr,
+            start_time: formatTime(sessionStart),
+            end_time: formatTime(sessionEnd),
+            status: 'planned',
+            notes: null
+          });
+
+          hoursAddedToday += sessionDuration / 60;
+          subjectIndex++;
+
+          // Update slot cursor for potential next session
+          slot.start = sessionEnd + 30; // 30 min break
+        }
+      }
+
+      // Insert new sessions
+      if (newSessions.length > 0) {
+        const { error } = await supabase
+          .from('revision_sessions')
+          .insert(newSessions);
+
+        if (error) throw error;
+        toast.success(`Semaine ajustée : ${newSessions.length} nouvelle${newSessions.length > 1 ? 's' : ''} session${newSessions.length > 1 ? 's' : ''} ajoutée${newSessions.length > 1 ? 's' : ''} ✨`);
+      } else {
+        toast.info("Aucun créneau libre disponible cette semaine");
+      }
+
+      fetchData();
+
+    } catch (err) {
+      console.error(err);
+      toast.error("Erreur lors de l'ajustement de la semaine");
+    } finally {
+      setAdjusting(false);
+    }
+  };
+
   const handleSignOut = async () => {
     isSigningOut.current = true;
     await signOut();
@@ -556,7 +785,7 @@ const Dashboard = () => {
                 size="lg" 
                 className="w-full"
                 onClick={generatePlanning}
-                disabled={generating}
+                disabled={generating || adjusting}
               >
                 {generating ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -564,6 +793,20 @@ const Dashboard = () => {
                   <RefreshCw className="w-4 h-4" />
                 )}
                 {generating ? 'Génération...' : 'Générer mon planning'}
+              </Button>
+              <Button 
+                variant="secondary" 
+                size="lg" 
+                className="w-full"
+                onClick={adjustWeek}
+                disabled={adjusting || generating}
+              >
+                {adjusting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                {adjusting ? 'Ajustement...' : 'Ajuster ma semaine'}
               </Button>
               <Button 
                 id="import-calendar-btn"
@@ -577,7 +820,7 @@ const Dashboard = () => {
               </Button>
               <Button 
                 id="manage-subjects-btn"
-                variant="secondary" 
+                variant="outline" 
                 size="lg" 
                 className="w-full"
                 onClick={() => setSubjectsDialogOpen(true)}
