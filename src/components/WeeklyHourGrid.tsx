@@ -484,6 +484,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                     return (
                       <div
                         key={event.id}
+                        data-event-id={event.id}
                         draggable={isDraggable}
                         onDragStart={(e) => handleDragStart(e, 'event', event.id, durationMinutes)}
                         onDragEnd={handleDragEnd}
