@@ -30,6 +30,7 @@ import ManageSubjectsDialog from '@/components/ManageSubjectsDialog';
 import AddEventDialog from '@/components/AddEventDialog';
 import WeeklyHourGrid, { type GridClickData } from '@/components/WeeklyHourGrid';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
+import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 import { SessionStatusDialog } from '@/components/SessionStatusDialog';
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
@@ -50,6 +51,7 @@ const Dashboard = () => {
   const [gridClickData, setGridClickData] = useState<GridClickData | null>(null);
   const [deletingEvents, setDeletingEvents] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showEventTutorial, setShowEventTutorial] = useState(false);
   const [sessionPopoverOpen, setSessionPopoverOpen] = useState<string | null>(null);
   const [editSessionDialogOpen, setEditSessionDialogOpen] = useState(false);
   
@@ -122,6 +124,17 @@ const Dashboard = () => {
         .eq('user_id', user.id);
 
       setCalendarEvents(eventsData || []);
+
+      // Check if event tutorial should be shown
+      const eventTutorialSeen = localStorage.getItem(`event_tutorial_seen_${user.id}`);
+      const mainTutorialSeen = localStorage.getItem(`tutorial_seen_${user.id}`);
+      // Show event tutorial only if:
+      // - Main tutorial has been seen (or not needed)
+      // - Event tutorial hasn't been seen
+      // - There are events in the calendar
+      if (mainTutorialSeen && !eventTutorialSeen && (eventsData?.length || 0) > 0) {
+        setShowEventTutorial(true);
+      }
 
     } catch (err) {
       console.error(err);
@@ -1001,6 +1014,23 @@ const Dashboard = () => {
           onComplete={() => {
             setShowTutorial(false);
             localStorage.setItem(`tutorial_seen_${user.id}`, 'true');
+            // Check if event tutorial should be shown after main tutorial
+            if (calendarEvents.length > 0) {
+              const eventTutorialSeen = localStorage.getItem(`event_tutorial_seen_${user.id}`);
+              if (!eventTutorialSeen) {
+                setShowEventTutorial(true);
+              }
+            }
+          }}
+        />
+      )}
+
+      {/* Event tutorial overlay */}
+      {showEventTutorial && !showTutorial && user && (
+        <EventTutorialOverlay
+          onComplete={() => {
+            setShowEventTutorial(false);
+            localStorage.setItem(`event_tutorial_seen_${user.id}`, 'true');
           }}
         />
       )}
