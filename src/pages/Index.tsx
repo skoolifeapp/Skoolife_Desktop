@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Target, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, Target, ArrowRight, Sparkles } from 'lucide-react';
 import logo from '@/assets/logo.png';
+import HeroMiniDashboard3D from '@/components/HeroMiniDashboard3D';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -42,42 +43,53 @@ const Index = () => {
         </div>
 
         <div className="relative max-w-6xl mx-auto px-4 pt-16 pb-32">
-          {/* Badge */}
-          <div className="flex justify-center mb-8 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">
-                Planning intelligent pour étudiants
-              </span>
+          {/* Hero Section with Text + 3D Dashboard */}
+          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+            {/* Left - Text Content */}
+            <div className="flex-1 text-center lg:text-left">
+              {/* Badge */}
+              <div className="flex justify-center lg:justify-start mb-8 animate-fade-in">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">
+                    Planning intelligent pour étudiants
+                  </span>
+                </div>
+              </div>
+
+              {/* Main heading */}
+              <div className="space-y-6 animate-slide-up">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-foreground leading-tight">
+                  Tes révisions,
+                  <br />
+                  <span className="gradient-text-animated">
+                    enfin organisées
+                  </span>
+                </h1>
+                <p className="max-w-xl text-lg sm:text-xl text-muted-foreground">
+                  Skoolife génère automatiquement ton planning de révisions personnalisé 
+                  en fonction de tes examens, ton emploi du temps et ton rythme.
+                </p>
+              </div>
+
+              {/* CTA */}
+              <div className="flex flex-col sm:flex-row items-center lg:items-start gap-4 mt-10 animate-slide-up">
+                <Link to="/auth">
+                  <Button variant="hero" size="xl">
+                    Commencer gratuitement
+                    <ArrowRight className="w-5 h-5" />
+                  </Button>
+                </Link>
+                <p className="text-sm text-muted-foreground self-center">
+                  Aucune carte bancaire requise
+                </p>
+              </div>
             </div>
-          </div>
 
-          {/* Main heading */}
-          <div className="text-center space-y-6 animate-slide-up">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-foreground leading-tight">
-              Tes révisions,
-              <br />
-              <span className="gradient-text-animated">
-                enfin organisées
-              </span>
-            </h1>
-            <p className="max-w-2xl mx-auto text-lg sm:text-xl text-muted-foreground">
-              Skoolife génère automatiquement ton planning de révisions personnalisé 
-              en fonction de tes examens, ton emploi du temps et ton rythme.
-            </p>
-          </div>
-
-          {/* CTA */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 animate-slide-up">
-            <Link to="/auth">
-              <Button variant="hero" size="xl">
-                Commencer gratuitement
-                <ArrowRight className="w-5 h-5" />
-              </Button>
-            </Link>
-            <p className="text-sm text-muted-foreground">
-              Aucune carte bancaire requise
-            </p>
+            {/* Right - 3D Mini Dashboard */}
+            <div className="flex-1 w-full lg:w-auto animate-slide-up">
+              <HeroMiniDashboard3D />
+            </div>
           </div>
 
           {/* Features */}
