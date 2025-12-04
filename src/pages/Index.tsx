@@ -16,9 +16,9 @@ const Index = () => {
   }, [user, loading, navigate]);
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 p-6 bg-background/80 backdrop-blur-md border-b border-transparent transition-colors">
+      <header className="fixed top-0 left-0 right-0 z-50 p-6 bg-background/80 backdrop-blur-md">
         <nav className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl shadow-glow" />
@@ -33,7 +33,7 @@ const Index = () => {
       </header>
 
       {/* Hero */}
-      <main className="relative">
+      <main className="relative pt-20">
         {/* Background decorations */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse-soft" />
