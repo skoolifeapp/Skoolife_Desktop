@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Target, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import logo from '@/assets/logo.png';
+
+const Hero3DScene = lazy(() => import('@/components/Hero3DScene'));
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -34,14 +36,20 @@ const Index = () => {
 
       {/* Hero */}
       <main className="relative pt-20">
-        {/* Background decorations */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse-soft" />
-          <div className="absolute top-40 right-20 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse-soft delay-1000" />
-          <div className="absolute bottom-20 left-1/3 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+        {/* 3D Scene Background */}
+        <div className="absolute inset-0 h-[800px] overflow-hidden">
+          <Suspense fallback={null}>
+            <Hero3DScene />
+          </Suspense>
         </div>
 
-        <div className="relative max-w-6xl mx-auto px-4 pt-16 pb-32">
+        {/* Background decorations */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse-soft" />
+          <div className="absolute top-40 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse-soft delay-1000" />
+        </div>
+
+        <div className="relative max-w-6xl mx-auto px-4 pt-16 pb-32 z-10">
           {/* Badge */}
           <div className="flex justify-center mb-8 animate-fade-in">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
