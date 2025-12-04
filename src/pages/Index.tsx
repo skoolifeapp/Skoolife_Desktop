@@ -18,7 +18,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background overflow-hidden">
       {/* Header */}
-      <header className="relative z-10 p-6">
+      <header className="sticky top-0 z-50 p-6 bg-background/80 backdrop-blur-md border-b border-transparent transition-colors">
         <nav className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl shadow-glow" />
