@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw, LogOut,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2, TrendingUp, Sparkles
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2, TrendingUp, Sparkles, ListTodo
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -32,6 +32,7 @@ import WeeklyHourGrid, { type GridClickData } from '@/components/WeeklyHourGrid'
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 import { SessionStatusDialog } from '@/components/SessionStatusDialog';
+import { TasksSidebar } from '@/components/TasksSidebar';
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
 const Dashboard = () => {
@@ -54,6 +55,7 @@ const Dashboard = () => {
   const [showEventTutorial, setShowEventTutorial] = useState(false);
   const [sessionPopoverOpen, setSessionPopoverOpen] = useState<string | null>(null);
   const [editSessionDialogOpen, setEditSessionDialogOpen] = useState(false);
+  const [tasksSidebarOpen, setTasksSidebarOpen] = useState(false);
   
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -698,6 +700,10 @@ const Dashboard = () => {
             <span className="text-xl font-bold text-foreground">Skoolife</span>
           </Link>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setTasksSidebarOpen(true)}>
+              <ListTodo className="w-4 h-4 mr-2" />
+              Tâches
+            </Button>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/progression">
                 <TrendingUp className="w-4 h-4 mr-2" />
@@ -1033,6 +1039,15 @@ const Dashboard = () => {
           }}
         />
       )}
+
+      {/* Tasks sidebar */}
+      <TasksSidebar
+        open={tasksSidebarOpen}
+        onOpenChange={setTasksSidebarOpen}
+        subjects={subjects}
+        weekStart={weekStart}
+        onTaskScheduled={fetchData}
+      />
     </div>
   );
 };
