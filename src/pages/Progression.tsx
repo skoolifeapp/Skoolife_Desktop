@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
   Clock, CheckCircle2, XCircle, Target, TrendingUp, 
-  LogOut, Settings, ChevronLeft, Loader2, BarChart3, CheckSquare
+  LogOut, Settings, ChevronLeft, Loader2, BarChart3
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import logo from '@/assets/logo.png';
@@ -53,7 +53,6 @@ const Progression = () => {
   const [subjectStats, setSubjectStats] = useState<SubjectStats[]>([]);
   const [weekHistory, setWeekHistory] = useState<WeekStats[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [taskStats, setTaskStats] = useState({ completed: 0, remaining: 0 });
   
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -183,28 +182,6 @@ const Progression = () => {
 
       setSubjectStats(Array.from(subjectStatsMap.values()));
 
-      // Fetch task stats for current week
-      const { data: tasksData } = await supabase
-        .from('tasks')
-        .select('id, status, due_date, updated_at')
-        .eq('user_id', user.id);
-
-      if (tasksData) {
-        const completedThisWeek = tasksData.filter(t => 
-          t.status === 'done' && 
-          t.updated_at && 
-          t.updated_at >= weekStartStr && 
-          t.updated_at <= weekEndStr
-        ).length;
-        
-        const remaining = tasksData.filter(t => 
-          t.status !== 'done' && 
-          (!t.due_date || t.due_date >= weekStartStr)
-        ).length;
-
-        setTaskStats({ completed: completedThisWeek, remaining });
-      }
-
     } catch (err) {
       console.error(err);
     } finally {
@@ -323,28 +300,6 @@ const Progression = () => {
                 </p>
               </>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Task stats */}
-        <Card className="border-0 shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckSquare className="w-5 h-5 text-primary" />
-              Tâches
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">{taskStats.completed}</p>
-                <p className="text-xs text-muted-foreground">complétées cette semaine</p>
-              </div>
-              <div className="text-center p-4 bg-secondary/50 rounded-lg">
-                <p className="text-2xl font-bold">{taskStats.remaining}</p>
-                <p className="text-xs text-muted-foreground">restantes</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
