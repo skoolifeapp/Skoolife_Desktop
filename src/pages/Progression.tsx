@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
   Clock, CheckCircle2, XCircle, Target, TrendingUp, 
-  LogOut, Settings, ChevronLeft, Loader2, BarChart3
+  LogOut, Settings, ChevronLeft, Loader2, BarChart3, ListTodo
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import logo from '@/assets/logo.png';
@@ -47,12 +47,19 @@ interface SubjectStats {
   plannedHours: number;
 }
 
+interface TaskStats {
+  completedThisWeek: number;
+  remaining: number;
+  total: number;
+}
+
 const Progression = () => {
   const [loading, setLoading] = useState(true);
   const [currentWeekStats, setCurrentWeekStats] = useState<WeekStats | null>(null);
   const [subjectStats, setSubjectStats] = useState<SubjectStats[]>([]);
   const [weekHistory, setWeekHistory] = useState<WeekStats[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [taskStats, setTaskStats] = useState<TaskStats | null>(null);
   
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -182,6 +189,27 @@ const Progression = () => {
 
       setSubjectStats(Array.from(subjectStatsMap.values()));
 
+      // Fetch task statistics (using already declared weekStartStr/weekEndStr)
+      const { data: tasksData } = await supabase
+        .from('tasks')
+        .select('id, status, updated_at')
+        .eq('user_id', user.id);
+
+      if (tasksData) {
+        const completedThisWeek = tasksData.filter(t => 
+          t.status === 'done' && 
+          t.updated_at >= weekStartStr && 
+          t.updated_at <= weekEndStr + 'T23:59:59'
+        ).length;
+        const remaining = tasksData.filter(t => t.status !== 'done').length;
+        
+        setTaskStats({
+          completedThisWeek,
+          remaining,
+          total: tasksData.length,
+        });
+      }
+
     } catch (err) {
       console.error(err);
     } finally {
@@ -302,6 +330,52 @@ const Progression = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Task progress */}
+        {taskStats && taskStats.total > 0 && (
+          <Card className="border-0 shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ListTodo className="w-5 h-5 text-primary" />
+                Tâches
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-green-600">{taskStats.completedThisWeek}</p>
+                  <p className="text-xs text-muted-foreground">terminées cette semaine</p>
+                </div>
+                <div className="text-center p-4 bg-primary/10 rounded-lg">
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <Clock className="w-4 h-4 text-primary" />
+                  </div>
+                  <p className="text-2xl font-bold text-primary">{taskStats.remaining}</p>
+                  <p className="text-xs text-muted-foreground">restantes</p>
+                </div>
+                <div className="text-center p-4 bg-secondary/50 rounded-lg">
+                  <p className="text-2xl font-bold">{taskStats.total}</p>
+                  <p className="text-xs text-muted-foreground">total</p>
+                </div>
+              </div>
+              {taskStats.total > 0 && (
+                <div className="mt-4">
+                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                    <span>Progression globale</span>
+                    <span>{Math.round(((taskStats.total - taskStats.remaining) / taskStats.total) * 100)}%</span>
+                  </div>
+                  <Progress 
+                    value={((taskStats.total - taskStats.remaining) / taskStats.total) * 100} 
+                    className="h-2"
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Subject breakdown */}
         {subjectStats.length > 0 && (
