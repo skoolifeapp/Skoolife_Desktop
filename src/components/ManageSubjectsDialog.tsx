@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Plus, X, Loader2, GraduationCap } from 'lucide-react';
 import type { Subject } from '@/types/planning';
@@ -184,18 +185,36 @@ const ManageSubjectsDialog = ({ open, onOpenChange, subjects, onSubjectsChange }
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">
-                    Priorité ({subject.exam_weight}/5)
-                  </Label>
-                  <Slider
-                    value={[subject.exam_weight]}
-                    onValueChange={([v]) => updateSubject(subject.id, { exam_weight: v })}
-                    min={1}
-                    max={5}
-                    step={1}
-                    className="py-3"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Priorité ({subject.exam_weight}/5)
+                    </Label>
+                    <Slider
+                      value={[subject.exam_weight]}
+                      onValueChange={([v]) => updateSubject(subject.id, { exam_weight: v })}
+                      min={1}
+                      max={5}
+                      step={1}
+                      className="py-3"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Difficulté</Label>
+                    <Select
+                      value={(subject as any).difficulty_level || 'moyen'}
+                      onValueChange={(v) => updateSubject(subject.id, { difficulty_level: v } as any)}
+                    >
+                      <SelectTrigger className="h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="facile">Facile</SelectItem>
+                        <SelectItem value="moyen">Moyen</SelectItem>
+                        <SelectItem value="difficile">Difficile</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             ))}

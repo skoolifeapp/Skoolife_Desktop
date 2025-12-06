@@ -13,6 +13,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import logo from '@/assets/logo.png';
 import { format, startOfWeek, endOfWeek, subWeeks, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useExamPreparationScores } from '@/hooks/useExamPreparationScores';
+import ExamPreparationCoach from '@/components/ExamPreparationCoach';
 
 interface Subject {
   id: string;
@@ -63,6 +65,9 @@ const Progression = () => {
   
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  
+  // Exam preparation coach scores
+  const { scores: examScores, loading: scoresLoading, refetch: refetchScores } = useExamPreparationScores(user?.id);
 
   useEffect(() => {
     if (!user) {
@@ -278,6 +283,11 @@ const Progression = () => {
             <p className="text-muted-foreground">Suis tes efforts et tes résultats</p>
           </div>
         </div>
+
+        {/* Exam Preparation Coach */}
+        {!scoresLoading && (
+          <ExamPreparationCoach scores={examScores} onRefetch={refetchScores} />
+        )}
 
         {/* Current week summary */}
         <Card className="border-0 shadow-md">

@@ -5,6 +5,7 @@ export interface Subject {
   exam_date: string | null;
   exam_weight: number;
   target_hours: number | null;
+  difficulty_level: string | null;
 }
 
 export interface RevisionSession {
