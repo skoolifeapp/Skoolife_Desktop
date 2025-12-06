@@ -136,15 +136,15 @@ export const TaskDialog = ({ open, onOpenChange, task, subjects, onSaved }: Task
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[425px] max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>
             {task ? 'Modifier la tâche' : 'Nouvelle tâche'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
+        <div className="space-y-3 py-2 overflow-y-auto flex-1 pr-2">
+          <div className="space-y-1.5">
             <Label htmlFor="title">Titre *</Label>
             <Input
               id="title"
@@ -154,7 +154,7 @@ export const TaskDialog = ({ open, onOpenChange, task, subjects, onSaved }: Task
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="subject">Matière</Label>
             <Select value={subjectId || "none"} onValueChange={(val) => setSubjectId(val === "none" ? "" : val)}>
               <SelectTrigger>
@@ -177,7 +177,7 @@ export const TaskDialog = ({ open, onOpenChange, task, subjects, onSaved }: Task
             </Select>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label>Date limite</Label>
             <Popover>
               <PopoverTrigger asChild>
@@ -204,49 +204,51 @@ export const TaskDialog = ({ open, onOpenChange, task, subjects, onSaved }: Task
             </Popover>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="duration">Durée estimée</Label>
-            <Select value={duration} onValueChange={setDuration}>
-              <SelectTrigger>
-                <SelectValue placeholder="Durée" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="45">45 minutes</SelectItem>
-                <SelectItem value="60">1 heure</SelectItem>
-                <SelectItem value="90">1h30</SelectItem>
-                <SelectItem value="120">2 heures</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="duration">Durée estimée</Label>
+              <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Durée" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 min</SelectItem>
+                  <SelectItem value="45">45 min</SelectItem>
+                  <SelectItem value="60">1h</SelectItem>
+                  <SelectItem value="90">1h30</SelectItem>
+                  <SelectItem value="120">2h</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="priority">Priorité</Label>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Priorité" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Faible</SelectItem>
+                  <SelectItem value="medium">Normale</SelectItem>
+                  <SelectItem value="high">Haute</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="priority">Priorité</Label>
-            <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger>
-                <SelectValue placeholder="Priorité" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Faible</SelectItem>
-                <SelectItem value="medium">Normale</SelectItem>
-                <SelectItem value="high">Haute</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="description">Description (optionnel)</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Notes supplémentaires..."
-              rows={3}
+              rows={2}
             />
           </div>
         </div>
 
-        <div className="flex justify-between">
+        <div className="flex justify-between flex-shrink-0 pt-2 border-t">
           {task && (
             <Button 
               variant="destructive" 
