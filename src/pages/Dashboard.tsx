@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
-  Calendar, Clock, Upload, Plus, RefreshCw, LogOut,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2, TrendingUp, Sparkles, Wallet
+  Calendar, Clock, Upload, Plus, RefreshCw,
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, Sparkles, PanelLeft
 } from 'lucide-react';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -689,43 +691,19 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
-            <span className="text-xl font-bold text-foreground">Skoolife</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/budget">
-                <Wallet className="w-4 h-4 mr-2" />
-                Budget
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/progression">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Progression
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/settings">
-                <Settings className="w-4 h-4 mr-2" />
-                Paramètres
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Déconnexion
-            </Button>
-          </div>
-        </div>
-      </header>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Header */}
+          <header className="border-b border-border bg-card sticky top-0 z-40 px-4 py-3 flex items-center gap-4">
+            <SidebarTrigger />
+            <h1 className="text-lg font-semibold">Mon Planning</h1>
+          </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-[300px_1fr] gap-8">
+          <main className="flex-1 px-4 py-8 overflow-auto">
+            <div className="grid lg:grid-cols-[300px_1fr] gap-8">
           {/* Sidebar */}
           <aside className="space-y-6">
             {/* Welcome card */}
@@ -955,91 +933,93 @@ const Dashboard = () => {
               </Card>
             )}
           </div>
-        </div>
-      </main>
+            </div>
+          </main>
 
-      {/* Dialogs */}
-      <ImportCalendarDialog 
-        open={importDialogOpen} 
-        onOpenChange={setImportDialogOpen}
-        onImportComplete={fetchData}
-      />
-      <ManageSubjectsDialog
-        open={subjectsDialogOpen}
-        onOpenChange={setSubjectsDialogOpen}
-        subjects={subjects}
-        onSubjectsChange={fetchData}
-      />
-      <AddEventDialog
-        open={addEventDialogOpen}
-        onOpenChange={(open) => {
-          setAddEventDialogOpen(open);
-          if (!open) setGridClickData(null);
-        }}
-        onEventAdded={fetchData}
-        initialDate={gridClickData ? new Date(gridClickData.date) : undefined}
-        initialStartTime={gridClickData?.startTime}
-        initialEndTime={gridClickData?.endTime}
-      />
-      <EditSessionDialog
-        session={editSessionDialogOpen ? selectedSession : null}
-        subjects={subjects}
-        onClose={() => {
-          setEditSessionDialogOpen(false);
-          setSelectedSession(null);
-        }}
-        onUpdate={fetchData}
-      />
-      <EditEventDialog
-        event={selectedEvent}
-        onClose={() => setSelectedEvent(null)}
-        onUpdate={fetchData}
-      />
-      
-      {/* Session status dialog */}
-      <SessionStatusDialog
-        session={selectedSession}
-        open={sessionPopoverOpen !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSessionPopoverOpen(null);
-          }
-        }}
-        onMarkDone={() => selectedSession && handleSessionStatusUpdate(selectedSession.id, 'done')}
-        onMarkSkipped={() => selectedSession && handleSessionStatusUpdate(selectedSession.id, 'skipped')}
-        onEdit={() => {
-          setSessionPopoverOpen(null);
-          setEditSessionDialogOpen(true);
-        }}
-      />
-
-      {/* Tutorial overlay */}
-      {showTutorial && user && (
-        <TutorialOverlay
-          onComplete={() => {
-            setShowTutorial(false);
-            localStorage.setItem(`tutorial_seen_${user.id}`, 'true');
-            // Check if event tutorial should be shown after main tutorial
-            if (calendarEvents.length > 0) {
-              const eventTutorialSeen = localStorage.getItem(`event_tutorial_seen_${user.id}`);
-              if (!eventTutorialSeen) {
-                setShowEventTutorial(true);
+          {/* Dialogs */}
+          <ImportCalendarDialog 
+            open={importDialogOpen} 
+            onOpenChange={setImportDialogOpen}
+            onImportComplete={fetchData}
+          />
+          <ManageSubjectsDialog
+            open={subjectsDialogOpen}
+            onOpenChange={setSubjectsDialogOpen}
+            subjects={subjects}
+            onSubjectsChange={fetchData}
+          />
+          <AddEventDialog
+            open={addEventDialogOpen}
+            onOpenChange={(open) => {
+              setAddEventDialogOpen(open);
+              if (!open) setGridClickData(null);
+            }}
+            onEventAdded={fetchData}
+            initialDate={gridClickData ? new Date(gridClickData.date) : undefined}
+            initialStartTime={gridClickData?.startTime}
+            initialEndTime={gridClickData?.endTime}
+          />
+          <EditSessionDialog
+            session={editSessionDialogOpen ? selectedSession : null}
+            subjects={subjects}
+            onClose={() => {
+              setEditSessionDialogOpen(false);
+              setSelectedSession(null);
+            }}
+            onUpdate={fetchData}
+          />
+          <EditEventDialog
+            event={selectedEvent}
+            onClose={() => setSelectedEvent(null)}
+            onUpdate={fetchData}
+          />
+          
+          {/* Session status dialog */}
+          <SessionStatusDialog
+            session={selectedSession}
+            open={sessionPopoverOpen !== null}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSessionPopoverOpen(null);
               }
-            }
-          }}
-        />
-      )}
+            }}
+            onMarkDone={() => selectedSession && handleSessionStatusUpdate(selectedSession.id, 'done')}
+            onMarkSkipped={() => selectedSession && handleSessionStatusUpdate(selectedSession.id, 'skipped')}
+            onEdit={() => {
+              setSessionPopoverOpen(null);
+              setEditSessionDialogOpen(true);
+            }}
+          />
+        </div>
 
-      {/* Event tutorial overlay */}
-      {showEventTutorial && !showTutorial && user && (
-        <EventTutorialOverlay
-          onComplete={() => {
-            setShowEventTutorial(false);
-            localStorage.setItem(`event_tutorial_seen_${user.id}`, 'true');
-          }}
-        />
-      )}
-    </div>
+        {/* Tutorial overlay */}
+        {showTutorial && user && (
+          <TutorialOverlay
+            onComplete={() => {
+              setShowTutorial(false);
+              localStorage.setItem(`tutorial_seen_${user.id}`, 'true');
+              // Check if event tutorial should be shown after main tutorial
+              if (calendarEvents.length > 0) {
+                const eventTutorialSeen = localStorage.getItem(`event_tutorial_seen_${user.id}`);
+                if (!eventTutorialSeen) {
+                  setShowEventTutorial(true);
+                }
+              }
+            }}
+          />
+        )}
+
+        {/* Event tutorial overlay */}
+        {showEventTutorial && !showTutorial && user && (
+          <EventTutorialOverlay
+            onComplete={() => {
+              setShowEventTutorial(false);
+              localStorage.setItem(`event_tutorial_seen_${user.id}`, 'true');
+            }}
+          />
+        )}
+      </div>
+    </SidebarProvider>
   );
 };
 
