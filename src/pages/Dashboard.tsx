@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
-  Calendar, Clock, Upload, Plus, RefreshCw,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, Sparkles
+  Calendar, Clock, Upload, Plus, RefreshCw, LogOut,
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2, TrendingUp, Sparkles
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import logo from '@/assets/logo.png';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ImportCalendarDialog from '@/components/ImportCalendarDialog';
@@ -33,7 +34,7 @@ import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 import { SessionStatusDialog } from '@/components/SessionStatusDialog';
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
-const Planning = () => {
+const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [sessions, setSessions] = useState<RevisionSession[]>([]);
@@ -681,51 +682,44 @@ const Planning = () => {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center py-20">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Page Header */}
-      <div className="px-4 sm:px-6 py-4 border-b border-border bg-card/50">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold">Mon Planning</h1>
-            <p className="text-sm text-muted-foreground">Organise tes révisions semaine par semaine</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button 
-              id="add-event-btn"
-              variant="outline" 
-              size="sm"
-              onClick={() => setAddEventDialogOpen(true)}
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Événement
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
+            <span className="text-xl font-bold text-foreground">Skoolife</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/progression">
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Progression
+              </Link>
             </Button>
-            <Button 
-              id="generate-planning-btn"
-              size="sm"
-              onClick={generatePlanning}
-              disabled={generating || adjusting}
-            >
-              {generating ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <RefreshCw className="w-4 h-4 mr-1" />
-              )}
-              Générer
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/settings">
+                <Settings className="w-4 h-4 mr-2" />
+                Paramètres
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleSignOut}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Déconnexion
             </Button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Main content */}
-      <div className="flex-1 overflow-auto px-4 sm:px-6 py-6">
-        <div className="grid lg:grid-cols-[280px_1fr] gap-6">
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid lg:grid-cols-[300px_1fr] gap-8">
           {/* Sidebar */}
           <aside className="space-y-6">
             {/* Welcome card */}
@@ -956,7 +950,7 @@ const Planning = () => {
             )}
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Dialogs */}
       <ImportCalendarDialog 
@@ -1019,6 +1013,7 @@ const Planning = () => {
           onComplete={() => {
             setShowTutorial(false);
             localStorage.setItem(`tutorial_seen_${user.id}`, 'true');
+            // Check if event tutorial should be shown after main tutorial
             if (calendarEvents.length > 0) {
               const eventTutorialSeen = localStorage.getItem(`event_tutorial_seen_${user.id}`);
               if (!eventTutorialSeen) {
@@ -1042,4 +1037,4 @@ const Planning = () => {
   );
 };
 
-export default Planning;
+export default Dashboard;
