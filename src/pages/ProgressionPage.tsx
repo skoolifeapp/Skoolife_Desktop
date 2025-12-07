@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Clock, CheckCircle2, XCircle, Target, TrendingUp, 
-  LogOut, Settings, ChevronLeft, Loader2, BarChart3
+  Clock, CheckCircle2, XCircle, Target, TrendingUp, BarChart3, Loader2
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import logo from '@/assets/logo.png';
-import { format, startOfWeek, endOfWeek, subWeeks, addDays } from 'date-fns';
+import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface Subject {
@@ -47,14 +44,14 @@ interface SubjectStats {
   plannedHours: number;
 }
 
-const Progression = () => {
+const ProgressionPage = () => {
   const [loading, setLoading] = useState(true);
   const [currentWeekStats, setCurrentWeekStats] = useState<WeekStats | null>(null);
   const [subjectStats, setSubjectStats] = useState<SubjectStats[]>([]);
   const [weekHistory, setWeekHistory] = useState<WeekStats[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -114,7 +111,6 @@ const Progression = () => {
     if (!user) return;
 
     try {
-      // Fetch subjects
       const { data: subjectsData } = await supabase
         .from('subjects')
         .select('id, name, color')
@@ -122,7 +118,6 @@ const Progression = () => {
 
       setSubjects(subjectsData || []);
 
-      // Fetch all revision sessions for the last 5 weeks
       const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
       const fiveWeeksAgo = subWeeks(currentWeekStart, 4);
 
@@ -135,11 +130,9 @@ const Progression = () => {
 
       const sessions = sessionsData || [];
 
-      // Current week stats
       const currentStats = calculateWeekStats(sessions, currentWeekStart);
       setCurrentWeekStats(currentStats);
 
-      // Week history (last 4 weeks including current)
       const history: WeekStats[] = [];
       for (let i = 3; i >= 0; i--) {
         const weekStart = subWeeks(currentWeekStart, i);
@@ -147,7 +140,6 @@ const Progression = () => {
       }
       setWeekHistory(history);
 
-      // Subject stats for current week
       const currentWeekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
       const weekStartStr = format(currentWeekStart, 'yyyy-MM-dd');
       const weekEndStr = format(currentWeekEnd, 'yyyy-MM-dd');
@@ -189,11 +181,6 @@ const Progression = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
-
   const getMotivationalMessage = (rate: number) => {
     if (rate >= 80) return "Excellente semaine ! Continue comme ça 🔥";
     if (rate >= 60) return "Belle progression 👏";
@@ -204,53 +191,29 @@ const Progression = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
-            <span className="text-xl font-bold text-foreground">Skoolife</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/app">
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Planning
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/settings">
-                <Settings className="w-4 h-4 mr-2" />
-                Paramètres
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Déconnexion
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-primary" />
+    <div className="flex flex-col h-full">
+      {/* Page Header */}
+      <div className="px-4 sm:px-6 py-4 border-b border-border bg-card/50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Ta progression</h1>
-            <p className="text-muted-foreground">Suis tes efforts et tes résultats</p>
+            <h1 className="text-2xl font-bold">Progression</h1>
+            <p className="text-sm text-muted-foreground">Suis tes efforts et tes résultats</p>
           </div>
         </div>
+      </div>
 
+      {/* Content */}
+      <div className="flex-1 overflow-auto px-4 sm:px-6 py-6 space-y-6">
         {/* Current week summary */}
         <Card className="border-0 shadow-md">
           <CardHeader>
@@ -262,7 +225,6 @@ const Progression = () => {
           <CardContent className="space-y-6">
             {currentWeekStats && (
               <>
-                {/* Main stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center p-4 bg-secondary/50 rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-1">
@@ -285,7 +247,6 @@ const Progression = () => {
                   </div>
                 </div>
 
-                {/* Session counts */}
                 <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
                   <span>Sessions : {currentWeekStats.plannedCount} prévues</span>
                   <span>•</span>
@@ -294,7 +255,6 @@ const Progression = () => {
                   <span className="text-red-600">{currentWeekStats.skippedCount} manquées</span>
                 </div>
 
-                {/* Motivational message */}
                 <p className="text-center text-sm font-medium text-primary">
                   {getMotivationalMessage(currentWeekStats.completionRate)}
                 </p>
@@ -340,7 +300,6 @@ const Progression = () => {
                 </ResponsiveContainer>
               </div>
 
-              {/* Subject list with progress */}
               <div className="space-y-3 mt-4">
                 {subjectStats.map(stat => (
                   <div key={stat.subjectId} className="flex items-center gap-3">
@@ -358,9 +317,6 @@ const Progression = () => {
                       <Progress 
                         value={stat.plannedHours > 0 ? (stat.doneHours / stat.plannedHours) * 100 : 0} 
                         className="h-1.5"
-                        style={{ 
-                          '--progress-background': stat.color 
-                        } as React.CSSProperties}
                       />
                     </div>
                   </div>
@@ -415,9 +371,9 @@ const Progression = () => {
             </div>
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
   );
 };
 
-export default Progression;
+export default ProgressionPage;

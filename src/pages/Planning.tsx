@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -7,10 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, Sparkles, PanelLeft
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, Sparkles
 } from 'lucide-react';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +20,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import logo from '@/assets/logo.png';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ImportCalendarDialog from '@/components/ImportCalendarDialog';
@@ -36,7 +33,7 @@ import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 import { SessionStatusDialog } from '@/components/SessionStatusDialog';
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
-const Dashboard = () => {
+const Planning = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [sessions, setSessions] = useState<RevisionSession[]>([]);
@@ -684,26 +681,51 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center py-20">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Header */}
-          <header className="border-b border-border bg-card sticky top-0 z-40 px-4 py-3 flex items-center gap-4">
-            <SidebarTrigger />
-            <h1 className="text-lg font-semibold">Mon Planning</h1>
-          </header>
+    <div className="flex flex-col h-full">
+      {/* Page Header */}
+      <div className="px-4 sm:px-6 py-4 border-b border-border bg-card/50">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">Mon Planning</h1>
+            <p className="text-sm text-muted-foreground">Organise tes révisions semaine par semaine</p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button 
+              id="add-event-btn"
+              variant="outline" 
+              size="sm"
+              onClick={() => setAddEventDialogOpen(true)}
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Événement
+            </Button>
+            <Button 
+              id="generate-planning-btn"
+              size="sm"
+              onClick={generatePlanning}
+              disabled={generating || adjusting}
+            >
+              {generating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <RefreshCw className="w-4 h-4 mr-1" />
+              )}
+              Générer
+            </Button>
+          </div>
+        </div>
+      </div>
 
-          <main className="flex-1 px-4 py-8 overflow-auto">
-            <div className="grid lg:grid-cols-[300px_1fr] gap-8">
+      {/* Main content */}
+      <div className="flex-1 overflow-auto px-4 sm:px-6 py-6">
+        <div className="grid lg:grid-cols-[280px_1fr] gap-6">
           {/* Sidebar */}
           <aside className="space-y-6">
             {/* Welcome card */}
@@ -933,94 +955,91 @@ const Dashboard = () => {
               </Card>
             )}
           </div>
-            </div>
-          </main>
-
-          {/* Dialogs */}
-          <ImportCalendarDialog 
-            open={importDialogOpen} 
-            onOpenChange={setImportDialogOpen}
-            onImportComplete={fetchData}
-          />
-          <ManageSubjectsDialog
-            open={subjectsDialogOpen}
-            onOpenChange={setSubjectsDialogOpen}
-            subjects={subjects}
-            onSubjectsChange={fetchData}
-          />
-          <AddEventDialog
-            open={addEventDialogOpen}
-            onOpenChange={(open) => {
-              setAddEventDialogOpen(open);
-              if (!open) setGridClickData(null);
-            }}
-            onEventAdded={fetchData}
-            initialDate={gridClickData ? new Date(gridClickData.date) : undefined}
-            initialStartTime={gridClickData?.startTime}
-            initialEndTime={gridClickData?.endTime}
-          />
-          <EditSessionDialog
-            session={editSessionDialogOpen ? selectedSession : null}
-            subjects={subjects}
-            onClose={() => {
-              setEditSessionDialogOpen(false);
-              setSelectedSession(null);
-            }}
-            onUpdate={fetchData}
-          />
-          <EditEventDialog
-            event={selectedEvent}
-            onClose={() => setSelectedEvent(null)}
-            onUpdate={fetchData}
-          />
-          
-          {/* Session status dialog */}
-          <SessionStatusDialog
-            session={selectedSession}
-            open={sessionPopoverOpen !== null}
-            onOpenChange={(open) => {
-              if (!open) {
-                setSessionPopoverOpen(null);
-              }
-            }}
-            onMarkDone={() => selectedSession && handleSessionStatusUpdate(selectedSession.id, 'done')}
-            onMarkSkipped={() => selectedSession && handleSessionStatusUpdate(selectedSession.id, 'skipped')}
-            onEdit={() => {
-              setSessionPopoverOpen(null);
-              setEditSessionDialogOpen(true);
-            }}
-          />
         </div>
-
-        {/* Tutorial overlay */}
-        {showTutorial && user && (
-          <TutorialOverlay
-            onComplete={() => {
-              setShowTutorial(false);
-              localStorage.setItem(`tutorial_seen_${user.id}`, 'true');
-              // Check if event tutorial should be shown after main tutorial
-              if (calendarEvents.length > 0) {
-                const eventTutorialSeen = localStorage.getItem(`event_tutorial_seen_${user.id}`);
-                if (!eventTutorialSeen) {
-                  setShowEventTutorial(true);
-                }
-              }
-            }}
-          />
-        )}
-
-        {/* Event tutorial overlay */}
-        {showEventTutorial && !showTutorial && user && (
-          <EventTutorialOverlay
-            onComplete={() => {
-              setShowEventTutorial(false);
-              localStorage.setItem(`event_tutorial_seen_${user.id}`, 'true');
-            }}
-          />
-        )}
       </div>
-    </SidebarProvider>
+
+      {/* Dialogs */}
+      <ImportCalendarDialog 
+        open={importDialogOpen} 
+        onOpenChange={setImportDialogOpen}
+        onImportComplete={fetchData}
+      />
+      <ManageSubjectsDialog
+        open={subjectsDialogOpen}
+        onOpenChange={setSubjectsDialogOpen}
+        subjects={subjects}
+        onSubjectsChange={fetchData}
+      />
+      <AddEventDialog
+        open={addEventDialogOpen}
+        onOpenChange={(open) => {
+          setAddEventDialogOpen(open);
+          if (!open) setGridClickData(null);
+        }}
+        onEventAdded={fetchData}
+        initialDate={gridClickData ? new Date(gridClickData.date) : undefined}
+        initialStartTime={gridClickData?.startTime}
+        initialEndTime={gridClickData?.endTime}
+      />
+      <EditSessionDialog
+        session={editSessionDialogOpen ? selectedSession : null}
+        subjects={subjects}
+        onClose={() => {
+          setEditSessionDialogOpen(false);
+          setSelectedSession(null);
+        }}
+        onUpdate={fetchData}
+      />
+      <EditEventDialog
+        event={selectedEvent}
+        onClose={() => setSelectedEvent(null)}
+        onUpdate={fetchData}
+      />
+      
+      {/* Session status dialog */}
+      <SessionStatusDialog
+        session={selectedSession}
+        open={sessionPopoverOpen !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSessionPopoverOpen(null);
+          }
+        }}
+        onMarkDone={() => selectedSession && handleSessionStatusUpdate(selectedSession.id, 'done')}
+        onMarkSkipped={() => selectedSession && handleSessionStatusUpdate(selectedSession.id, 'skipped')}
+        onEdit={() => {
+          setSessionPopoverOpen(null);
+          setEditSessionDialogOpen(true);
+        }}
+      />
+
+      {/* Tutorial overlay */}
+      {showTutorial && user && (
+        <TutorialOverlay
+          onComplete={() => {
+            setShowTutorial(false);
+            localStorage.setItem(`tutorial_seen_${user.id}`, 'true');
+            if (calendarEvents.length > 0) {
+              const eventTutorialSeen = localStorage.getItem(`event_tutorial_seen_${user.id}`);
+              if (!eventTutorialSeen) {
+                setShowEventTutorial(true);
+              }
+            }
+          }}
+        />
+      )}
+
+      {/* Event tutorial overlay */}
+      {showEventTutorial && !showTutorial && user && (
+        <EventTutorialOverlay
+          onComplete={() => {
+            setShowEventTutorial(false);
+            localStorage.setItem(`event_tutorial_seen_${user.id}`, 'true');
+          }}
+        />
+      )}
+    </div>
   );
 };
 
-export default Dashboard;
+export default Planning;

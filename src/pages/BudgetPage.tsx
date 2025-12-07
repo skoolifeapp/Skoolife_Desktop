@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useFinanceData } from '@/hooks/useFinanceData';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, CreditCard, HelpCircle } from 'lucide-react';
+import { CreditCard, HelpCircle, Wallet } from 'lucide-react';
 import { format, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import logo from '@/assets/logo.png';
 
 import { BudgetOnboarding } from '@/components/budget/BudgetOnboarding';
 import { ConnectBankDialog } from '@/components/budget/ConnectBankDialog';
@@ -18,7 +17,7 @@ import { TransactionList } from '@/components/budget/TransactionList';
 import { BudgetProgressSection } from '@/components/budget/BudgetProgressSection';
 import { BudgetTutorialOverlay } from '@/components/budget/BudgetTutorialOverlay';
 
-const Budget = () => {
+const BudgetPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { 
@@ -51,7 +50,6 @@ const Budget = () => {
     fetchData();
   };
 
-  // Generate month options (last 12 months)
   const monthOptions = Array.from({ length: 12 }, (_, i) => {
     const date = subMonths(new Date(), i);
     return {
@@ -62,21 +60,18 @@ const Budget = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4 sm:p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <Skeleton className="h-10 w-48" />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-            <Skeleton className="h-32" />
-          </div>
-          <Skeleton className="h-80" />
+      <div className="p-4 sm:p-6 space-y-6">
+        <Skeleton className="h-10 w-48" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
         </div>
+        <Skeleton className="h-80" />
       </div>
     );
   }
 
-  // Show onboarding if no accounts
   if (accounts.length === 0) {
     return (
       <>
@@ -94,19 +89,19 @@ const Budget = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/app" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <img src={logo} alt="Skoolife" className="w-8 h-8 rounded-lg" />
-              <span className="font-bold hidden sm:inline">Skoolife</span>
-            </Link>
-            <div className="h-6 w-px bg-border" />
-            <h1 className="text-lg font-semibold">Mon Budget</h1>
+    <div className="flex flex-col h-full">
+      {/* Page Header */}
+      <div className="px-4 sm:px-6 py-4 border-b border-border bg-card/50">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Wallet className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Budget</h1>
+              <p className="text-sm text-muted-foreground">Suis tes dépenses et ton reste à vivre</p>
+            </div>
           </div>
-
           <div className="flex items-center gap-3">
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
               <SelectTrigger className="w-40">
@@ -120,28 +115,21 @@ const Budget = () => {
                 ))}
               </SelectContent>
             </Select>
-
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setShowTutorial(true)}
-            >
+            <Button variant="ghost" size="icon" onClick={() => setShowTutorial(true)}>
               <HelpCircle className="w-5 h-5" />
             </Button>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {/* Summary Cards */}
+      {/* Content */}
+      <div className="flex-1 overflow-auto px-4 sm:px-6 py-6 space-y-6">
         <BudgetSummaryCards 
           transactions={transactions}
           selectedMonth={selectedMonth}
           monthlyIncomeEstimate={settings?.monthly_income_estimate}
         />
 
-        {/* Chart + Budgets */}
         <div className="grid lg:grid-cols-2 gap-6">
           <CategoryChart 
             transactions={transactions}
@@ -159,7 +147,6 @@ const Budget = () => {
           />
         </div>
 
-        {/* Transactions */}
         <TransactionList
           transactions={transactions}
           categories={categories}
@@ -168,14 +155,12 @@ const Budget = () => {
             await updateTransactionCategory(id, catId);
           }}
         />
-      </main>
+      </div>
 
-      {/* Tutorial Overlay */}
       {showTutorial && (
         <BudgetTutorialOverlay onComplete={handleTutorialComplete} />
       )}
 
-      {/* Connect Dialog */}
       <ConnectBankDialog 
         open={connectDialogOpen}
         onOpenChange={setConnectDialogOpen}
@@ -185,4 +170,4 @@ const Budget = () => {
   );
 };
 
-export default Budget;
+export default BudgetPage;

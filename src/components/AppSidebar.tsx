@@ -10,18 +10,18 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarFooter,
-  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { Calendar, TrendingUp, Wallet, Settings, LogOut, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Calendar, TrendingUp, Wallet, Settings, LogOut } from 'lucide-react';
 import logo from '@/assets/logo.png';
+import { cn } from '@/lib/utils';
 
 const navItems = [
-  { title: 'Planning', url: '/app', icon: Calendar },
-  { title: 'Progression', url: '/progression', icon: TrendingUp },
-  { title: 'Budget', url: '/budget', icon: Wallet },
-  { title: 'Paramètres', url: '/settings', icon: Settings },
+  { title: 'Planning', url: '/app/planning', icon: Calendar },
+  { title: 'Progression', url: '/app/progression', icon: TrendingUp },
+  { title: 'Budget', url: '/app/budget', icon: Wallet },
+  { title: 'Paramètres', url: '/app/settings', icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -30,14 +30,14 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname.startsWith(path);
 
   const handleSignOut = async () => {
     await signOut();
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border">
+    <Sidebar collapsible="icon" className="border-r border-border bg-card">
       <SidebarHeader className="p-4">
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl flex-shrink-0" />
@@ -47,39 +47,50 @@ export function AppSidebar() {
         </Link>
       </SidebarHeader>
 
-      <SidebarContent className="px-2">
+      <SidebarContent className="px-3 py-2">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link 
-                      to={item.url}
-                      className="flex items-center gap-3"
+            <SidebarMenu className="space-y-1">
+              {navItems.map((item) => {
+                const active = isActive(item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      tooltip={item.title}
+                      className={cn(
+                        "h-11 transition-all",
+                        active && "bg-primary/10 text-primary font-semibold border border-primary/20"
+                      )}
                     >
-                      <item.icon className="w-5 h-5 flex-shrink-0" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      <Link 
+                        to={item.url}
+                        className="flex items-center gap-3"
+                      >
+                        <item.icon className={cn(
+                          "w-5 h-5 flex-shrink-0",
+                          active && "text-primary"
+                        )} />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-2">
+      <SidebarFooter className="p-3 mt-auto">
+        <Separator className="mb-3" />
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={handleSignOut}
               tooltip="Déconnexion"
-              className="text-muted-foreground hover:text-destructive"
+              className="h-11 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             >
               <LogOut className="w-5 h-5 flex-shrink-0" />
               <span>Déconnexion</span>
