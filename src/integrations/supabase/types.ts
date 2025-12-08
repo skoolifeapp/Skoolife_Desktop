@@ -122,6 +122,199 @@ export type Database = {
         }
         Relationships: []
       }
+      finance_accounts: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: string
+          iban: string | null
+          id: string
+          last_sync_at: string | null
+          name: string
+          provider: string
+          provider_account_id: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          iban?: string | null
+          id?: string
+          last_sync_at?: string | null
+          name: string
+          provider?: string
+          provider_account_id?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: string
+          iban?: string | null
+          id?: string
+          last_sync_at?: string | null
+          name?: string
+          provider?: string
+          provider_account_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      finance_budgets: {
+        Row: {
+          amount: number
+          category_id: string
+          created_at: string
+          id: string
+          month: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          category_id: string
+          created_at?: string
+          id?: string
+          month: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string
+          created_at?: string
+          id?: string
+          month?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_budgets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "finance_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_categories: {
+        Row: {
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          user_id: string | null
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name: string
+          user_id?: string | null
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      finance_settings: {
+        Row: {
+          created_at: string
+          has_seen_finance_tutorial: boolean
+          id: string
+          monthly_income_estimate: number | null
+          primary_account_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          has_seen_finance_tutorial?: boolean
+          id?: string
+          monthly_income_estimate?: number | null
+          primary_account_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          has_seen_finance_tutorial?: boolean
+          id?: string
+          monthly_income_estimate?: number | null
+          primary_account_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_settings_primary_account_id_fkey"
+            columns: ["primary_account_id"]
+            isOneToOne: false
+            referencedRelation: "finance_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_transactions: {
+        Row: {
+          account_id: string
+          amount: number
+          category_id: string | null
+          created_at: string
+          currency: string
+          date: string
+          id: string
+          label: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          currency?: string
+          date: string
+          id?: string
+          label: string
+          source?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          currency?: string
+          date?: string
+          id?: string
+          label?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "finance_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "finance_transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "finance_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -212,6 +405,7 @@ export type Database = {
         Row: {
           color: string | null
           created_at: string | null
+          difficulty_level: string | null
           exam_date: string | null
           exam_weight: number | null
           id: string
@@ -222,6 +416,7 @@ export type Database = {
         Insert: {
           color?: string | null
           created_at?: string | null
+          difficulty_level?: string | null
           exam_date?: string | null
           exam_weight?: number | null
           id?: string
@@ -232,6 +427,7 @@ export type Database = {
         Update: {
           color?: string | null
           created_at?: string | null
+          difficulty_level?: string | null
           exam_date?: string | null
           exam_weight?: number | null
           id?: string
@@ -240,6 +436,66 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      tasks: {
+        Row: {
+          created_at: string
+          description: string | null
+          due_date: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          linked_event_id: string | null
+          priority: string
+          status: string
+          subject_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          linked_event_id?: string | null
+          priority?: string
+          status?: string
+          subject_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          linked_event_id?: string | null
+          priority?: string
+          status?: string
+          subject_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_linked_event_id_fkey"
+            columns: ["linked_event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {
