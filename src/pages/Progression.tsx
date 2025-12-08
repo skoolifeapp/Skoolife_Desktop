@@ -214,12 +214,13 @@ const Progression = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
-            <span className="text-xl font-bold text-foreground">Skoolife</span>
+            <img src={logo} alt="Skoolife" className="w-8 h-8 md:w-10 md:h-10 rounded-xl" />
+            <span className="text-lg md:text-xl font-bold text-foreground hidden sm:inline">Skoolife</span>
           </Link>
-          <div className="flex items-center gap-2">
+          {/* Desktop navigation */}
+          <div className="hidden md:flex items-center gap-2">
             <Button variant="ghost" size="sm" asChild>
               <Link to="/app">
                 <ChevronLeft className="w-4 h-4 mr-1" />
@@ -237,60 +238,76 @@ const Progression = () => {
               Déconnexion
             </Button>
           </div>
+          {/* Mobile navigation */}
+          <div className="flex md:hidden items-center gap-1">
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/app">
+                <ChevronLeft className="w-5 h-5" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/settings">
+                <Settings className="w-5 h-5" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleSignOut}>
+              <LogOut className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-primary" />
+      <main className="max-w-4xl mx-auto px-4 py-4 md:py-8 space-y-4 md:space-y-6">
+        <div className="flex items-center gap-3 mb-4 md:mb-8">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <TrendingUp className="w-5 h-5 md:w-6 md:h-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Ta progression</h1>
-            <p className="text-muted-foreground">Suis tes efforts et tes résultats</p>
+            <h1 className="text-xl md:text-2xl font-bold">Ta progression</h1>
+            <p className="text-sm text-muted-foreground">Suis tes efforts et tes résultats</p>
           </div>
         </div>
 
         {/* Current week summary */}
         <Card className="border-0 shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
+          <CardHeader className="pb-2 md:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <Target className="w-4 h-4 md:w-5 md:h-5 text-primary" />
               Cette semaine
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 md:space-y-6">
             {currentWeekStats && (
               <>
-                {/* Main stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-secondary/50 rounded-lg">
+                {/* Main stats - Stack on mobile */}
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
+                  <div className="text-center p-3 md:p-4 bg-secondary/50 rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-1">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <Clock className="w-3 h-3 md:w-4 md:h-4 text-muted-foreground" />
                     </div>
-                    <p className="text-2xl font-bold">{currentWeekStats.plannedHours}h</p>
-                    <p className="text-xs text-muted-foreground">planifiées</p>
+                    <p className="text-xl md:text-2xl font-bold">{currentWeekStats.plannedHours}h</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground">planifiées</p>
                   </div>
-                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="text-center p-3 md:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
                     <div className="flex items-center justify-center gap-2 mb-1">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4 text-green-600" />
                     </div>
-                    <p className="text-2xl font-bold text-green-600">{currentWeekStats.doneHours}h</p>
-                    <p className="text-xs text-muted-foreground">réalisées</p>
+                    <p className="text-xl md:text-2xl font-bold text-green-600">{currentWeekStats.doneHours}h</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground">réalisées</p>
                   </div>
-                  <div className="text-center p-4 bg-primary/10 rounded-lg col-span-2 md:col-span-2">
-                    <p className="text-3xl font-bold text-primary">{currentWeekStats.completionRate}%</p>
-                    <p className="text-xs text-muted-foreground">de ton planning respecté</p>
+                  <div className="text-center p-3 md:p-4 bg-primary/10 rounded-lg col-span-2">
+                    <p className="text-2xl md:text-3xl font-bold text-primary">{currentWeekStats.completionRate}%</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground">de ton planning respecté</p>
                     <Progress value={currentWeekStats.completionRate} className="mt-2 h-2" />
                   </div>
                 </div>
 
-                {/* Session counts */}
-                <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-                  <span>Sessions : {currentWeekStats.plannedCount} prévues</span>
-                  <span>•</span>
+                {/* Session counts - Stack on mobile */}
+                <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground">
+                  <span>{currentWeekStats.plannedCount} prévues</span>
+                  <span className="hidden sm:inline">•</span>
                   <span className="text-green-600">{currentWeekStats.doneCount} terminées</span>
-                  <span>•</span>
+                  <span className="hidden sm:inline">•</span>
                   <span className="text-red-600">{currentWeekStats.skippedCount} manquées</span>
                 </div>
 

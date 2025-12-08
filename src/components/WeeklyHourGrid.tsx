@@ -346,21 +346,21 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
   return (
     <div className="border border-border rounded-xl overflow-hidden bg-card">
       {/* Header row with days */}
-      <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border">
-        <div className="p-2 bg-secondary/30 border-r border-border" />
+      <div className="grid grid-cols-[40px_repeat(7,1fr)] md:grid-cols-[60px_repeat(7,1fr)] border-b border-border">
+        <div className="p-1 md:p-2 bg-secondary/30 border-r border-border" />
         {weekDays.map((day, index) => {
           const isToday = isSameDay(day, new Date());
           return (
             <div 
               key={index}
-              className={`p-3 text-center border-r border-border last:border-r-0 ${
+              className={`p-1.5 md:p-3 text-center border-r border-border last:border-r-0 ${
                 isToday ? 'bg-primary/10' : 'bg-secondary/30'
               }`}
             >
-              <p className="text-xs text-muted-foreground uppercase">
+              <p className="text-[10px] md:text-xs text-muted-foreground uppercase">
                 {format(day, 'EEE', { locale: fr })}
               </p>
-              <p className={`text-lg font-bold ${isToday ? 'text-primary' : ''}`}>
+              <p className={`text-sm md:text-lg font-bold ${isToday ? 'text-primary' : ''}`}>
                 {format(day, 'd')}
               </p>
             </div>
@@ -369,17 +369,17 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
       </div>
 
       {/* Scrollable time grid */}
-      <div ref={scrollContainerRef} className="overflow-y-auto max-h-[600px]">
-        <div className="grid grid-cols-[60px_repeat(7,1fr)]">
+      <div ref={scrollContainerRef} className="overflow-y-auto max-h-[50vh] md:max-h-[600px]">
+        <div className="grid grid-cols-[40px_repeat(7,1fr)] md:grid-cols-[60px_repeat(7,1fr)]">
           {/* Hour labels column */}
           <div className="border-r border-border">
             {HOURS.map(hour => (
               <div 
                 key={hour}
-                className="border-b border-border/50 text-xs text-muted-foreground flex items-start justify-end pr-2 pt-1"
+                className="border-b border-border/50 text-[10px] md:text-xs text-muted-foreground flex items-start justify-end pr-1 md:pr-2 pt-0.5 md:pt-1"
                 style={{ height: HOUR_HEIGHT }}
               >
-                {hour}:00
+                {hour}h
               </div>
             ))}
           </div>
@@ -490,7 +490,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         onDragEnd={handleDragEnd}
                         onClick={() => onEventClick?.(event)}
                         className={cn(
-                          "absolute rounded-md px-1 py-1 overflow-hidden bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 z-10 flex flex-col items-start justify-start text-left",
+                          "absolute rounded-md px-0.5 md:px-1 py-0.5 md:py-1 overflow-hidden bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 z-10 flex flex-col items-start justify-start text-left",
                           isClickable && "cursor-pointer transition-all hover:shadow-md",
                           isDraggable && "cursor-grab active:cursor-grabbing"
                         )}
@@ -501,10 +501,10 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         }}
                         title={`${event.title}\n${formatTimeRange(event.start_datetime, event.end_datetime, true)}`}
                       >
-                        <p className="text-xs font-medium text-blue-800 dark:text-blue-200 truncate w-full">
+                        <p className="text-[8px] md:text-xs font-medium text-blue-800 dark:text-blue-200 truncate w-full leading-tight">
                           {event.title}
                         </p>
-                        <p className="text-[10px] text-blue-600 dark:text-blue-300">
+                        <p className="text-[8px] md:text-[10px] text-blue-600 dark:text-blue-300 hidden sm:block">
                           {formatTimeRange(event.start_datetime, event.end_datetime, true)}
                         </p>
                       </div>
@@ -529,7 +529,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         onDragEnd={handleDragEnd}
                         onClick={() => onSessionClick(session)}
                         className={cn(
-                          "absolute rounded-md px-1 py-1 overflow-hidden flex flex-col items-start justify-start text-left transition-all hover:shadow-md z-20",
+                          "absolute rounded-md px-0.5 md:px-1 py-0.5 md:py-1 overflow-hidden flex flex-col items-start justify-start text-left transition-all hover:shadow-md z-20",
                           isSkipped && "opacity-50",
                           isDraggable && "cursor-grab active:cursor-grabbing"
                         )}
@@ -542,17 +542,17 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         }}
                         title={`${session.subject?.name}\n${formatTimeRange(session.start_time, session.end_time)}${isDone ? ' ✓' : isSkipped ? ' ✗' : ''}`}
                       >
-                        <div className="flex items-center gap-1 w-full">
+                        <div className="flex items-center gap-0.5 md:gap-1 w-full">
                           <p 
-                            className={`text-xs font-semibold truncate flex-1 ${isDone ? 'line-through' : ''}`}
+                            className={`text-[8px] md:text-xs font-semibold truncate flex-1 leading-tight ${isDone ? 'line-through' : ''}`}
                             style={{ color: isDone ? '#22c55e' : isSkipped ? '#ef4444' : session.subject?.color }}
                           >
                             {session.subject?.name}
                           </p>
-                          {isDone && <span className="text-green-500 text-xs">✓</span>}
-                          {isSkipped && <span className="text-red-500 text-xs">✗</span>}
+                          {isDone && <span className="text-green-500 text-[8px] md:text-xs">✓</span>}
+                          {isSkipped && <span className="text-red-500 text-[8px] md:text-xs">✗</span>}
                         </div>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-[8px] md:text-[10px] text-muted-foreground hidden sm:block">
                           {formatTimeRange(session.start_time, session.end_time)}
                         </p>
                       </div>

@@ -692,12 +692,13 @@ const Dashboard = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
-            <span className="text-xl font-bold text-foreground">Skoolife</span>
+            <img src={logo} alt="Skoolife" className="w-8 h-8 md:w-10 md:h-10 rounded-xl" />
+            <span className="text-lg md:text-xl font-bold text-foreground hidden sm:inline">Skoolife</span>
           </Link>
-          <div className="flex items-center gap-2">
+          {/* Desktop navigation */}
+          <div className="hidden md:flex items-center gap-2">
             <Button variant="ghost" size="sm" asChild>
               <Link to="/progression">
                 <TrendingUp className="w-4 h-4 mr-2" />
@@ -715,15 +716,63 @@ const Dashboard = () => {
               Déconnexion
             </Button>
           </div>
+          {/* Mobile navigation */}
+          <div className="flex md:hidden items-center gap-1">
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/progression">
+                <TrendingUp className="w-5 h-5" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/settings">
+                <Settings className="w-5 h-5" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleSignOut}>
+              <LogOut className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-[300px_1fr] gap-8">
-          {/* Sidebar */}
-          <aside className="space-y-6">
-            {/* Welcome card */}
-            <Card className="border-0 shadow-md bg-gradient-to-br from-primary/10 to-accent/10">
+      <main className="max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-8">
+        <div className="flex flex-col lg:grid lg:grid-cols-[300px_1fr] gap-4 md:gap-8">
+          {/* Sidebar - Mobile: horizontal scroll cards, Desktop: vertical */}
+          <aside className="space-y-4 md:space-y-6 order-2 lg:order-1">
+            {/* Mobile: Stats in horizontal row */}
+            <div className="flex lg:hidden gap-3 overflow-x-auto pb-2 -mx-3 px-3">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-primary/10 to-accent/10 flex-shrink-0 min-w-[160px]">
+                <CardContent className="py-4 px-4">
+                  <p className="text-lg font-bold">Bonjour {profile?.first_name} 👋</p>
+                  <p className="text-muted-foreground text-xs">Bonne session !</p>
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-md flex-shrink-0 min-w-[120px]">
+                <CardContent className="py-4 px-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold">{totalPlannedHours}h</p>
+                    <p className="text-xs text-muted-foreground">planifiées</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-md flex-shrink-0 min-w-[120px]">
+                <CardContent className="py-4 px-4 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-subject-green/10 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-subject-green" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-bold">{completedSessions}</p>
+                    <p className="text-xs text-muted-foreground">terminées</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Desktop: Welcome card */}
+            <Card className="hidden lg:block border-0 shadow-md bg-gradient-to-br from-primary/10 to-accent/10">
               <CardContent className="pt-6">
                 <h2 className="text-2xl font-bold mb-2">
                   Bonjour {profile?.first_name} 👋
@@ -734,8 +783,8 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Stats */}
-            <Card className="border-0 shadow-md">
+            {/* Desktop: Stats */}
+            <Card className="hidden lg:block border-0 shadow-md">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Cette semaine</CardTitle>
               </CardHeader>
@@ -761,9 +810,9 @@ const Dashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Upcoming exams */}
+            {/* Upcoming exams - Desktop only */}
             {upcomingExams.length > 0 && (
-              <Card className="border-0 shadow-md">
+              <Card className="hidden lg:block border-0 shadow-md">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Target className="w-4 h-4" />
@@ -789,8 +838,8 @@ const Dashboard = () => {
               </Card>
             )}
 
-            {/* Actions */}
-            <div className="space-y-3">
+            {/* Actions - Desktop: vertical, Mobile: horizontal scroll */}
+            <div className="hidden lg:flex lg:flex-col space-y-3">
               <Button 
                 id="generate-planning-btn"
                 variant="hero" 
@@ -841,24 +890,79 @@ const Dashboard = () => {
                 Gérer mes matières
               </Button>
             </div>
+
+            {/* Mobile Actions - Floating at bottom */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border p-3 z-40 flex gap-2 overflow-x-auto">
+              <Button 
+                id="generate-planning-btn-mobile"
+                variant="hero" 
+                size="default"
+                className="flex-shrink-0"
+                onClick={generatePlanning}
+                disabled={generating || adjusting}
+              >
+                {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                <span className="hidden sm:inline">{generating ? 'Génération...' : 'Générer'}</span>
+              </Button>
+              <Button 
+                variant="secondary" 
+                size="default"
+                className="flex-shrink-0"
+                onClick={adjustWeek}
+                disabled={adjusting || generating}
+              >
+                {adjusting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                <span className="hidden sm:inline">{adjusting ? 'Ajustement...' : 'Ajuster'}</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="default"
+                className="flex-shrink-0"
+                onClick={() => setImportDialogOpen(true)}
+              >
+                <Upload className="w-4 h-4" />
+                <span className="hidden sm:inline">Import</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="default"
+                className="flex-shrink-0"
+                onClick={() => setSubjectsDialogOpen(true)}
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Matières</span>
+              </Button>
+            </div>
           </aside>
 
           {/* Calendar */}
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4 order-1 lg:order-2 pb-20 lg:pb-0">
             {/* Week navigation */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h2 className="text-lg md:text-xl font-bold">
                 Semaine du {format(weekStart, 'dd MMM', { locale: fr })}
               </h2>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Desktop: full button */}
                 <Button 
                   id="add-event-btn"
                   variant="outline" 
                   size="sm"
                   onClick={() => setAddEventDialogOpen(true)}
+                  className="hidden sm:flex"
                 >
                   <Plus className="w-4 h-4" />
                   Ajouter un évènement
+                </Button>
+                {/* Mobile: icon only */}
+                <Button 
+                  id="add-event-btn-mobile"
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => setAddEventDialogOpen(true)}
+                  className="sm:hidden"
+                >
+                  <Plus className="w-4 h-4" />
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -871,7 +975,7 @@ const Dashboard = () => {
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="max-w-[90vw] sm:max-w-lg">
                     <AlertDialogHeader>
                       <AlertDialogTitle>Supprimer tous les événements ?</AlertDialogTitle>
                       <AlertDialogDescription>
@@ -879,11 +983,11 @@ const Dashboard = () => {
                         Cette action est irréversible.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                      <AlertDialogCancel className="w-full sm:w-auto">Annuler</AlertDialogCancel>
                       <AlertDialogAction 
                         onClick={handleDeleteAllEvents}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90 w-full sm:w-auto"
                         disabled={deletingEvents}
                       >
                         {deletingEvents ? (
@@ -907,6 +1011,7 @@ const Dashboard = () => {
                   variant="outline" 
                   size="sm"
                   onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+                  className="text-xs sm:text-sm"
                 >
                   Aujourd'hui
                 </Button>
