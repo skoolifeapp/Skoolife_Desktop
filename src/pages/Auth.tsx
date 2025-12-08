@@ -22,21 +22,25 @@ const Auth = () => {
     const checkProfileAndRedirect = async () => {
       if (!user) return;
       
-      console.log('Auth: Checking profile for user:', user.id);
-      
-      const { data: profile, error } = await supabase
+      // Check if profile exists
+      const { data: profile } = await supabase
         .from('profiles')
         .select('is_onboarding_complete')
         .eq('id', user.id)
         .maybeSingle();
       
-      console.log('Auth: Profile data:', profile, 'Error:', error);
+      // If no profile exists, create one (for OAuth users or legacy accounts)
+      if (!profile) {
+        await supabase
+          .from('profiles')
+          .insert({ id: user.id, email: user.email });
+        navigate('/onboarding');
+        return;
+      }
       
-      if (profile?.is_onboarding_complete === true) {
-        console.log('Auth: Redirecting to /app');
+      if (profile.is_onboarding_complete === true) {
         navigate('/app');
       } else {
-        console.log('Auth: Redirecting to /onboarding');
         navigate('/onboarding');
       }
     };
