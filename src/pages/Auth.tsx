@@ -19,9 +19,24 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      navigate('/onboarding');
-    }
+    if (!user) return;
+
+    const checkOnboardingStatus = async () => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_onboarding_complete')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      // If onboarding complete, go to app. Otherwise, go to onboarding.
+      if (profile?.is_onboarding_complete === true) {
+        navigate('/app');
+      } else {
+        navigate('/onboarding');
+      }
+    };
+
+    checkOnboardingStatus();
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,7 +129,7 @@ const Auth = () => {
                   const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                      redirectTo: `${window.location.origin}/onboarding`
+                      redirectTo: `${window.location.origin}/auth`
                     }
                   });
                   if (error) toast.error(error.message);
