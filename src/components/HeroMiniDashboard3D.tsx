@@ -83,7 +83,7 @@ const HeroMiniDashboard3D = () => {
   return (
     <div 
       ref={containerRef}
-      className="relative w-full max-w-[900px] mx-auto mt-8 md:mt-0"
+      className="relative w-full max-w-[700px] mx-auto mt-8 md:mt-0"
       style={{ perspective: '1200px' }}
       aria-label="Aperçu du dashboard Skoolife montrant un planning de révisions hebdomadaire"
     >
@@ -104,7 +104,7 @@ const HeroMiniDashboard3D = () => {
             animation: 'breathing 8s ease-in-out infinite',
           }}
         >
-          <div className="flex" style={{ minHeight: '400px' }}>
+          <div className="flex" style={{ minHeight: '340px' }}>
             {/* Left Sidebar */}
             <div 
               className="w-[160px] flex-shrink-0 flex flex-col p-3 gap-3"
