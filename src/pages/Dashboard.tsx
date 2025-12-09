@@ -39,7 +39,8 @@ const Dashboard = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [sessions, setSessions] = useState<RevisionSession[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -141,6 +142,7 @@ const Dashboard = () => {
       toast.error('Erreur lors du chargement des données');
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -734,7 +736,7 @@ const Dashboard = () => {
     .sort((a, b) => new Date(a.exam_date!).getTime() - new Date(b.exam_date!).getTime())
     .slice(0, 3);
 
-  if (loading) {
+  if (initialLoad && loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

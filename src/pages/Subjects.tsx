@@ -18,7 +18,8 @@ import AppSidebar from '@/components/AppSidebar';
 
 const Subjects = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'archived'>('all');
@@ -79,6 +80,7 @@ const Subjects = () => {
       console.error(err);
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -140,7 +142,7 @@ const Subjects = () => {
     return 'bg-destructive/20 text-destructive';
   };
 
-  if (loading) {
+  if (initialLoad && loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
