@@ -10,6 +10,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import SupportButton from '@/components/SupportButton';
 import AppSidebar from '@/components/AppSidebar';
+import { ProgressionTutorialOverlay } from '@/components/ProgressionTutorialOverlay';
 import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -51,6 +52,7 @@ const Progression = () => {
   const [currentWeekStats, setCurrentWeekStats] = useState<WeekStats | null>(null);
   const [subjectStats, setSubjectStats] = useState<SubjectStats[]>([]);
   const [weekHistory, setWeekHistory] = useState<WeekStats[]>([]);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   
   const { user, signOut } = useAuth();
@@ -63,6 +65,20 @@ const Progression = () => {
     }
     fetchData();
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (!loading) {
+      const hasSeenTutorial = localStorage.getItem('hasSeenProgressionTutorial');
+      if (!hasSeenTutorial) {
+        setShowTutorial(true);
+      }
+    }
+  }, [loading]);
+
+  const handleTutorialComplete = () => {
+    localStorage.setItem('hasSeenProgressionTutorial', 'true');
+    setShowTutorial(false);
+  };
 
   const calculateSessionDuration = (startTime: string, endTime: string): number => {
     const [startH, startM] = startTime.split(':').map(Number);
@@ -212,6 +228,10 @@ const Progression = () => {
   return (
     <AppSidebar>
       <div className="flex-1 p-6 md:p-8 space-y-6 overflow-auto">
+        {showTutorial && (
+          <ProgressionTutorialOverlay onComplete={handleTutorialComplete} />
+        )}
+        
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
             <TrendingUp className="w-6 h-6 text-primary" />
@@ -223,7 +243,7 @@ const Progression = () => {
         </div>
 
         {/* Current week summary */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md" data-progression-week-stats>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5 text-primary" />
@@ -276,7 +296,7 @@ const Progression = () => {
 
         {/* Subject breakdown */}
         {subjectStats.length > 0 && (
-          <Card className="border-0 shadow-md">
+          <Card className="border-0 shadow-md" data-progression-subject-breakdown>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-primary" />
@@ -342,7 +362,7 @@ const Progression = () => {
         )}
 
         {/* Week history */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md" data-progression-history>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-primary" />
