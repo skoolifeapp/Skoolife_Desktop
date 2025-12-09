@@ -602,7 +602,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         {/* Top resize handle - only visible when hovering near top */}
                         {onEventResize && (
                           <div
-                            className="absolute top-0 left-0 right-0 h-3 cursor-ns-resize hover:bg-blue-400/50 rounded-t-md transition-colors"
+                            className="absolute top-0 left-0 right-0 h-1.5 cursor-ns-resize hover:bg-blue-400/50 rounded-t-md transition-colors"
                             onMouseDown={(e) => handleResizeStart(e, 'event', event.id, block.startMinutes, block.endMinutes, 'top')}
                           />
                         )}
@@ -617,7 +617,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         {/* Bottom resize handle - only visible when hovering near bottom */}
                         {onEventResize && (
                           <div
-                            className="absolute bottom-0 left-0 right-0 h-3 cursor-ns-resize hover:bg-blue-400/50 rounded-b-md transition-colors"
+                            className="absolute bottom-0 left-0 right-0 h-1.5 cursor-ns-resize hover:bg-blue-400/50 rounded-b-md transition-colors"
                             onMouseDown={(e) => handleResizeStart(e, 'event', event.id, block.startMinutes, block.endMinutes, 'bottom')}
                           />
                         )}
@@ -661,7 +661,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         {/* Top resize handle - only visible when hovering near top */}
                         {onSessionResize && (
                           <div
-                            className="absolute top-0 left-0 right-0 h-3 cursor-ns-resize rounded-t-md transition-colors hover:opacity-100 opacity-0"
+                            className="absolute top-0 left-0 right-0 h-1.5 cursor-ns-resize rounded-t-md transition-colors hover:opacity-100 opacity-0"
                             style={{ backgroundColor: `${borderColor}50` }}
                             onMouseDown={(e) => handleResizeStart(e, 'session', session.id, block.startMinutes, block.endMinutes, 'top')}
                           />
@@ -684,7 +684,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         {/* Bottom resize handle - only visible when hovering near bottom */}
                         {onSessionResize && (
                           <div
-                            className="absolute bottom-0 left-0 right-0 h-3 cursor-ns-resize rounded-b-md transition-colors hover:opacity-100 opacity-0"
+                            className="absolute bottom-0 left-0 right-0 h-1.5 cursor-ns-resize rounded-b-md transition-colors hover:opacity-100 opacity-0"
                             style={{ backgroundColor: `${borderColor}50` }}
                             onMouseDown={(e) => handleResizeStart(e, 'session', session.id, block.startMinutes, block.endMinutes, 'bottom')}
                           />
