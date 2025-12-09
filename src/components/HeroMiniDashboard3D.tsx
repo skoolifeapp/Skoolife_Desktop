@@ -83,7 +83,7 @@ const HeroMiniDashboard3D = () => {
   return (
     <div 
       ref={containerRef}
-      className="relative w-full max-w-[800px] mx-auto mt-8 md:mt-0"
+      className="relative w-full max-w-[900px] mx-auto mt-8 md:mt-0"
       style={{ perspective: '1200px' }}
       aria-label="Aperçu du dashboard Skoolife montrant un planning de révisions hebdomadaire"
     >
