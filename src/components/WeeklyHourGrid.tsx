@@ -599,10 +599,10 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         }}
                         title={`${event.title}\n${formatTimeRange(event.start_datetime, event.end_datetime, true)}`}
                       >
-                        {/* Top resize handle */}
+                        {/* Top resize handle - only visible when hovering near top */}
                         {onEventResize && (
                           <div
-                            className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 transition-opacity bg-blue-400/50 rounded-t-md"
+                            className="absolute top-0 left-0 right-0 h-3 cursor-ns-resize hover:bg-blue-400/50 rounded-t-md transition-colors"
                             onMouseDown={(e) => handleResizeStart(e, 'event', event.id, block.startMinutes, block.endMinutes, 'top')}
                           />
                         )}
@@ -614,10 +614,10 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                             ? `${resizePreview.newStartTime || formatTimeRange(event.start_datetime, event.end_datetime, true).split(' - ')[0]} - ${resizePreview.newEndTime || formatTimeRange(event.start_datetime, event.end_datetime, true).split(' - ')[1]}`
                             : formatTimeRange(event.start_datetime, event.end_datetime, true)}
                         </p>
-                        {/* Bottom resize handle */}
+                        {/* Bottom resize handle - only visible when hovering near bottom */}
                         {onEventResize && (
                           <div
-                            className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 transition-opacity bg-blue-400/50 rounded-b-md"
+                            className="absolute bottom-0 left-0 right-0 h-3 cursor-ns-resize hover:bg-blue-400/50 rounded-b-md transition-colors"
                             onMouseDown={(e) => handleResizeStart(e, 'event', event.id, block.startMinutes, block.endMinutes, 'bottom')}
                           />
                         )}
@@ -658,10 +658,10 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         }}
                         title={`${session.subject?.name}\n${formatTimeRange(session.start_time, session.end_time)}${isDone ? ' ✓' : isSkipped ? ' ✗' : ''}`}
                       >
-                        {/* Top resize handle */}
+                        {/* Top resize handle - only visible when hovering near top */}
                         {onSessionResize && (
                           <div
-                            className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 transition-opacity rounded-t-md"
+                            className="absolute top-0 left-0 right-0 h-3 cursor-ns-resize rounded-t-md transition-colors hover:opacity-100 opacity-0"
                             style={{ backgroundColor: `${borderColor}50` }}
                             onMouseDown={(e) => handleResizeStart(e, 'session', session.id, block.startMinutes, block.endMinutes, 'top')}
                           />
@@ -681,10 +681,10 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                             ? `${resizePreview.newStartTime || session.start_time.slice(0, 5)} - ${resizePreview.newEndTime || session.end_time.slice(0, 5)}`
                             : formatTimeRange(session.start_time, session.end_time)}
                         </p>
-                        {/* Bottom resize handle */}
+                        {/* Bottom resize handle - only visible when hovering near bottom */}
                         {onSessionResize && (
                           <div
-                            className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize opacity-0 group-hover:opacity-100 transition-opacity rounded-b-md"
+                            className="absolute bottom-0 left-0 right-0 h-3 cursor-ns-resize rounded-b-md transition-colors hover:opacity-100 opacity-0"
                             style={{ backgroundColor: `${borderColor}50` }}
                             onMouseDown={(e) => handleResizeStart(e, 'session', session.id, block.startMinutes, block.endMinutes, 'bottom')}
                           />
