@@ -320,6 +320,7 @@ export type Database = {
           created_at: string | null
           email: string | null
           first_name: string | null
+          has_seen_support_hint: boolean | null
           id: string
           is_onboarding_complete: boolean | null
           last_name: string | null
@@ -333,6 +334,7 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           first_name?: string | null
+          has_seen_support_hint?: boolean | null
           id: string
           is_onboarding_complete?: boolean | null
           last_name?: string | null
@@ -346,6 +348,7 @@ export type Database = {
           created_at?: string | null
           email?: string | null
           first_name?: string | null
+          has_seen_support_hint?: boolean | null
           id?: string
           is_onboarding_complete?: boolean | null
           last_name?: string | null
@@ -496,6 +499,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          route: string | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          route?: string | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          route?: string | null
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
       }
       user_preferences: {
         Row: {

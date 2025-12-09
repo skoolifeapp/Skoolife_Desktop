@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import logo from '@/assets/logo.png';
+import SupportButton from '@/components/SupportButton';
 import { format, startOfWeek, endOfWeek, subWeeks, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -415,6 +416,9 @@ const Progression = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Support Button */}
+        <SupportButton />
       </main>
     </div>
   );

@@ -32,6 +32,7 @@ import WeeklyHourGrid, { type GridClickData } from '@/components/WeeklyHourGrid'
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 import { SessionStatusDialog } from '@/components/SessionStatusDialog';
+import SupportButton from '@/components/SupportButton';
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
 const Dashboard = () => {
@@ -1033,6 +1034,14 @@ const Dashboard = () => {
           }}
         />
       )}
+
+      {/* Support Button */}
+      <SupportButton 
+        onShowTutorial={() => {
+          localStorage.removeItem(`tutorial_seen_${user?.id}`);
+          setShowTutorial(true);
+        }}
+      />
     </div>
   );
 };

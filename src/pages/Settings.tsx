@@ -30,6 +30,7 @@ import {
 import { toast } from 'sonner';
 import { ArrowLeft, User, Clock, Settings as SettingsIcon, Loader2, RotateCcw } from 'lucide-react';
 import logo from '@/assets/logo.png';
+import SupportButton from '@/components/SupportButton';
 
 const DAYS_OF_WEEK = [
   { value: 1, label: 'Lun' },
@@ -609,6 +610,9 @@ const Settings = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Support Button */}
+        <SupportButton />
       </main>
     </div>
   );
