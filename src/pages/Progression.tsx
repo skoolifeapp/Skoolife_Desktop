@@ -70,7 +70,11 @@ const Progression = () => {
     if (!loading) {
       const hasSeenTutorial = localStorage.getItem('hasSeenProgressionTutorial');
       if (!hasSeenTutorial) {
-        setShowTutorial(true);
+        // Petit délai pour s'assurer que le DOM est prêt
+        const timer = setTimeout(() => {
+          setShowTutorial(true);
+        }, 100);
+        return () => clearTimeout(timer);
       }
     }
   }, [loading]);
