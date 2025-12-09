@@ -13,27 +13,30 @@ const DAYS = [
 
 const HOURS = ['7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'];
 
-// Mock events based on screenshot
+// Mock events - cours, révisions et examens fictifs
 const MOCK_EVENTS = [
-  // Monday - VBA sessions
-  { day: 0, startHour: 1, duration: 2, title: 'VBA', time: '08:00 - 09:30', type: 'revision' },
-  { day: 0, startHour: 3, duration: 2, title: 'VBA', time: '10:00 - 11:30', type: 'revision' },
-  // Tuesday - VBA sessions
-  { day: 1, startHour: 1, duration: 2, title: 'VBA', time: '08:00 - 09:30', type: 'revision' },
-  { day: 1, startHour: 3, duration: 2, title: 'VBA', time: '10:00 - 11:30', type: 'revision' },
+  // Monday - Cours et révisions
+  { day: 0, startHour: 0, duration: 2, title: 'Comptabilité', time: '07:00 - 09:00', type: 'cours' },
+  { day: 0, startHour: 3, duration: 1.5, title: 'Révision VBA', time: '10:00 - 11:30', type: 'revision' },
+  { day: 0, startHour: 6, duration: 2, title: 'Marketing', time: '13:00 - 15:00', type: 'cours' },
+  // Tuesday - Exam day!
+  { day: 1, startHour: 1, duration: 3, title: '📝 EXAM VBA', time: '08:00 - 11:00', type: 'exam' },
+  { day: 1, startHour: 5, duration: 2, title: 'Droit des affaires', time: '12:00 - 14:00', type: 'cours' },
   // Wednesday
-  { day: 2, startHour: 1.5, duration: 2, title: 'Politiques et ...', time: '08:30 - 10:30', type: 'cours' },
-  { day: 2, startHour: 4, duration: 1, title: 'Business engl...', time: '10:45 - 11:45', type: 'revision' },
-  { day: 2, startHour: 6, duration: 1, title: 'Business engl...', time: '13:00 - 14:00', type: 'revision' },
-  { day: 2, startHour: 7, duration: 1, title: 'Management ...', time: '14:00 - 15:00', type: 'revision' },
+  { day: 2, startHour: 0.5, duration: 2, title: 'Anglais Business', time: '07:30 - 09:30', type: 'cours' },
+  { day: 2, startHour: 3, duration: 1.5, title: 'Révision Compta', time: '10:00 - 11:30', type: 'revision' },
+  { day: 2, startHour: 5, duration: 2, title: 'Stratégie', time: '12:00 - 14:00', type: 'cours' },
+  { day: 2, startHour: 7.5, duration: 1, title: 'Révision Droit', time: '14:30 - 15:30', type: 'revision' },
   // Thursday
-  { day: 3, startHour: 1.5, duration: 3.5, title: 'Financement ...', time: '08:30 - 10:30', type: 'cours' },
-  { day: 3, startHour: 4, duration: 1, title: 'Droit du trava...', time: '10:45 - 12:45', type: 'revision' },
-  { day: 3, startHour: 7, duration: 1, title: 'Droits des so...', time: '14:00 - 15:00', type: 'revision' },
+  { day: 3, startHour: 1, duration: 2, title: 'Finance', time: '08:00 - 10:00', type: 'cours' },
+  { day: 3, startHour: 4, duration: 3, title: '📝 EXAM Compta', time: '11:00 - 14:00', type: 'exam' },
   // Friday
-  { day: 4, startHour: 4, duration: 1, title: 'Business engl...', time: '10:45 - 11:45', type: 'revision' },
-  { day: 4, startHour: 6, duration: 1, title: 'Business engl...', time: '13:00 - 14:00', type: 'revision' },
-  { day: 4, startHour: 7, duration: 1, title: 'Politiques et ...', time: '14:00 - 15:00', type: 'revision' },
+  { day: 4, startHour: 0.5, duration: 2, title: 'RH & Management', time: '07:30 - 09:30', type: 'cours' },
+  { day: 4, startHour: 3, duration: 1.5, title: 'Révision Anglais', time: '10:00 - 11:30', type: 'revision' },
+  { day: 4, startHour: 5.5, duration: 2, title: 'Économie', time: '12:30 - 14:30', type: 'cours' },
+  // Saturday - Révisions
+  { day: 5, startHour: 2, duration: 2, title: 'Révision Finance', time: '09:00 - 11:00', type: 'revision' },
+  { day: 5, startHour: 4.5, duration: 1.5, title: 'Révision Stratégie', time: '11:30 - 13:00', type: 'revision' },
 ];
 
 const HeroMiniDashboard3D = () => {
@@ -68,6 +71,9 @@ const HeroMiniDashboard3D = () => {
   }, [isMobile]);
 
   const getEventClasses = (type: string) => {
+    if (type === 'exam') {
+      return 'bg-red-100 border-red-300 text-red-700 dark:bg-red-900/40 dark:border-red-600/50 dark:text-red-300';
+    }
     if (type === 'cours') {
       return 'bg-primary/20 border-primary/30 text-primary dark:bg-primary/30 dark:border-primary/40 dark:text-primary';
     }
