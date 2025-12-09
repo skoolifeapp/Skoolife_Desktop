@@ -39,7 +39,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex fixed left-0 top-0 h-full w-64 flex-col bg-card border-r border-border p-6 z-50">
+      <aside className="hidden lg:flex fixed left-0 top-0 h-full w-56 flex-col bg-card border-r border-border p-5 z-50">
         <Link to="/" className="flex items-center gap-3 mb-10">
           <img src={logo} alt="Skoolife" className="h-9 w-auto" />
           <span className="font-bold text-xl text-foreground">Skoolife</span>
@@ -130,7 +130,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
       )}
 
       {/* Main content */}
-      <main className="lg:ml-64 min-h-screen">
+      <main className="lg:ml-56 min-h-screen">
         {children}
       </main>
     </div>
