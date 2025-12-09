@@ -11,32 +11,32 @@ const DAYS = [
   { short: 'DIM.', num: 14 },
 ];
 
-const HOURS = ['7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'];
+const HOURS = ['8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
 
-// Mock events - cours, révisions et examens fictifs
+// Mock events - emploi du temps étudiant réaliste
 const MOCK_EVENTS = [
-  // Monday - Cours et révisions
-  { day: 0, startHour: 0, duration: 2, title: 'Comptabilité', time: '07:00 - 09:00', type: 'cours' },
-  { day: 0, startHour: 3, duration: 1.5, title: 'Révision VBA', time: '10:00 - 11:30', type: 'revision' },
-  { day: 0, startHour: 6, duration: 2, title: 'Marketing', time: '13:00 - 15:00', type: 'cours' },
-  // Tuesday - Exam day!
-  { day: 1, startHour: 1, duration: 3, title: '📝 EXAM VBA', time: '08:00 - 11:00', type: 'exam' },
-  { day: 1, startHour: 5, duration: 2, title: 'Droit des affaires', time: '12:00 - 14:00', type: 'cours' },
-  // Wednesday
-  { day: 2, startHour: 0.5, duration: 2, title: 'Anglais Business', time: '07:30 - 09:30', type: 'cours' },
-  { day: 2, startHour: 3, duration: 1.5, title: 'Révision Compta', time: '10:00 - 11:30', type: 'revision' },
-  { day: 2, startHour: 5, duration: 2, title: 'Stratégie', time: '12:00 - 14:00', type: 'cours' },
-  { day: 2, startHour: 7.5, duration: 1, title: 'Révision Droit', time: '14:30 - 15:30', type: 'revision' },
+  // Monday - Cours matin + révision soir
+  { day: 0, startHour: 1, duration: 2, title: 'Comptabilité', time: '09:00 - 11:00', type: 'cours' },
+  { day: 0, startHour: 6, duration: 1.5, title: 'Marketing', time: '14:00 - 15:30', type: 'cours' },
+  { day: 0, startHour: 9, duration: 1.5, title: 'Révision VBA', time: '17:00 - 18:30', type: 'revision' },
+  // Tuesday
+  { day: 1, startHour: 0, duration: 2, title: 'Anglais', time: '08:00 - 10:00', type: 'cours' },
+  { day: 1, startHour: 2.5, duration: 1.5, title: 'Droit', time: '10:30 - 12:00', type: 'cours' },
+  { day: 1, startHour: 6, duration: 2, title: 'Finance', time: '14:00 - 16:00', type: 'cours' },
+  // Wednesday - Après-midi libre pour révisions
+  { day: 2, startHour: 1, duration: 2, title: 'Stratégie', time: '09:00 - 11:00', type: 'cours' },
+  { day: 2, startHour: 7, duration: 2, title: 'Révision Compta', time: '15:00 - 17:00', type: 'revision' },
   // Thursday
-  { day: 3, startHour: 1, duration: 2, title: 'Finance', time: '08:00 - 10:00', type: 'cours' },
-  { day: 3, startHour: 4, duration: 3, title: '📝 EXAM Compta', time: '11:00 - 14:00', type: 'exam' },
+  { day: 3, startHour: 0, duration: 1.5, title: 'Économie', time: '08:00 - 09:30', type: 'cours' },
+  { day: 3, startHour: 2, duration: 2, title: 'RH', time: '10:00 - 12:00', type: 'cours' },
+  { day: 3, startHour: 5, duration: 2, title: 'Management', time: '13:00 - 15:00', type: 'cours' },
+  { day: 3, startHour: 9, duration: 1.5, title: 'Révision Droit', time: '17:00 - 18:30', type: 'revision' },
   // Friday
-  { day: 4, startHour: 0.5, duration: 2, title: 'RH & Management', time: '07:30 - 09:30', type: 'cours' },
-  { day: 4, startHour: 3, duration: 1.5, title: 'Révision Anglais', time: '10:00 - 11:30', type: 'revision' },
-  { day: 4, startHour: 5.5, duration: 2, title: 'Économie', time: '12:30 - 14:30', type: 'cours' },
+  { day: 4, startHour: 1, duration: 2, title: 'Projet groupe', time: '09:00 - 11:00', type: 'cours' },
+  { day: 4, startHour: 5, duration: 2, title: 'Statistiques', time: '13:00 - 15:00', type: 'cours' },
   // Saturday - Révisions
-  { day: 5, startHour: 2, duration: 2, title: 'Révision Finance', time: '09:00 - 11:00', type: 'revision' },
-  { day: 5, startHour: 4.5, duration: 1.5, title: 'Révision Stratégie', time: '11:30 - 13:00', type: 'revision' },
+  { day: 5, startHour: 2, duration: 2, title: 'Révision Finance', time: '10:00 - 12:00', type: 'revision' },
+  { day: 5, startHour: 6, duration: 1.5, title: 'Révision Éco', time: '14:00 - 15:30', type: 'revision' },
 ];
 
 const HeroMiniDashboard3D = () => {
@@ -225,7 +225,7 @@ const HeroMiniDashboard3D = () => {
                 <div className="relative">
                   {/* Hours rows */}
                   {HOURS.map((hour) => (
-                    <div key={hour} className="flex h-7 border-b border-border/50">
+                    <div key={hour} className="flex h-5 border-b border-border/50">
                       <div className="w-10 flex-shrink-0 text-[7px] text-muted-foreground pr-2 text-right pt-1">
                         {hour}
                       </div>
@@ -246,8 +246,8 @@ const HeroMiniDashboard3D = () => {
                       style={{
                         left: `calc(40px + ${event.day} * ((100% - 40px) / 7) + 2px)`,
                         width: `calc((100% - 40px) / 7 - 4px)`,
-                        top: `${event.startHour * 28 + 2}px`,
-                        height: `${event.duration * 28 - 4}px`,
+                        top: `${event.startHour * 20 + 2}px`,
+                        height: `${event.duration * 20 - 4}px`,
                       }}
                     >
                       <p className="font-semibold truncate leading-tight">{event.title}</p>
