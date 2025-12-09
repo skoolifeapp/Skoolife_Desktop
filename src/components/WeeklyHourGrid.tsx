@@ -528,8 +528,11 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                   isToday ? 'bg-primary/5' : ''
                 } ${draggedItem ? 'bg-primary/5' : ''}`}
                 onClick={(e) => {
+                  // Don't trigger if we just resized
+                  if (justResizedRef.current) return;
                   // Only trigger if clicking on empty space (not on an event/session)
                   if ((e.target as HTMLElement).closest('[draggable]')) return;
+                  if ((e.target as HTMLElement).closest('[data-event-id]')) return;
                   handleGridClick(e, day);
                 }}
                 onDragOver={(e) => handleDragOver(e, dayIndex)}
