@@ -6,10 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
-  Calendar, Clock, Upload, Plus, RefreshCw, LogOut,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2, TrendingUp, Sparkles, GraduationCap
+  Calendar, Clock, Upload, Plus, RefreshCw,
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, Sparkles, GraduationCap
 } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,19 +20,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import logo from '@/assets/logo.png';
 import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ImportCalendarDialog from '@/components/ImportCalendarDialog';
 import EditSessionDialog from '@/components/EditSessionDialog';
 import EditEventDialog from '@/components/EditEventDialog';
-import ManageSubjectsDialog from '@/components/ManageSubjectsDialog';
 import AddEventDialog from '@/components/AddEventDialog';
 import WeeklyHourGrid, { type GridClickData } from '@/components/WeeklyHourGrid';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 import { SessionStatusDialog } from '@/components/SessionStatusDialog';
 import SupportButton from '@/components/SupportButton';
+import AppSidebar from '@/components/AppSidebar';
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
 const Dashboard = () => {
@@ -745,43 +743,8 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
-            <span className="text-xl font-bold text-foreground">Skoolife</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/subjects">
-                <GraduationCap className="w-4 h-4 mr-2" />
-                Matières
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/progression">
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Progression
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/settings">
-                <Settings className="w-4 h-4 mr-2" />
-                Paramètres
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Déconnexion
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
+    <AppSidebar>
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-[300px_1fr] gap-8">
           {/* Sidebar */}
           <aside className="space-y-6">
@@ -1017,19 +980,13 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Dialogs */}
       <ImportCalendarDialog 
         open={importDialogOpen} 
         onOpenChange={setImportDialogOpen}
         onImportComplete={fetchData}
-      />
-      <ManageSubjectsDialog
-        open={subjectsDialogOpen}
-        onOpenChange={setSubjectsDialogOpen}
-        subjects={subjects}
-        onSubjectsChange={fetchData}
       />
       <AddEventDialog
         open={addEventDialogOpen}
@@ -1108,7 +1065,7 @@ const Dashboard = () => {
           setShowTutorial(true);
         }}
       />
-    </div>
+    </AppSidebar>
   );
 };
 

@@ -1,22 +1,20 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  GraduationCap, Plus, Calendar, Clock, Target, 
-  ChevronRight, MoreHorizontal, Settings, TrendingUp, LogOut
+  GraduationCap, Plus, Calendar, Clock, Target, ChevronRight
 } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import logo from '@/assets/logo.png';
 import type { Subject } from '@/types/planning';
 import SubjectDrawer from '@/components/SubjectDrawer';
 import { SubjectsTutorialOverlay } from '@/components/SubjectsTutorialOverlay';
 import SupportButton from '@/components/SupportButton';
+import AppSidebar from '@/components/AppSidebar';
 
 const Subjects = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -151,7 +149,7 @@ const Subjects = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppSidebar>
       {/* Tutorial */}
       {showTutorial && (
         <SubjectsTutorialOverlay 
@@ -164,87 +162,7 @@ const Subjects = () => {
         />
       )}
 
-      <div className="flex min-h-screen">
-        {/* Sidebar - Desktop */}
-        <aside className="hidden lg:flex w-64 flex-col bg-card border-r border-border p-6">
-          <Link to="/" className="flex items-center gap-3 mb-10">
-            <img src={logo} alt="Skoolife" className="h-8 w-auto" />
-            <span className="font-bold text-xl text-foreground">Skoolife</span>
-          </Link>
-
-          <nav className="flex-1 space-y-2">
-            <Link 
-              to="/app" 
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-secondary/50 transition-colors"
-            >
-              <Calendar className="w-5 h-5" />
-              <span className="font-medium">Planning</span>
-            </Link>
-            <Link 
-              to="/progression" 
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-secondary/50 transition-colors"
-            >
-              <TrendingUp className="w-5 h-5" />
-              <span className="font-medium">Progression</span>
-            </Link>
-            <Link 
-              to="/subjects" 
-              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary"
-            >
-              <GraduationCap className="w-5 h-5" />
-              <span className="font-medium">Matières</span>
-            </Link>
-            <Link 
-              to="/settings" 
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground hover:bg-secondary/50 transition-colors"
-            >
-              <Settings className="w-5 h-5" />
-              <span className="font-medium">Paramètres</span>
-            </Link>
-          </nav>
-
-          <div className="pt-6 border-t border-border space-y-3">
-            <ThemeToggle />
-            <Button 
-              variant="ghost" 
-              className="w-full justify-start gap-3 text-muted-foreground"
-              onClick={handleSignOut}
-            >
-              <LogOut className="w-5 h-5" />
-              Déconnexion
-            </Button>
-          </div>
-        </aside>
-
-        {/* Main content */}
-        <main className="flex-1 overflow-auto">
-          {/* Mobile Header */}
-          <header className="lg:hidden sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border px-4 py-3 flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="Skoolife" className="h-7 w-auto" />
-              <span className="font-bold text-lg">Skoolife</span>
-            </Link>
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-              <Link to="/app">
-                <Button variant="ghost" size="icon">
-                  <Calendar className="w-5 h-5" />
-                </Button>
-              </Link>
-              <Link to="/progression">
-                <Button variant="ghost" size="icon">
-                  <TrendingUp className="w-5 h-5" />
-                </Button>
-              </Link>
-              <Link to="/settings">
-                <Button variant="ghost" size="icon">
-                  <Settings className="w-5 h-5" />
-                </Button>
-              </Link>
-            </div>
-          </header>
-
-          <div className="p-4 lg:p-8 max-w-6xl mx-auto space-y-6">
+      <div className="p-4 lg:p-8 max-w-6xl mx-auto space-y-6">
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -477,8 +395,7 @@ const Subjects = () => {
               )}
             </div>
           </div>
-        </main>
-      </div>
+        </div>
 
       {/* Subject Drawer */}
       <SubjectDrawer 
@@ -491,7 +408,7 @@ const Subjects = () => {
 
       {/* Support Button */}
       <SupportButton />
-    </div>
+    </AppSidebar>
   );
 };
 
