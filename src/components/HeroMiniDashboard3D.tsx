@@ -72,7 +72,7 @@ const HeroMiniDashboard3D = () => {
 
   const getEventClasses = (type: string) => {
     if (type === 'revision') {
-      return 'bg-blue-100 border border-blue-200 border-l-[3px] border-l-blue-600 text-blue-700 dark:bg-blue-900/40 dark:border-blue-700/50 dark:border-l-blue-400 dark:text-blue-300';
+      return 'bg-blue-100 border border-blue-200 text-blue-700 dark:bg-blue-900/40 dark:border-blue-700/50 dark:text-blue-300 revision-block';
     }
     return 'bg-blue-100 border border-blue-200 text-blue-700 dark:bg-blue-900/40 dark:border-blue-700/50 dark:text-blue-300';
   };
@@ -306,6 +306,26 @@ const HeroMiniDashboard3D = () => {
         @keyframes floatCard {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-4px); }
+        }
+        
+        .revision-block {
+          position: relative;
+          overflow: visible;
+        }
+        
+        .revision-block::before {
+          content: '';
+          position: absolute;
+          left: -1px;
+          top: 2px;
+          bottom: 2px;
+          width: 3px;
+          background: #3b82f6;
+          border-radius: 3px;
+        }
+        
+        .dark .revision-block::before {
+          background: #60a5fa;
         }
       `}</style>
     </div>
