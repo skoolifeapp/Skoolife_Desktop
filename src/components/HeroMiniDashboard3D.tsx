@@ -16,24 +16,24 @@ const HOURS = ['7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:0
 // Mock events based on screenshot
 const MOCK_EVENTS = [
   // Monday - VBA sessions
-  { day: 0, startHour: 1, duration: 2, title: 'VBA', time: '08:00 - 09:30', color: 'bg-blue-100 border-blue-200 text-blue-700' },
-  { day: 0, startHour: 3, duration: 2, title: 'VBA', time: '10:00 - 11:30', color: 'bg-blue-100 border-blue-200 text-blue-700' },
+  { day: 0, startHour: 1, duration: 2, title: 'VBA', time: '08:00 - 09:30', type: 'revision' },
+  { day: 0, startHour: 3, duration: 2, title: 'VBA', time: '10:00 - 11:30', type: 'revision' },
   // Tuesday - VBA sessions
-  { day: 1, startHour: 1, duration: 2, title: 'VBA', time: '08:00 - 09:30', color: 'bg-blue-100 border-blue-200 text-blue-700' },
-  { day: 1, startHour: 3, duration: 2, title: 'VBA', time: '10:00 - 11:30', color: 'bg-blue-100 border-blue-200 text-blue-700' },
+  { day: 1, startHour: 1, duration: 2, title: 'VBA', time: '08:00 - 09:30', type: 'revision' },
+  { day: 1, startHour: 3, duration: 2, title: 'VBA', time: '10:00 - 11:30', type: 'revision' },
   // Wednesday
-  { day: 2, startHour: 1.5, duration: 2, title: 'Politiques et ...', time: '08:30 - 10:30', color: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
-  { day: 2, startHour: 4, duration: 1, title: 'Business engl...', time: '10:45 - 11:45', color: 'bg-blue-100 border-blue-200 text-blue-700' },
-  { day: 2, startHour: 6, duration: 1, title: 'Business engl...', time: '13:00 - 14:00', color: 'bg-blue-100 border-blue-200 text-blue-700' },
-  { day: 2, startHour: 7, duration: 1, title: 'Management ...', time: '14:00 - 15:00', color: 'bg-blue-100 border-blue-200 text-blue-700' },
+  { day: 2, startHour: 1.5, duration: 2, title: 'Politiques et ...', time: '08:30 - 10:30', type: 'cours' },
+  { day: 2, startHour: 4, duration: 1, title: 'Business engl...', time: '10:45 - 11:45', type: 'revision' },
+  { day: 2, startHour: 6, duration: 1, title: 'Business engl...', time: '13:00 - 14:00', type: 'revision' },
+  { day: 2, startHour: 7, duration: 1, title: 'Management ...', time: '14:00 - 15:00', type: 'revision' },
   // Thursday
-  { day: 3, startHour: 1.5, duration: 3.5, title: 'Financement ...', time: '08:30 - 10:30', color: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
-  { day: 3, startHour: 4, duration: 1, title: 'Droit du trava...', time: '10:45 - 12:45', color: 'bg-blue-100 border-blue-200 text-blue-700' },
-  { day: 3, startHour: 7, duration: 1, title: 'Droits des so...', time: '14:00 - 15:00', color: 'bg-blue-100 border-blue-200 text-blue-700' },
+  { day: 3, startHour: 1.5, duration: 3.5, title: 'Financement ...', time: '08:30 - 10:30', type: 'cours' },
+  { day: 3, startHour: 4, duration: 1, title: 'Droit du trava...', time: '10:45 - 12:45', type: 'revision' },
+  { day: 3, startHour: 7, duration: 1, title: 'Droits des so...', time: '14:00 - 15:00', type: 'revision' },
   // Friday
-  { day: 4, startHour: 4, duration: 1, title: 'Business engl...', time: '10:45 - 11:45', color: 'bg-blue-100 border-blue-200 text-blue-700' },
-  { day: 4, startHour: 6, duration: 1, title: 'Business engl...', time: '13:00 - 14:00', color: 'bg-blue-100 border-blue-200 text-blue-700' },
-  { day: 4, startHour: 7, duration: 1, title: 'Politiques et ...', time: '14:00 - 15:00', color: 'bg-blue-100 border-blue-200 text-blue-700' },
+  { day: 4, startHour: 4, duration: 1, title: 'Business engl...', time: '10:45 - 11:45', type: 'revision' },
+  { day: 4, startHour: 6, duration: 1, title: 'Business engl...', time: '13:00 - 14:00', type: 'revision' },
+  { day: 4, startHour: 7, duration: 1, title: 'Politiques et ...', time: '14:00 - 15:00', type: 'revision' },
 ];
 
 const HeroMiniDashboard3D = () => {
@@ -67,6 +67,13 @@ const HeroMiniDashboard3D = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [isMobile]);
 
+  const getEventClasses = (type: string) => {
+    if (type === 'cours') {
+      return 'bg-primary/20 border-primary/30 text-primary dark:bg-primary/30 dark:border-primary/40 dark:text-primary';
+    }
+    return 'bg-blue-100 border-blue-200 text-blue-700 dark:bg-blue-900/40 dark:border-blue-700/50 dark:text-blue-300';
+  };
+
   return (
     <div 
       ref={containerRef}
@@ -84,11 +91,10 @@ const HeroMiniDashboard3D = () => {
           transformStyle: 'preserve-3d',
         }}
       >
-        {/* Dashboard Base - Gradient Background like the app */}
+        {/* Dashboard Base */}
         <div 
-          className="relative rounded-2xl overflow-hidden shadow-2xl"
+          className="relative rounded-2xl overflow-hidden shadow-2xl bg-secondary dark:bg-background border border-border"
           style={{
-            background: 'linear-gradient(135deg, #FEF9E7 0%, #FDF6E3 50%, #FCF3D9 100%)',
             animation: 'breathing 8s ease-in-out infinite',
           }}
         >
@@ -102,58 +108,58 @@ const HeroMiniDashboard3D = () => {
               }}
             >
               {/* Hello Card */}
-              <div className="p-3 rounded-xl bg-white shadow-sm">
-                <p className="text-[11px] font-bold text-gray-800">Bonjour Alex 👋</p>
-                <p className="text-[9px] text-gray-500 mt-0.5">Prêt pour une session productive ?</p>
+              <div className="p-3 rounded-xl bg-card shadow-sm border border-border">
+                <p className="text-[11px] font-bold text-foreground">Bonjour Alex 👋</p>
+                <p className="text-[9px] text-muted-foreground mt-0.5">Prêt pour une session productive ?</p>
               </div>
 
               {/* This Week Stats */}
-              <div className="p-3 rounded-xl bg-white shadow-sm flex-1">
-                <p className="text-[10px] font-bold text-gray-800 mb-2">Cette semaine</p>
+              <div className="p-3 rounded-xl bg-card shadow-sm border border-border flex-1">
+                <p className="text-[10px] font-bold text-foreground mb-2">Cette semaine</p>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
-                      <Clock className="w-3 h-3 text-gray-500" />
+                    <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center">
+                      <Clock className="w-3 h-3 text-muted-foreground" />
                     </div>
                     <div>
-                      <span className="text-[13px] font-bold text-gray-800">6h</span>
-                      <p className="text-[8px] text-gray-500">planifiées</p>
+                      <span className="text-[13px] font-bold text-foreground">6h</span>
+                      <p className="text-[8px] text-muted-foreground">planifiées</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                    <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center">
                       <CheckCircle2 className="w-3 h-3 text-green-500" />
                     </div>
                     <div>
-                      <span className="text-[13px] font-bold text-gray-800">0</span>
-                      <p className="text-[8px] text-gray-500">sessions terminées</p>
+                      <span className="text-[13px] font-bold text-foreground">0</span>
+                      <p className="text-[8px] text-muted-foreground">sessions terminées</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Upcoming Exams */}
-              <div className="p-3 rounded-xl bg-white shadow-sm">
+              <div className="p-3 rounded-xl bg-card shadow-sm border border-border">
                 <div className="flex items-center gap-1 mb-2">
-                  <Eye className="w-3 h-3 text-gray-500" />
-                  <p className="text-[9px] font-bold text-gray-800">Prochains examens</p>
+                  <Eye className="w-3 h-3 text-muted-foreground" />
+                  <p className="text-[9px] font-bold text-foreground">Prochains examens</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-blue-500" />
                   <div>
-                    <p className="text-[9px] font-medium text-gray-800">VBA</p>
-                    <p className="text-[7px] text-gray-500">12 déc.</p>
+                    <p className="text-[9px] font-medium text-foreground">VBA</p>
+                    <p className="text-[7px] text-muted-foreground">12 déc.</p>
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
               <div className="space-y-2">
-                <div className="px-3 py-2 rounded-lg bg-primary text-white text-[9px] font-semibold flex items-center justify-center gap-1 shadow-sm">
+                <div className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-[9px] font-semibold flex items-center justify-center gap-1 shadow-sm">
                   <RefreshCw className="w-3 h-3" />
                   Générer mon planning
                 </div>
-                <div className="px-3 py-2 rounded-lg bg-blue-50 text-blue-700 text-[9px] font-medium flex items-center justify-center gap-1 border border-blue-100">
+                <div className="px-3 py-2 rounded-lg bg-accent text-accent-foreground text-[9px] font-medium flex items-center justify-center gap-1 border border-border">
                   <Sparkles className="w-3 h-3" />
                   Ajuster ma semaine
                 </div>
@@ -169,14 +175,14 @@ const HeroMiniDashboard3D = () => {
             >
               {/* Header with title and actions */}
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-[12px] font-bold text-gray-800">Semaine du 08 déc.</h2>
+                <h2 className="text-[12px] font-bold text-foreground">Semaine du 08 déc.</h2>
                 <div className="flex items-center gap-1">
                   <div className="px-2 py-1 rounded-md border border-primary/30 text-primary text-[7px] font-medium flex items-center gap-0.5">
                     <Plus className="w-2.5 h-2.5" />
                     Ajouter un évènement
                   </div>
-                  <div className="w-5 h-5 rounded-md border border-red-200 bg-red-50 flex items-center justify-center">
-                    <Trash2 className="w-2.5 h-2.5 text-red-400" />
+                  <div className="w-5 h-5 rounded-md border border-destructive/30 bg-destructive/10 flex items-center justify-center">
+                    <Trash2 className="w-2.5 h-2.5 text-destructive/60" />
                   </div>
                   <div className="w-5 h-5 rounded-md border border-primary/30 flex items-center justify-center">
                     <ChevronLeft className="w-2.5 h-2.5 text-primary" />
@@ -191,19 +197,19 @@ const HeroMiniDashboard3D = () => {
               </div>
 
               {/* Weekly Grid */}
-              <div className="flex-1 rounded-xl bg-white shadow-sm overflow-hidden border border-gray-100">
+              <div className="flex-1 rounded-xl bg-card shadow-sm overflow-hidden border border-border">
                 {/* Days Header */}
-                <div className="flex border-b border-gray-100">
+                <div className="flex border-b border-border">
                   <div className="w-10 flex-shrink-0" />
                   {DAYS.map((day) => (
                     <div 
                       key={day.short} 
                       className={`flex-1 text-center py-2 ${
-                        day.isToday ? 'text-primary' : 'text-gray-500'
+                        day.isToday ? 'text-primary' : 'text-muted-foreground'
                       }`}
                     >
                       <p className="text-[7px] font-medium">{day.short}</p>
-                      <p className={`text-[11px] font-bold ${day.isToday ? 'text-primary' : 'text-gray-800'}`}>{day.num}</p>
+                      <p className={`text-[11px] font-bold ${day.isToday ? 'text-primary' : 'text-foreground'}`}>{day.num}</p>
                     </div>
                   ))}
                 </div>
@@ -212,14 +218,14 @@ const HeroMiniDashboard3D = () => {
                 <div className="relative">
                   {/* Hours rows */}
                   {HOURS.map((hour) => (
-                    <div key={hour} className="flex h-7 border-b border-gray-50">
-                      <div className="w-10 flex-shrink-0 text-[7px] text-gray-400 pr-2 text-right pt-1">
+                    <div key={hour} className="flex h-7 border-b border-border/50">
+                      <div className="w-10 flex-shrink-0 text-[7px] text-muted-foreground pr-2 text-right pt-1">
                         {hour}
                       </div>
                       {DAYS.map((day, dayIndex) => (
                         <div 
                           key={dayIndex} 
-                          className="flex-1 border-l border-gray-50"
+                          className="flex-1 border-l border-border/50"
                         />
                       ))}
                     </div>
@@ -229,7 +235,7 @@ const HeroMiniDashboard3D = () => {
                   {MOCK_EVENTS.map((event, i) => (
                     <div
                       key={i}
-                      className={`absolute rounded-md text-[6px] font-medium px-1 py-0.5 overflow-hidden border ${event.color}`}
+                      className={`absolute rounded-md text-[6px] font-medium px-1 py-0.5 overflow-hidden border ${getEventClasses(event.type)}`}
                       style={{
                         left: `calc(40px + ${event.day} * ((100% - 40px) / 7) + 2px)`,
                         width: `calc((100% - 40px) / 7 - 4px)`,
@@ -248,7 +254,7 @@ const HeroMiniDashboard3D = () => {
 
           {/* Help Button */}
           <div 
-            className="absolute bottom-3 right-3 px-2.5 py-1.5 rounded-full bg-primary text-white text-[8px] font-medium flex items-center gap-1 shadow-lg"
+            className="absolute bottom-3 right-3 px-2.5 py-1.5 rounded-full bg-primary text-primary-foreground text-[8px] font-medium flex items-center gap-1 shadow-lg"
             style={{
               animation: 'floatCard 6s ease-in-out infinite',
             }}
@@ -267,7 +273,7 @@ const HeroMiniDashboard3D = () => {
           }}
         />
         <div 
-          className="absolute -bottom-2 -left-2 w-4 h-4 rounded-full bg-blue-200/60"
+          className="absolute -bottom-2 -left-2 w-4 h-4 rounded-full bg-accent/60"
           style={{
             transform: `translateZ(${isMobile ? '25px' : 35 + rotation.y * 1.2}px)`,
             animation: 'floatCard 10s ease-in-out infinite 2s',
