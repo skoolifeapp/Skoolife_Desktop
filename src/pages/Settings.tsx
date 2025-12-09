@@ -289,7 +289,7 @@ const Settings = () => {
 
   return (
     <AppSidebar>
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+      <div className="flex-1 p-6 md:p-8 space-y-8 overflow-auto">
         <div>
           <h1 className="text-3xl font-bold mb-2">Profil & paramètres</h1>
           <p className="text-muted-foreground">
