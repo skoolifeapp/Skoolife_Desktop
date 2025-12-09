@@ -93,7 +93,7 @@ const HeroMiniDashboard3D = () => {
       >
         {/* Dashboard Base */}
         <div 
-          className="relative rounded-2xl overflow-hidden shadow-2xl bg-secondary dark:bg-background border border-border"
+          className="relative rounded-2xl overflow-hidden shadow-2xl bg-background border border-border"
           style={{
             animation: 'breathing 8s ease-in-out infinite',
           }}
