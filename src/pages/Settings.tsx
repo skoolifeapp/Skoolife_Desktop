@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import {
@@ -28,10 +27,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { ArrowLeft, User, Clock, Settings as SettingsIcon, Loader2, RotateCcw, GraduationCap } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import logo from '@/assets/logo.png';
+import { User, Clock, Loader2, RotateCcw, Settings as SettingsIcon } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import SupportButton from '@/components/SupportButton';
+import AppSidebar from '@/components/AppSidebar';
 
 const DAYS_OF_WEEK = [
   { value: 1, label: 'Lun' },
@@ -289,33 +288,8 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
-            <span className="text-xl font-bold text-foreground">Skoolife</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/app">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Planning
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/subjects">
-                <GraduationCap className="w-4 h-4 mr-2" />
-                Matières
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+    <AppSidebar>
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Profil & paramètres</h1>
           <p className="text-muted-foreground">
@@ -623,8 +597,8 @@ const Settings = () => {
 
         {/* Support Button */}
         <SupportButton />
-      </main>
-    </div>
+      </div>
+    </AppSidebar>
   );
 };
 

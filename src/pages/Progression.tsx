@@ -1,19 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Clock, CheckCircle2, XCircle, Target, TrendingUp, 
-  LogOut, Settings, ChevronLeft, Loader2, BarChart3, GraduationCap
+  Clock, CheckCircle2, Target, TrendingUp, Loader2, BarChart3
 } from 'lucide-react';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import logo from '@/assets/logo.png';
 import SupportButton from '@/components/SupportButton';
-import { format, startOfWeek, endOfWeek, subWeeks, addDays } from 'date-fns';
+import AppSidebar from '@/components/AppSidebar';
+import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface Subject {
@@ -213,43 +210,8 @@ const Progression = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
-            <span className="text-xl font-bold text-foreground">Skoolife</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/app">
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Planning
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/subjects">
-                <GraduationCap className="w-4 h-4 mr-2" />
-                Matières
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/settings">
-                <Settings className="w-4 h-4 mr-2" />
-                Paramètres
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Déconnexion
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <AppSidebar>
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
             <TrendingUp className="w-6 h-6 text-primary" />
@@ -427,8 +389,8 @@ const Progression = () => {
 
         {/* Support Button */}
         <SupportButton />
-      </main>
-    </div>
+      </div>
+    </AppSidebar>
   );
 };
 
