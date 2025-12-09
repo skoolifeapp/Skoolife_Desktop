@@ -28,7 +28,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { ArrowLeft, User, Clock, Settings as SettingsIcon, Loader2, RotateCcw } from 'lucide-react';
+import { ArrowLeft, User, Clock, Settings as SettingsIcon, Loader2, RotateCcw, GraduationCap } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import logo from '@/assets/logo.png';
 import SupportButton from '@/components/SupportButton';
@@ -302,7 +302,13 @@ const Settings = () => {
             <Button variant="ghost" size="sm" asChild>
               <Link to="/app">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Retour au planning
+                Planning
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/subjects">
+                <GraduationCap className="w-4 h-4 mr-2" />
+                Matières
               </Link>
             </Button>
           </div>

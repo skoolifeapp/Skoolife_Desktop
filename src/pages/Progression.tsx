@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
   Clock, CheckCircle2, XCircle, Target, TrendingUp, 
-  LogOut, Settings, ChevronLeft, Loader2, BarChart3
+  LogOut, Settings, ChevronLeft, Loader2, BarChart3, GraduationCap
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
@@ -227,6 +227,12 @@ const Progression = () => {
               <Link to="/app">
                 <ChevronLeft className="w-4 h-4 mr-1" />
                 Planning
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/subjects">
+                <GraduationCap className="w-4 h-4 mr-2" />
+                Matières
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
