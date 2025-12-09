@@ -413,6 +413,8 @@ export type Database = {
           exam_weight: number | null
           id: string
           name: string
+          notes: string | null
+          status: string
           target_hours: number | null
           user_id: string
         }
@@ -424,6 +426,8 @@ export type Database = {
           exam_weight?: number | null
           id?: string
           name: string
+          notes?: string | null
+          status?: string
           target_hours?: number | null
           user_id: string
         }
@@ -435,6 +439,8 @@ export type Database = {
           exam_weight?: number | null
           id?: string
           name?: string
+          notes?: string | null
+          status?: string
           target_hours?: number | null
           user_id?: string
         }

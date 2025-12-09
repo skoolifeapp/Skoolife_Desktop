@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw, LogOut,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2, TrendingUp, Sparkles
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2, TrendingUp, Sparkles, GraduationCap
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import {
@@ -756,6 +756,12 @@ const Dashboard = () => {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Button variant="ghost" size="sm" asChild>
+              <Link to="/subjects">
+                <GraduationCap className="w-4 h-4 mr-2" />
+                Matières
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
               <Link to="/progression">
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Progression
@@ -892,10 +898,12 @@ const Dashboard = () => {
                 variant="outline" 
                 size="lg" 
                 className="w-full"
-                onClick={() => setSubjectsDialogOpen(true)}
+                asChild
               >
-                <Plus className="w-4 h-4" />
-                Gérer mes matières
+                <Link to="/subjects">
+                  <GraduationCap className="w-4 h-4" />
+                  Gérer mes matières
+                </Link>
               </Button>
             </div>
           </aside>
