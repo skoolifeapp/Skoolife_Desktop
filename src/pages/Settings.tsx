@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { ArrowLeft, User, Clock, Settings as SettingsIcon, Loader2, RotateCcw } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import logo from '@/assets/logo.png';
 import SupportButton from '@/components/SupportButton';
 
@@ -296,12 +297,15 @@ const Settings = () => {
             <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
             <span className="text-xl font-bold text-foreground">Skoolife</span>
           </Link>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/app">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Retour au planning
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/app">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Retour au planning
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 

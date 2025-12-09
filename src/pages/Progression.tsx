@@ -9,6 +9,7 @@ import {
   Clock, CheckCircle2, XCircle, Target, TrendingUp, 
   LogOut, Settings, ChevronLeft, Loader2, BarChart3
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import logo from '@/assets/logo.png';
 import SupportButton from '@/components/SupportButton';
@@ -221,6 +222,7 @@ const Progression = () => {
             <span className="text-xl font-bold text-foreground">Skoolife</span>
           </Link>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" asChild>
               <Link to="/app">
                 <ChevronLeft className="w-4 h-4 mr-1" />

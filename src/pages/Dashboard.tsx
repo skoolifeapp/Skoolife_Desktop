@@ -9,6 +9,7 @@ import {
   Calendar, Clock, Upload, Plus, RefreshCw, LogOut,
   ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Settings, Trash2, TrendingUp, Sparkles
 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -699,6 +700,7 @@ const Dashboard = () => {
             <span className="text-xl font-bold text-foreground">Skoolife</span>
           </Link>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" asChild>
               <Link to="/progression">
                 <TrendingUp className="w-4 h-4 mr-2" />
