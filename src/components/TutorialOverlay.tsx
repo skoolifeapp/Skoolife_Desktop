@@ -1,38 +1,39 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowDown, ArrowUp, X } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight, Upload, Plus, GraduationCap, Sparkles } from "lucide-react";
 
 interface TutorialStep {
   title: string;
   description: string;
   targetId: string;
-  position: "above" | "below";
+  icon: React.ReactNode;
 }
 
 const tutorialSteps: TutorialStep[] = [
   {
-    title: "1. Importer votre emploi du temps",
+    title: "Importer votre emploi du temps",
     description: "Commencez par importer le calendrier de votre école au format .ics pour bloquer automatiquement vos heures de cours.",
     targetId: "import-calendar-btn",
-    position: "above",
+    icon: <Upload className="w-6 h-6 text-primary" />,
   },
   {
-    title: "2. Ajouter vos évènements",
+    title: "Ajouter vos évènements",
     description: "Ajoutez vos activités personnelles, travail ou autres engagements pour que le planning les prenne en compte.",
     targetId: "add-event-btn",
-    position: "below",
+    icon: <Plus className="w-6 h-6 text-primary" />,
   },
   {
-    title: "3. Configurer vos matières",
+    title: "Configurer vos matières",
     description: "Ajoutez vos matières avec leurs dates d'examen et leur importance pour prioriser vos révisions.",
     targetId: "manage-subjects-btn",
-    position: "above",
+    icon: <GraduationCap className="w-6 h-6 text-primary" />,
   },
   {
-    title: "4. Générer votre planning",
+    title: "Générer votre planning",
     description: "Une fois tout configuré, générez automatiquement votre planning de révisions optimisé !",
     targetId: "generate-planning-btn",
-    position: "above",
+    icon: <Sparkles className="w-6 h-6 text-primary" />,
   },
 ];
 
@@ -50,22 +51,19 @@ export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
       if (targetElement) {
         const rect = targetElement.getBoundingClientRect();
         setTargetRect(rect);
-        
-        // Scroll to make button visible if needed
         targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     };
 
-    // Small delay to ensure DOM is ready
     const timer = setTimeout(updateTargetPosition, 100);
     
     window.addEventListener("resize", updateTargetPosition);
-    window.addEventListener("scroll", updateTargetPosition);
+    window.addEventListener("scroll", updateTargetPosition, true);
 
     return () => {
       clearTimeout(timer);
       window.removeEventListener("resize", updateTargetPosition);
-      window.removeEventListener("scroll", updateTargetPosition);
+      window.removeEventListener("scroll", updateTargetPosition, true);
     };
   }, [currentStep]);
 
@@ -77,78 +75,60 @@ export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
     }
   };
 
-  const handleSkip = () => {
-    onComplete();
-  };
-
   const step = tutorialSteps[currentStep];
   const padding = 8;
+  const holeX = targetRect ? targetRect.left - padding : 0;
+  const holeY = targetRect ? targetRect.top - padding : 0;
+  const holeWidth = targetRect ? targetRect.width + padding * 2 : 0;
+  const holeHeight = targetRect ? targetRect.height + padding * 2 : 0;
 
   // Calculate card position
-  const getCardStyle = () => {
-    if (!targetRect) return { opacity: 0 };
-    
+  let cardStyle: React.CSSProperties = {
+    position: 'fixed',
+    zIndex: 10002,
+  };
+
+  if (targetRect) {
     const cardWidth = 340;
     const cardHeight = 200;
-    const arrowGap = 50; // Increased gap for better button visibility
-    
-    let top: number;
-    let left: number;
-    
-    if (step.position === "above") {
-      top = targetRect.top - cardHeight - arrowGap;
-      // If card would be off-screen at top, place it below
-      if (top < 20) {
-        top = targetRect.bottom + arrowGap;
-      }
-    } else {
-      top = targetRect.bottom + arrowGap;
-      // If card would be off-screen at bottom, place it above
-      if (top + cardHeight > window.innerHeight - 20) {
-        top = targetRect.top - cardHeight - arrowGap;
-      }
-    }
-    
-    // Center horizontally relative to button
-    left = targetRect.left + (targetRect.width / 2) - (cardWidth / 2);
-    
-    // Keep card within viewport horizontally
-    if (left < 20) left = 20;
-    if (left + cardWidth > window.innerWidth - 20) {
-      left = window.innerWidth - cardWidth - 20;
-    }
-    
-    return {
-      position: 'fixed' as const,
-      top: `${top}px`,
-      left: `${left}px`,
-      width: `${cardWidth}px`,
-      zIndex: 60,
-    };
-  };
+    const gap = 20;
 
-  // Determine if card is above or below target for arrow direction
-  const isCardAbove = () => {
-    if (!targetRect) return true;
-    const cardStyle = getCardStyle();
-    const cardTop = parseInt(cardStyle.top as string);
-    return cardTop < targetRect.top;
-  };
+    // Position card below or above the target
+    if (targetRect.bottom + cardHeight + gap < window.innerHeight) {
+      cardStyle.top = targetRect.bottom + gap;
+    } else {
+      cardStyle.top = targetRect.top - cardHeight - gap;
+    }
+
+    // Center horizontally relative to target
+    let left = targetRect.left + targetRect.width / 2 - cardWidth / 2;
+    left = Math.max(16, Math.min(left, window.innerWidth - cardWidth - 16));
+    cardStyle.left = left;
+    cardStyle.width = cardWidth;
+  } else {
+    cardStyle.top = '50%';
+    cardStyle.left = '50%';
+    cardStyle.transform = 'translate(-50%, -50%)';
+    cardStyle.width = 340;
+  }
 
   return (
-    <div className="fixed inset-0 z-50">
-      {/* SVG overlay with hole cut out for the target button */}
-      <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }}>
+    <div className="fixed inset-0 z-[10000] pointer-events-none">
+      {/* SVG Overlay with hole */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-auto"
+        style={{ zIndex: 10000 }}
+      >
         <defs>
-          <mask id="tutorial-mask">
+          <mask id="dashboard-tutorial-mask">
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
             {targetRect && (
               <rect
-                x={targetRect.left - padding}
-                y={targetRect.top - padding}
-                width={targetRect.width + padding * 2}
-                height={targetRect.height + padding * 2}
-                rx="12"
+                x={holeX}
+                y={holeY}
+                width={holeWidth}
+                height={holeHeight}
+                rx={12}
                 fill="black"
               />
             )}
@@ -159,89 +139,76 @@ export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
           y="0"
           width="100%"
           height="100%"
-          fill="rgba(0, 0, 0, 0.7)"
-          mask="url(#tutorial-mask)"
-          style={{ pointerEvents: 'auto' }}
+          fill="rgba(0,0,0,0.7)"
+          mask="url(#dashboard-tutorial-mask)"
         />
       </svg>
 
-      {/* Highlight ring around the target button */}
+      {/* Pulsing border around target */}
       {targetRect && (
         <div
-          className="fixed rounded-xl ring-4 ring-primary ring-offset-4 ring-offset-transparent animate-pulse pointer-events-none"
+          className="absolute border-2 border-primary rounded-xl animate-pulse pointer-events-none"
           style={{
-            top: targetRect.top - padding,
-            left: targetRect.left - padding,
-            width: targetRect.width + padding * 2,
-            height: targetRect.height + padding * 2,
-            zIndex: 55,
+            left: holeX,
+            top: holeY,
+            width: holeWidth,
+            height: holeHeight,
+            zIndex: 10001,
           }}
         />
       )}
 
-      {/* Tutorial card */}
-      {targetRect && (
-        <div
-          className="bg-card border border-border rounded-xl shadow-2xl p-6 animate-fade-in"
-          style={getCardStyle()}
-        >
-          {/* Close button */}
-          <button
-            onClick={handleSkip}
-            className="absolute top-3 right-3 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-
-          {/* Step indicators */}
-          <div className="flex gap-1.5 mb-4">
-            {tutorialSteps.map((_, index) => (
-              <div
-                key={index}
-                className={`h-2 rounded-full transition-all ${
-                  index === currentStep
-                    ? "w-8 bg-primary"
-                    : index < currentStep
-                    ? "w-2 bg-primary/60"
-                    : "w-2 bg-muted"
-                }`}
-              />
-            ))}
+      {/* Tutorial Card */}
+      <Card 
+        className="pointer-events-auto shadow-2xl border-primary/20"
+        style={cardStyle}
+      >
+        <CardContent className="p-5">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              {step.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-foreground mb-1">{step.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+            </div>
           </div>
-
-          <h3 className="text-lg font-semibold text-foreground mb-2">
-            {step.title}
-          </h3>
-          <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-            {step.description}
-          </p>
-
-          <div className="flex justify-between items-center">
-            <button
-              onClick={handleSkip}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Passer le tutoriel
-            </button>
-            <Button onClick={handleNext} size="sm">
-              {currentStep < tutorialSteps.length - 1 ? "Suivant" : "Terminer"}
-            </Button>
+          
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+            <div className="flex gap-1.5">
+              {tutorialSteps.map((_, index) => (
+                <div
+                  key={index}
+                  className={`h-2 rounded-full transition-all ${
+                    index === currentStep
+                      ? "w-6 bg-primary"
+                      : index < currentStep
+                      ? "w-2 bg-primary/60"
+                      : "w-2 bg-muted"
+                  }`}
+                />
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onComplete}
+              >
+                Passer
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleNext}
+                className="gap-1"
+              >
+                {currentStep === tutorialSteps.length - 1 ? 'Compris' : 'Suivant'}
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-
-          {/* Arrow pointing to button */}
-          <div
-            className={`absolute left-1/2 -translate-x-1/2 ${
-              isCardAbove() ? "bottom-0 translate-y-full" : "top-0 -translate-y-full"
-            }`}
-          >
-            {isCardAbove() ? (
-              <ArrowDown className="h-8 w-8 text-primary animate-bounce" />
-            ) : (
-              <ArrowUp className="h-8 w-8 text-primary animate-bounce" />
-            )}
-          </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
