@@ -143,6 +143,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
   const [dropPreview, setDropPreview] = useState<{ dayIndex: number; top: number; height: number; time: string } | null>(null);
   const [resizingItem, setResizingItem] = useState<{ type: 'session' | 'event'; id: string; direction: 'top' | 'bottom' } | null>(null);
   const [resizePreview, setResizePreview] = useState<{ id: string; newStartTime?: string; newEndTime?: string; top?: number; height: number } | null>(null);
+  const justResizedRef = useRef(false);
 
   // Update current time every minute
   useEffect(() => {
@@ -339,6 +340,12 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
           onEventResize(id, resizeData);
         }
       }
+      // Mark that we just resized to prevent click from firing
+      justResizedRef.current = true;
+      setTimeout(() => {
+        justResizedRef.current = false;
+      }, 100);
+      
       setResizingItem(null);
       setResizePreview(null);
       document.removeEventListener('mousemove', handleMouseMove);
@@ -584,7 +591,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         draggable={isDraggable && !resizingItem}
                         onDragStart={(e) => handleDragStart(e, 'event', event.id, durationMinutes)}
                         onDragEnd={handleDragEnd}
-                        onClick={() => onEventClick?.(event)}
+                        onClick={() => { if (!justResizedRef.current) onEventClick?.(event); }}
                         className={cn(
                           "absolute rounded-md px-1 py-1 overflow-hidden bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 z-10 flex flex-col items-start justify-start text-left group",
                           isClickable && "cursor-pointer transition-all hover:shadow-md",
@@ -641,7 +648,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, onSessionClick, on
                         draggable={isDraggable && !resizingItem}
                         onDragStart={(e) => handleDragStart(e, 'session', session.id, durationMinutes)}
                         onDragEnd={handleDragEnd}
-                        onClick={() => onSessionClick(session)}
+                        onClick={() => { if (!justResizedRef.current) onSessionClick(session); }}
                         className={cn(
                           "absolute rounded-md px-1 py-1 overflow-hidden flex flex-col items-start justify-start text-left transition-all hover:shadow-md z-20 group",
                           isSkipped && "opacity-50",
