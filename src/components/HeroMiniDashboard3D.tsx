@@ -70,13 +70,7 @@ const HeroMiniDashboard3D = () => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [isMobile]);
 
-  const getEventClasses = (type: string) => {
-    if (type === 'exam') {
-      return 'bg-red-100 border-red-300 text-red-700 dark:bg-red-900/40 dark:border-red-600/50 dark:text-red-300';
-    }
-    if (type === 'cours') {
-      return 'bg-primary/20 border-primary/30 text-primary dark:bg-primary/30 dark:border-primary/40 dark:text-primary';
-    }
+  const getEventClasses = () => {
     return 'bg-blue-100 border-blue-200 text-blue-700 dark:bg-blue-900/40 dark:border-blue-700/50 dark:text-blue-300';
   };
 
@@ -248,7 +242,7 @@ const HeroMiniDashboard3D = () => {
                   {MOCK_EVENTS.map((event, i) => (
                     <div
                       key={i}
-                      className={`absolute rounded-md text-[6px] font-medium px-1 py-0.5 overflow-hidden border ${getEventClasses(event.type)}`}
+                      className={`absolute rounded-md text-[6px] font-medium px-1 py-0.5 overflow-hidden border ${getEventClasses()}`}
                       style={{
                         left: `calc(40px + ${event.day} * ((100% - 40px) / 7) + 2px)`,
                         width: `calc((100% - 40px) / 7 - 4px)`,
