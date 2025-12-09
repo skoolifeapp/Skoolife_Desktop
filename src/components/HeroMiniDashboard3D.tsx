@@ -128,7 +128,7 @@ const HeroMiniDashboard3D = () => {
                       <Clock className="w-3 h-3 text-muted-foreground" />
                     </div>
                     <div>
-                      <span className="text-[13px] font-bold text-foreground">6h</span>
+                      <span className="text-[13px] font-bold text-foreground">11h</span>
                       <p className="text-[8px] text-muted-foreground">planifiées</p>
                     </div>
                   </div>
@@ -154,7 +154,14 @@ const HeroMiniDashboard3D = () => {
                   <div className="w-2 h-2 rounded-full bg-blue-500" />
                   <div>
                     <p className="text-[9px] font-medium text-foreground">VBA</p>
-                    <p className="text-[7px] text-muted-foreground">12 déc.</p>
+                    <p className="text-[7px] text-muted-foreground">9/12</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <div>
+                    <p className="text-[9px] font-medium text-foreground">Comptabilité</p>
+                    <p className="text-[7px] text-muted-foreground">11/12</p>
                   </div>
                 </div>
               </div>
