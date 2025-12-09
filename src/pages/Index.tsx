@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Target, ArrowRight, Sparkles, Rocket, Users, MessageSquare } from 'lucide-react';
+import { Calendar, Clock, Target, ArrowRight, Sparkles } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import HeroMiniDashboard3D from '@/components/HeroMiniDashboard3D';
 
@@ -47,16 +47,6 @@ const Index = () => {
           <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
             {/* Left - Text Content */}
             <div className="flex-1 text-center lg:text-left">
-              {/* Beta Badge */}
-              <div className="flex justify-center lg:justify-start mb-6 animate-fade-in">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground shadow-md">
-                  <Rocket className="w-4 h-4" />
-                  <span className="text-sm font-semibold">
-                    🚀 Version bêta – Décembre
-                  </span>
-                </div>
-              </div>
-
               {/* Main heading */}
               <div className="space-y-6 animate-slide-up">
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-foreground leading-tight">
@@ -69,9 +59,6 @@ const Index = () => {
                 <p className="max-w-xl text-lg sm:text-xl text-muted-foreground">
                   Skoolife génère automatiquement ton planning de révisions personnalisé 
                   en fonction de tes examens, ton emploi du temps et ton rythme.
-                </p>
-                <p className="max-w-xl text-sm text-muted-foreground/70 mt-3">
-                  Skoolife est en version bêta : l'outil s'améliore chaque semaine grâce aux retours des étudiants.
                 </p>
               </div>
 
@@ -124,30 +111,6 @@ const Index = () => {
               <Step number={2} title="Ajoute tes matières" description="Avec dates d'examens et importance" />
               <Step number={3} title="Importe ton EDT" description="Depuis ton ENT ou calendrier" />
               <Step number={4} title="Génère ton planning" description="En un clic, ta semaine est prête" />
-            </div>
-          </div>
-
-          {/* Beta Section */}
-          <div className="mt-32">
-            <div className="max-w-3xl mx-auto text-center p-8 rounded-2xl bg-primary/5 border border-primary/20">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-                <Users className="w-8 h-8 text-primary" />
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-                Une version bêta construite avec les étudiants
-              </h2>
-              <p className="text-muted-foreground mb-3">
-                Pendant la phase bêta, nous améliorons Skoolife en continu grâce aux retours des premiers utilisateurs.
-              </p>
-              <p className="text-muted-foreground mb-6">
-                Tu peux nous envoyer tes idées ou signaler un bug directement depuis l'app.
-              </p>
-              <Link to="/auth">
-                <Button variant="outline" size="lg" className="gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  Donner mon avis
-                </Button>
-              </Link>
             </div>
           </div>
 
