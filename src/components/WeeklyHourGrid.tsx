@@ -489,14 +489,13 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], onSess
                   {dayExams.map((exam) => (
                     <div 
                       key={exam.id}
-                      className="px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 min-w-0"
+                      className="px-2 py-1 rounded-md text-xs font-medium min-w-0"
                       style={{ 
                         backgroundColor: exam.color + '20',
                         borderLeft: `3px solid ${exam.color}`
                       }}
                     >
-                      <span className="flex-shrink-0">📝</span>
-                      <span className="truncate min-w-0" style={{ color: exam.color }}>
+                      <span className="truncate block min-w-0" style={{ color: exam.color }}>
                         {exam.name}
                       </span>
                     </div>
