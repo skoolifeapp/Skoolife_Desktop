@@ -241,7 +241,6 @@ const Progression = () => {
     const weekEnd = endOfWeek(selectedWeekStart, { weekStartsOn: 1 });
     return `${format(selectedWeekStart, 'd', { locale: fr })} - ${format(weekEnd, 'd MMM', { locale: fr })}`;
   };
-  };
 
   const handleSignOut = async () => {
     await signOut();
