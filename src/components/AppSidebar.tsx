@@ -4,10 +4,8 @@ import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Calendar, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User } from 'lucide-react';
 import logo from '@/assets/logo.png';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { ProfileDrawer } from '@/components/ProfileDrawer';
-import { supabase } from '@/integrations/supabase/client';
 
 const NAV_ITEMS = [
   { path: '/app', label: 'Planning', icon: Calendar },
@@ -22,32 +20,9 @@ interface AppSidebarProps {
 
 export const AppSidebar = ({ children }: AppSidebarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [initials, setInitials] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, user } = useAuth();
-
-  useEffect(() => {
-    if (user) {
-      fetchInitials();
-    }
-  }, [user]);
-
-  const fetchInitials = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from('profiles')
-      .select('first_name, last_name')
-      .eq('id', user.id)
-      .single();
-    
-    if (data) {
-      const first = data.first_name?.charAt(0) || '';
-      const last = data.last_name?.charAt(0) || '';
-      setInitials((first + last).toUpperCase() || '?');
-    }
-  };
+  const { signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -94,14 +69,10 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setProfileOpen(true)}
+              onClick={() => navigate('/profile')}
               className="w-10 h-10 rounded-full bg-primary/10 hover:bg-primary/20"
             >
-              {initials ? (
-                <span className="text-sm font-medium text-primary">{initials}</span>
-              ) : (
-                <User className="w-5 h-5 text-primary" />
-              )}
+              <User className="w-5 h-5 text-primary" />
             </Button>
           </div>
           <Button
@@ -126,14 +97,10 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setProfileOpen(true)}
+            onClick={() => navigate('/profile')}
             className="w-9 h-9 rounded-full bg-primary/10 hover:bg-primary/20"
           >
-            {initials ? (
-              <span className="text-sm font-medium text-primary">{initials}</span>
-            ) : (
-              <User className="w-4 h-4 text-primary" />
-            )}
+            <User className="w-4 h-4 text-primary" />
           </Button>
           <Button
             variant="ghost"
@@ -179,9 +146,6 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
           </nav>
         </div>
       )}
-
-      {/* Profile Drawer */}
-      <ProfileDrawer open={profileOpen} onOpenChange={setProfileOpen} />
 
       {/* Main content */}
       <main className="lg:ml-56 min-h-screen">
