@@ -165,10 +165,12 @@ const Onboarding = () => {
     setLoading(true);
 
     try {
-      // Update profile
+      // Upsert profile (create if not exists, update if exists)
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: user.id,
+          email: user.email,
           first_name: firstName,
           last_name: lastName,
           school,
@@ -176,8 +178,7 @@ const Onboarding = () => {
           main_exam_period: examPeriod,
           weekly_revision_hours: weeklyHours[0],
           is_onboarding_complete: true
-        })
-        .eq('id', user.id);
+        }, { onConflict: 'id' });
 
       if (profileError) throw profileError;
 
