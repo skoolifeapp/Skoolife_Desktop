@@ -91,27 +91,31 @@ export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
   if (targetRect) {
     const cardWidth = 340;
     const cardHeight = 220;
-    const gap = 16;
-    const bottomMargin = 80; // Ensure space from bottom of viewport
+    const gap = 20;
 
-    // Calculate available space below and above
-    const spaceBelow = window.innerHeight - targetRect.bottom - bottomMargin;
-    const spaceAbove = targetRect.top - gap;
+    // Calculate available space on each side
+    const spaceRight = window.innerWidth - targetRect.right - gap;
+    const spaceBelow = window.innerHeight - targetRect.bottom - gap;
 
-    // Position card below if enough space, otherwise above, otherwise center
-    if (spaceBelow >= cardHeight + gap) {
+    // Prefer positioning to the right of the target element
+    if (spaceRight >= cardWidth + gap) {
+      // Position to the right
+      cardStyle.left = targetRect.right + gap;
+      cardStyle.top = Math.max(16, Math.min(targetRect.top, window.innerHeight - cardHeight - 16));
+    } else if (spaceBelow >= cardHeight + gap) {
+      // Position below
       cardStyle.top = targetRect.bottom + gap;
-    } else if (spaceAbove >= cardHeight + gap) {
-      cardStyle.top = targetRect.top - cardHeight - gap;
+      let left = targetRect.left + targetRect.width / 2 - cardWidth / 2;
+      left = Math.max(16, Math.min(left, window.innerWidth - cardWidth - 16));
+      cardStyle.left = left;
     } else {
-      // Not enough space above or below - position to the right of target
-      cardStyle.top = Math.max(16, Math.min(targetRect.top, window.innerHeight - cardHeight - bottomMargin));
+      // Position above
+      cardStyle.top = Math.max(16, targetRect.top - cardHeight - gap);
+      let left = targetRect.left + targetRect.width / 2 - cardWidth / 2;
+      left = Math.max(16, Math.min(left, window.innerWidth - cardWidth - 16));
+      cardStyle.left = left;
     }
-
-    // Center horizontally relative to target
-    let left = targetRect.left + targetRect.width / 2 - cardWidth / 2;
-    left = Math.max(16, Math.min(left, window.innerWidth - cardWidth - 16));
-    cardStyle.left = left;
+    
     cardStyle.width = cardWidth;
   } else {
     cardStyle.top = '50%';
