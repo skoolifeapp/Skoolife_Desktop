@@ -120,14 +120,17 @@ const SupportDrawer = ({ open, onOpenChange, onShowTutorial, onUnreadCountChange
     await fetchMessages(conv.id);
     
     // Mark admin messages as read by user
-    await supabase
+    const { error } = await supabase
       .from('conversation_messages')
       .update({ read_by_user: true })
       .eq('conversation_id', conv.id)
-      .eq('sender_type', 'admin');
+      .eq('sender_type', 'admin')
+      .eq('read_by_user', false);
     
-    // Notify parent to refresh unread count
-    onUnreadCountChange?.();
+    if (!error) {
+      // Notify parent to refresh unread count after successful update
+      onUnreadCountChange?.();
+    }
   };
 
   const handleSendMessage = async () => {
