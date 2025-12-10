@@ -55,7 +55,7 @@ const Dashboard = () => {
   const [sessionPopoverOpen, setSessionPopoverOpen] = useState<string | null>(null);
   const [editSessionDialogOpen, setEditSessionDialogOpen] = useState(false);
   
-  const { user, signOut } = useAuth();
+  const { user, signOut, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
   const isSigningOut = useRef(false);
 
@@ -67,8 +67,18 @@ const Dashboard = () => {
       return;
     }
 
-    fetchData();
-  }, [user, navigate]);
+    // Redirect admins to admin page
+    const checkAndRedirect = async () => {
+      const isAdminUser = await checkIsAdmin();
+      if (isAdminUser) {
+        navigate('/admin');
+        return;
+      }
+      fetchData();
+    };
+    
+    checkAndRedirect();
+  }, [user, navigate, checkIsAdmin]);
 
   const fetchData = async () => {
     if (!user) return;

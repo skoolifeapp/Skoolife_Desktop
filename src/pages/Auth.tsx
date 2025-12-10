@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,14 +16,25 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, user } = useAuth();
+  const [checkingRedirect, setCheckingRedirect] = useState(false);
+  const { signIn, signUp, user, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      navigate('/onboarding');
-    }
-  }, [user, navigate]);
+    const handleRedirect = async () => {
+      if (user) {
+        setCheckingRedirect(true);
+        const isAdminUser = await checkIsAdmin();
+        if (isAdminUser) {
+          navigate('/admin');
+        } else {
+          navigate('/onboarding');
+        }
+        setCheckingRedirect(false);
+      }
+    };
+    handleRedirect();
+  }, [user, navigate, checkIsAdmin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
