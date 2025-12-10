@@ -471,7 +471,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], onSess
           return (
             <div 
               key={index}
-              className={`text-center border-r border-border last:border-r-0 ${
+              className={`text-center border-r border-border last:border-r-0 min-w-0 ${
                 isToday ? 'bg-primary/10' : 'bg-secondary/30'
               }`}
             >
@@ -484,21 +484,25 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], onSess
                 </p>
               </div>
               {/* Exam banners */}
-              {dayExams.map((exam) => (
-                <div 
-                  key={exam.id}
-                  className="mx-1 mb-1 px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 overflow-hidden"
-                  style={{ 
-                    backgroundColor: exam.color + '20',
-                    borderLeft: `3px solid ${exam.color}`
-                  }}
-                >
-                  <span className="flex-shrink-0">📝</span>
-                  <span className="truncate" style={{ color: exam.color }}>
-                    {exam.name}
-                  </span>
+              {dayExams.length > 0 && (
+                <div className="px-1 pb-1 space-y-1">
+                  {dayExams.map((exam) => (
+                    <div 
+                      key={exam.id}
+                      className="px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 min-w-0"
+                      style={{ 
+                        backgroundColor: exam.color + '20',
+                        borderLeft: `3px solid ${exam.color}`
+                      }}
+                    >
+                      <span className="flex-shrink-0">📝</span>
+                      <span className="truncate min-w-0" style={{ color: exam.color }}>
+                        {exam.name}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           );
         })}
