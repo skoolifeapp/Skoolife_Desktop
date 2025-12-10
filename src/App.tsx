@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Progression from "./pages/Progression";
 import Subjects from "./pages/Subjects";
+import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import AdminUsers from "./pages/AdminUsers";
 import AdminStats from "./pages/AdminStats";
@@ -37,6 +38,7 @@ const App = () => (
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/progression" element={<Progression />} />
                 <Route path="/subjects" element={<Subjects />} />
+                <Route path="/profile" element={<Profile />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/stats" element={<AdminStats />} />

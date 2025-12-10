@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -12,15 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from '@/components/ui/drawer';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
+import { AppSidebar } from '@/components/AppSidebar';
 
 const LEVELS = [
   'Lycée',
@@ -58,12 +52,7 @@ interface ProfileData {
   weekly_revision_hours: number;
 }
 
-interface ProfileDrawerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-export const ProfileDrawer = ({ open, onOpenChange }: ProfileDrawerProps) => {
+const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState<ProfileData>({
@@ -79,10 +68,10 @@ export const ProfileDrawer = ({ open, onOpenChange }: ProfileDrawerProps) => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (open && user) {
+    if (user) {
       fetchProfile();
     }
-  }, [open, user]);
+  }, [user]);
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -108,7 +97,6 @@ export const ProfileDrawer = ({ open, onOpenChange }: ProfileDrawerProps) => {
       }
     } catch (err) {
       console.error(err);
-      toast.error('Erreur lors du chargement du profil');
     } finally {
       setLoading(false);
     }
@@ -119,7 +107,7 @@ export const ProfileDrawer = ({ open, onOpenChange }: ProfileDrawerProps) => {
 
     setSaving(true);
     try {
-      const { error } = await supabase
+      await supabase
         .from('profiles')
         .update({
           first_name: profile.first_name,
@@ -130,13 +118,8 @@ export const ProfileDrawer = ({ open, onOpenChange }: ProfileDrawerProps) => {
           weekly_revision_hours: profile.weekly_revision_hours,
         })
         .eq('id', user.id);
-
-      if (error) throw error;
-      toast.success('Profil enregistré');
-      onOpenChange(false);
     } catch (err) {
       console.error(err);
-      toast.error('Erreur lors de la sauvegarde');
     } finally {
       setSaving(false);
     }
@@ -145,34 +128,43 @@ export const ProfileDrawer = ({ open, onOpenChange }: ProfileDrawerProps) => {
   const getInitials = () => {
     const first = profile.first_name?.charAt(0) || '';
     const last = profile.last_name?.charAt(0) || '';
-    return (first + last).toUpperCase() || '?';
+    return (first + last).toUpperCase() || '';
   };
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[90vh]">
-        <div className="mx-auto w-full max-w-lg overflow-y-auto p-6">
-          <DrawerHeader className="px-0">
-            <DrawerTitle>Mon profil</DrawerTitle>
-            <DrawerDescription>
-              Gère tes informations personnelles
-            </DrawerDescription>
-          </DrawerHeader>
+    <AppSidebar>
+      <div className="p-4 md:p-8 max-w-2xl mx-auto">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-6">
+          Mon profil
+        </h1>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <div className="space-y-6 pb-6">
-              {/* Avatar */}
-              <div className="flex justify-center">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
-                  {getInitials()}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  {getInitials() ? (
+                    <span className="text-xl font-bold text-primary">{getInitials()}</span>
+                  ) : (
+                    <User className="w-8 h-8 text-primary" />
+                  )}
+                </div>
+                <div>
+                  <CardTitle>
+                    {profile.first_name || profile.last_name
+                      ? `${profile.first_name} ${profile.last_name}`.trim()
+                      : 'Mon profil'}
+                  </CardTitle>
+                  <CardDescription>{profile.email}</CardDescription>
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="first_name">Prénom</Label>
                   <Input
@@ -216,7 +208,7 @@ export const ProfileDrawer = ({ open, onOpenChange }: ProfileDrawerProps) => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Niveau d'études</Label>
                   <Select
@@ -274,12 +266,12 @@ export const ProfileDrawer = ({ open, onOpenChange }: ProfileDrawerProps) => {
                 {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Enregistrer
               </Button>
-            </div>
-          )}
-        </div>
-      </DrawerContent>
-    </Drawer>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </AppSidebar>
   );
 };
 
-export default ProfileDrawer;
+export default Profile;
