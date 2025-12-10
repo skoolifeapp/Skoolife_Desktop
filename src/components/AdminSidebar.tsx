@@ -1,23 +1,9 @@
-import { ReactNode } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { ReactNode, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  MessageSquare, Users, BarChart3, Settings, LogOut, 
-  Shield, ChevronLeft, ChevronRight, Menu
-} from 'lucide-react';
+import { MessageSquare, Users, BarChart3, LogOut, Menu, X, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { 
-  Sidebar, 
-  SidebarContent, 
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
-} from '@/components/ui/sidebar';
-import { NavLink } from '@/components/NavLink';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 import logo from '@/assets/logo.png';
 
@@ -25,165 +11,164 @@ interface AdminSidebarProps {
   children: ReactNode;
 }
 
-const navItems = [
-  { 
-    title: 'Conversations', 
-    url: '/admin', 
-    icon: MessageSquare,
-    description: 'Gérer les messages'
-  },
-  { 
-    title: 'Utilisateurs', 
-    url: '/admin/users', 
-    icon: Users,
-    description: 'Voir les étudiants',
-    disabled: true
-  },
-  { 
-    title: 'Statistiques', 
-    url: '/admin/stats', 
-    icon: BarChart3,
-    description: 'Données de la plateforme',
-    disabled: true
-  },
+const NAV_ITEMS = [
+  { path: '/admin', label: 'Conversations', icon: MessageSquare },
+  { path: '/admin/users', label: 'Utilisateurs', icon: Users, disabled: true },
+  { path: '/admin/stats', label: 'Statistiques', icon: BarChart3, disabled: true },
 ];
 
-function AdminSidebarContent() {
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
+const AdminSidebar = ({ children }: AdminSidebarProps) => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { state } = useSidebar();
-  const isCollapsed = state === 'collapsed';
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
 
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
   return (
-    <Sidebar 
-      className={cn(
-        "border-r border-border bg-card transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64"
-      )}
-      collapsible="icon"
-    >
-      <SidebarHeader className="p-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl shrink-0" />
-          {!isCollapsed && (
-            <div className="flex-1 min-w-0">
-              <h1 className="font-bold text-foreground truncate">Skoolife</h1>
-              <div className="flex items-center gap-1.5">
-                <Shield className="w-3 h-3 text-primary" />
-                <span className="text-xs text-primary font-medium">Admin</span>
+    <div className="min-h-screen bg-background">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex fixed left-0 top-0 h-full w-56 flex-col bg-card border-r border-border p-5 z-50">
+        <Link to="/admin" className="flex items-center gap-3 mb-10">
+          <img src={logo} alt="Skoolife" className="h-9 w-auto" />
+          <span className="font-bold text-xl text-foreground">Skoolife</span>
+        </Link>
+
+        <nav className="flex-1 space-y-1">
+          {NAV_ITEMS.map((item) => (
+            item.disabled ? (
+              <div
+                key={item.path}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground/50 cursor-not-allowed"
+              >
+                <item.icon className="w-5 h-5" />
+                <span>{item.label}</span>
               </div>
-            </div>
-          )}
-        </div>
-      </SidebarHeader>
-
-      <SidebarContent className="p-3">
-        <SidebarMenu>
-          {navItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton 
-                asChild 
-                disabled={item.disabled}
-                tooltip={isCollapsed ? item.title : undefined}
-              >
-                {item.disabled ? (
-                  <div className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground/50 cursor-not-allowed",
-                  )}>
-                    <item.icon className="w-5 h-5 shrink-0" />
-                    {!isCollapsed && (
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-medium">{item.title}</span>
-                        <p className="text-xs opacity-70 truncate">Bientôt disponible</p>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <NavLink 
-                    to={item.url} 
-                    end
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
-                      "hover:bg-secondary/80"
-                    )}
-                    activeClassName="bg-primary/10 text-primary"
-                  >
-                    <item.icon className="w-5 h-5 shrink-0" />
-                    {!isCollapsed && (
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-medium">{item.title}</span>
-                        <p className="text-xs text-muted-foreground truncate">{item.description}</p>
-                      </div>
-                    )}
-                  </NavLink>
+            ) : (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors",
+                  isActive(item.path)
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:bg-secondary/50"
                 )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+              >
+                <item.icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </Link>
+            )
           ))}
-        </SidebarMenu>
+        </nav>
 
-        <div className="mt-auto pt-4 border-t border-border space-y-2">
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={isCollapsed ? "Dashboard étudiant" : undefined}>
-              <button
-                onClick={() => navigate('/app')}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-left hover:bg-secondary/80 transition-colors text-muted-foreground"
-              >
-                <Users className="w-5 h-5 shrink-0" />
-                {!isCollapsed && <span className="text-sm">Voir comme étudiant</span>}
-              </button>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={isCollapsed ? "Déconnexion" : undefined}>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg w-full text-left hover:bg-destructive/10 text-destructive transition-colors"
-              >
-                <LogOut className="w-5 h-5 shrink-0" />
-                {!isCollapsed && <span className="text-sm">Déconnexion</span>}
-              </button>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+        <div className="pt-6 border-t border-border space-y-3">
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+            onClick={() => navigate('/app')}
+          >
+            <Eye className="w-5 h-5" />
+            Voir comme étudiant
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+            onClick={handleSignOut}
+          >
+            <LogOut className="w-5 h-5" />
+            Déconnexion
+          </Button>
         </div>
-      </SidebarContent>
-    </Sidebar>
-  );
-}
+      </aside>
 
-function AdminLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex min-h-screen w-full bg-background">
-      <AdminSidebarContent />
-      <main className="flex-1 flex flex-col min-w-0">
-        {/* Mobile header */}
-        <header className="lg:hidden flex items-center gap-3 p-4 border-b border-border bg-card">
-          <SidebarTrigger>
-            <Menu className="w-5 h-5" />
-          </SidebarTrigger>
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="Skoolife" className="w-8 h-8 rounded-lg" />
-            <span className="font-bold">Admin</span>
-          </div>
-        </header>
+      {/* Mobile Header */}
+      <header className="lg:hidden sticky top-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
+        <Link to="/admin" className="flex items-center gap-2">
+          <img src={logo} alt="Skoolife" className="h-8 w-auto" />
+          <span className="font-bold text-lg text-foreground">Admin</span>
+        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
+        </div>
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-40 bg-background/95 backdrop-blur-sm pt-16">
+          <nav className="p-4 space-y-2">
+            {NAV_ITEMS.map((item) => (
+              item.disabled ? (
+                <div
+                  key={item.path}
+                  className="flex items-center gap-3 px-4 py-4 rounded-xl text-muted-foreground/50 cursor-not-allowed"
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="text-lg">{item.label}</span>
+                </div>
+              ) : (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-4 rounded-xl transition-colors",
+                    isActive(item.path)
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:bg-secondary/50"
+                  )}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="text-lg">{item.label}</span>
+                </Link>
+              )
+            ))}
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 px-4 py-4 text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                navigate('/app');
+              }}
+            >
+              <Eye className="w-5 h-5" />
+              <span className="text-lg">Voir comme étudiant</span>
+            </Button>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 px-4 py-4 text-muted-foreground hover:text-foreground"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleSignOut();
+              }}
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="text-lg">Déconnexion</span>
+            </Button>
+          </nav>
+        </div>
+      )}
+
+      {/* Main content */}
+      <main className="lg:ml-56 min-h-screen">
         {children}
       </main>
     </div>
-  );
-}
-
-const AdminSidebar = ({ children }: AdminSidebarProps) => {
-  return (
-    <SidebarProvider defaultOpen={true}>
-      <AdminLayout>{children}</AdminLayout>
-    </SidebarProvider>
   );
 };
 
