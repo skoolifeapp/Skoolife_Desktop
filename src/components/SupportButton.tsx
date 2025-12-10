@@ -16,7 +16,7 @@ const SupportButton = ({ onShowTutorial }: SupportButtonProps) => {
   const [showHint, setShowHint] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Fetch unread admin messages count
+  // Fetch unread admin messages count (only from open conversations)
   const fetchUnreadCount = async () => {
     if (!user) {
       setUnreadCount(0);
@@ -24,11 +24,12 @@ const SupportButton = ({ onShowTutorial }: SupportButtonProps) => {
     }
 
     try {
-      // Get user's conversations
+      // Get user's OPEN conversations only
       const { data: conversations } = await supabase
         .from('conversations')
         .select('id')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .eq('status', 'open');
 
       if (!conversations || conversations.length === 0) {
         setUnreadCount(0);
@@ -37,7 +38,7 @@ const SupportButton = ({ onShowTutorial }: SupportButtonProps) => {
 
       const conversationIds = conversations.map(c => c.id);
 
-      // Count unread admin messages
+      // Count unread admin messages from open conversations only
       const { count } = await supabase
         .from('conversation_messages')
         .select('*', { count: 'exact', head: true })
