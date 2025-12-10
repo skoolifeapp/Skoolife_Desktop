@@ -55,29 +55,34 @@ const Dashboard = () => {
   const [sessionPopoverOpen, setSessionPopoverOpen] = useState<string | null>(null);
   const [editSessionDialogOpen, setEditSessionDialogOpen] = useState(false);
   
-  const { user, signOut } = useAuth();
+  const { user, signOut, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
   const isSigningOut = useRef(false);
 
   useEffect(() => {
     if (isSigningOut.current) return;
     
-    // Wait for auth to be checked before redirecting
-    // This prevents redirect loop during OAuth callback
-    if (!user) {
-      // Small delay to allow session to be established after OAuth callback
-      const checkSession = async () => {
+    const checkAuthAndRedirect = async () => {
+      if (!user) {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           navigate('/auth');
         }
-      };
-      checkSession();
-      return;
-    }
+        return;
+      }
 
-    fetchData();
-  }, [user, navigate]);
+      // Check if user is admin - redirect to admin dashboard
+      const isAdminUser = await checkIsAdmin();
+      if (isAdminUser) {
+        navigate('/admin');
+        return;
+      }
+
+      fetchData();
+    };
+
+    checkAuthAndRedirect();
+  }, [user, navigate, checkIsAdmin]);
 
   const fetchData = async () => {
     if (!user) return;
