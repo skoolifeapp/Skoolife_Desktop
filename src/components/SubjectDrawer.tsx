@@ -65,7 +65,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
       setPriority(subject.exam_weight);
       setColor(subject.color);
       setNotes(subject.notes || '');
-      setIsArchived(subject.status === 'archived');
+      setIsArchived(subject.status === 'terminated');
     } else {
       // Reset form for new subject
       setName('');
@@ -95,7 +95,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
         exam_weight: priority,
         color,
         notes: notes.trim() || null,
-        status: isArchived ? 'archived' : 'active',
+        status: isArchived ? 'terminated' : 'active',
       };
 
       if (isEditing && subject) {
@@ -261,13 +261,13 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
             {/* Status */}
             <div className="flex items-center justify-between py-2">
               <div className="space-y-0.5">
-                <Label htmlFor="archived">Archiver cette matière</Label>
+                <Label htmlFor="terminated">Marquer comme terminée</Label>
                 <p className="text-xs text-muted-foreground">
-                  Les matières archivées ne sont plus utilisées pour générer le planning
+                  Les matières terminées conservent leurs anciennes sessions mais n'apparaissent plus dans les nouveaux plannings
                 </p>
               </div>
               <Switch
-                id="archived"
+                id="terminated"
                 checked={isArchived}
                 onCheckedChange={setIsArchived}
               />

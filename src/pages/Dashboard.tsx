@@ -157,8 +157,9 @@ const Dashboard = () => {
   };
 
   const generatePlanning = async () => {
-    if (!user || subjects.length === 0) {
-      toast.error('Ajoute au moins une matière avant de générer ton planning');
+    const activeSubjectsForCheck = subjects.filter(s => (s.status || 'active') === 'active');
+    if (!user || activeSubjectsForCheck.length === 0) {
+      toast.error('Ajoute au moins une matière active avant de générer ton planning');
       return;
     }
 
@@ -246,8 +247,9 @@ const Dashboard = () => {
       const newSessions: { user_id: string; subject_id: string; date: string; start_time: string; end_time: string; status: string; notes: string | null }[] = [];
       let sessionIndex = 0;
 
-      // Sort subjects by exam proximity and weight
-      const sortedSubjects = [...subjects].sort((a, b) => {
+      // Sort subjects by exam proximity and weight, excluding terminated subjects
+      const activeSubjects = subjects.filter(s => (s.status || 'active') === 'active');
+      const sortedSubjects = [...activeSubjects].sort((a, b) => {
         // Prioritize subjects with closer exam dates
         if (a.exam_date && b.exam_date) {
           return new Date(a.exam_date).getTime() - new Date(b.exam_date).getTime();
@@ -344,8 +346,8 @@ const Dashboard = () => {
   const adjustWeek = async () => {
     if (!user) return;
 
-    // Check if any subject has target_hours defined
-    const subjectsWithGoals = subjects.filter(s => s.target_hours && s.target_hours > 0);
+    // Check if any active subject has target_hours defined (exclude terminated subjects)
+    const subjectsWithGoals = subjects.filter(s => s.target_hours && s.target_hours > 0 && (s.status || 'active') === 'active');
     if (subjectsWithGoals.length === 0) {
       toast.error("Tu n'as pas encore défini d'objectifs par matière. Va dans 'Gérer mes matières' pour les ajouter.");
       return;

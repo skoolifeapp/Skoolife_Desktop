@@ -21,7 +21,7 @@ const Subjects = () => {
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
-  const [filter, setFilter] = useState<'all' | 'active' | 'archived'>('all');
+  const [filter, setFilter] = useState<'all' | 'active' | 'terminated'>('all');
   const [showTutorial, setShowTutorial] = useState(false);
 
   const { user, signOut } = useAuth();
@@ -56,12 +56,12 @@ const Subjects = () => {
 
       if (error) throw error;
 
-      // Sort: active first, then by exam date
+      // Sort: active first, then terminated, then by exam date
       const sorted = (data || []).sort((a, b) => {
         const statusA = a.status || 'active';
         const statusB = b.status || 'active';
-        if (statusA === 'active' && statusB === 'archived') return -1;
-        if (statusA === 'archived' && statusB === 'active') return 1;
+        if (statusA === 'active' && statusB === 'terminated') return -1;
+        if (statusA === 'terminated' && statusB === 'active') return 1;
         
         // Then by exam date
         if (a.exam_date && b.exam_date) {
@@ -109,7 +109,7 @@ const Subjects = () => {
 
   // Stats calculations
   const activeSubjects = subjects.filter(s => (s.status || 'active') === 'active');
-  const archivedSubjects = subjects.filter(s => s.status === 'archived');
+  const terminatedSubjects = subjects.filter(s => s.status === 'terminated');
   
   const totalTargetHours = activeSubjects.reduce((acc, s) => acc + (s.target_hours || 0), 0);
   
@@ -125,6 +125,7 @@ const Subjects = () => {
   const filteredSubjects = subjects.filter(s => {
     const status = s.status || 'active';
     if (filter === 'all') return true;
+    if (filter === 'terminated') return status === 'terminated';
     return status === filter;
   });
 
@@ -245,11 +246,11 @@ const Subjects = () => {
                 Actives ({activeSubjects.length})
               </Button>
               <Button 
-                variant={filter === 'archived' ? 'default' : 'outline'} 
+                variant={filter === 'terminated' ? 'default' : 'outline'} 
                 size="sm"
-                onClick={() => setFilter('archived')}
+                onClick={() => setFilter('terminated')}
               >
-                Archivées ({archivedSubjects.length})
+                Terminées ({terminatedSubjects.length})
               </Button>
             </div>
 
@@ -302,7 +303,7 @@ const Subjects = () => {
                             </td>
                             <td className="px-4 py-4">
                               <Badge variant={(subject.status || 'active') === 'active' ? 'default' : 'secondary'}>
-                                {(subject.status || 'active') === 'active' ? 'Active' : 'Archivée'}
+                                {(subject.status || 'active') === 'active' ? 'Active' : 'Terminée'}
                               </Badge>
                             </td>
                             <td className="px-4 py-4 text-right">
@@ -320,11 +321,11 @@ const Subjects = () => {
                     <GraduationCap className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
                     <h3 className="text-lg font-medium text-foreground mb-2">Aucune matière</h3>
                     <p className="text-muted-foreground mb-4">
-                      {filter === 'archived' 
-                        ? "Tu n'as pas encore archivé de matière."
+                      {filter === 'terminated' 
+                        ? "Tu n'as pas encore de matière terminée."
                         : "Commence par ajouter tes matières pour générer ton planning."}
                     </p>
-                    {filter !== 'archived' && (
+                    {filter !== 'terminated' && (
                       <Button onClick={handleAddSubject} className="gap-2">
                         <Plus className="w-4 h-4" />
                         Ajouter une matière
@@ -375,7 +376,7 @@ const Subjects = () => {
                           {getPriorityLabel(subject.exam_weight)}
                         </Badge>
                         <Badge variant={(subject.status || 'active') === 'active' ? 'default' : 'secondary'} className="text-xs">
-                          {(subject.status || 'active') === 'active' ? 'Active' : 'Archivée'}
+                          {(subject.status || 'active') === 'active' ? 'Active' : 'Terminée'}
                         </Badge>
                       </div>
                     </CardContent>
@@ -386,8 +387,8 @@ const Subjects = () => {
                   <CardContent className="py-12 text-center">
                     <GraduationCap className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
                     <p className="text-muted-foreground">
-                      {filter === 'archived' 
-                        ? "Aucune matière archivée"
+                      {filter === 'terminated' 
+                        ? "Aucune matière terminée"
                         : "Aucune matière"}
                     </p>
                   </CardContent>
