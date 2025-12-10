@@ -60,8 +60,8 @@ const Subjects = () => {
       const sorted = (data || []).sort((a, b) => {
         const statusA = a.status || 'active';
         const statusB = b.status || 'active';
-        if (statusA === 'active' && statusB === 'terminated') return -1;
-        if (statusA === 'terminated' && statusB === 'active') return 1;
+        if (statusA === 'active' && statusB === 'archived') return -1;
+        if (statusA === 'archived' && statusB === 'active') return 1;
         
         // Then by exam date
         if (a.exam_date && b.exam_date) {
@@ -109,7 +109,7 @@ const Subjects = () => {
 
   // Stats calculations
   const activeSubjects = subjects.filter(s => (s.status || 'active') === 'active');
-  const terminatedSubjects = subjects.filter(s => s.status === 'terminated');
+  const terminatedSubjects = subjects.filter(s => s.status === 'archived');
   
   const totalTargetHours = activeSubjects.reduce((acc, s) => acc + (s.target_hours || 0), 0);
   
@@ -125,7 +125,7 @@ const Subjects = () => {
   const filteredSubjects = subjects.filter(s => {
     const status = s.status || 'active';
     if (filter === 'all') return true;
-    if (filter === 'terminated') return status === 'terminated';
+    if (filter === 'terminated') return status === 'archived';
     return status === filter;
   });
 

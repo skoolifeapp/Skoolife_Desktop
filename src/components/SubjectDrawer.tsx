@@ -65,7 +65,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
       setPriority(subject.exam_weight);
       setColor(subject.color);
       setNotes(subject.notes || '');
-      setIsArchived(subject.status === 'terminated');
+      setIsArchived(subject.status === 'archived' || subject.status === 'terminated');
     } else {
       // Reset form for new subject
       setName('');
@@ -95,7 +95,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
         exam_weight: priority,
         color,
         notes: notes.trim() || null,
-        status: isArchived ? 'terminated' : 'active',
+        status: isArchived ? 'archived' : 'active',
       };
 
       if (isEditing && subject) {
