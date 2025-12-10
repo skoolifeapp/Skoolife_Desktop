@@ -22,29 +22,33 @@ export const PresenceProvider = ({ children }: { children: React.ReactNode }) =>
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase.channel('skoolife-presence', {
-      config: {
-        presence: { key: user.id }
-      }
-    });
+    console.log('[Presence] Initializing for user:', user.id);
+
+    const channel = supabase.channel('skoolife-presence');
 
     channel
       .on('presence', { event: 'sync' }, () => {
-        // Nothing to do here for students, counting happens on admin side
+        const state = channel.presenceState();
+        console.log('[Presence] Sync event, state:', state);
       })
       .subscribe(async (status) => {
+        console.log('[Presence] Subscribe status:', status);
         if (status === 'SUBSCRIBED') {
-          await channel.track({
-            userId: user.id,
+          const trackData = {
+            odliysfuq: user.id,
             email: user.email,
             device: isMobileDevice() ? 'mobile' : 'desktop',
             connectedAt: new Date().toISOString(),
-          });
+          };
+          console.log('[Presence] Tracking:', trackData);
+          const result = await channel.track(trackData);
+          console.log('[Presence] Track result:', result);
         }
       });
 
     // Cleanup on unmount or user change
     return () => {
+      console.log('[Presence] Cleanup for user:', user.id);
       supabase.removeChannel(channel);
     };
   }, [user]);

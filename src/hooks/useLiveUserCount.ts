@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface LiveUser {
-  userId: string;
+  odliysfuq: string;
   email: string;
   device: 'desktop' | 'mobile';
   connectedAt: string;
@@ -16,34 +16,47 @@ export function useLiveUsers() {
   const [users, setUsers] = useState<LiveUser[]>([]);
 
   useEffect(() => {
-    const channel = supabase.channel('skoolife-presence', {
-      config: {
-        presence: { key: 'admin-observer' }
-      }
-    });
+    console.log('[LiveUsers] Initializing hook');
+    
+    const channel = supabase.channel('skoolife-presence');
 
     channel
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
+        console.log('[LiveUsers] Presence state:', state);
+        
         // Get all presence entries and flatten
-        const allEntries = Object.values(state).flat() as unknown as Array<LiveUser>;
-        // Filter valid users and exclude admin
-        const filtered = allEntries.filter(u => u.userId && u.userId !== 'admin-observer');
-        setUsers(filtered);
+        const allEntries: LiveUser[] = [];
+        Object.values(state).forEach((presences) => {
+          (presences as unknown as LiveUser[]).forEach((p) => {
+            if (p.odliysfuq && p.email) {
+              allEntries.push(p);
+            }
+          });
+        });
+        
+        console.log('[LiveUsers] Filtered users:', allEntries);
+        setUsers(allEntries);
       })
       .subscribe(async (status) => {
+        console.log('[LiveUsers] Subscribe status:', status);
         if (status === 'SUBSCRIBED') {
-          // Admin tracks to be able to see others
-          await channel.track({ userId: 'admin-observer' });
+          // Admin tracks with a special marker
+          await channel.track({ 
+            odliysfuq: 'admin-observer',
+            isAdmin: true 
+          });
         }
       });
 
     return () => {
+      console.log('[LiveUsers] Cleanup');
       supabase.removeChannel(channel);
     };
   }, []);
 
-  return users;
+  // Filter out admin observer from count
+  return users.filter(u => u.odliysfuq !== 'admin-observer');
 }
 
 /**

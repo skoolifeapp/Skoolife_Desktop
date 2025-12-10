@@ -1,7 +1,6 @@
 import { Monitor, Smartphone } from 'lucide-react';
 import { useLiveUsers } from '@/hooks/useLiveUserCount';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const LiveUsersPanel = () => {
@@ -37,7 +36,7 @@ const LiveUsersPanel = () => {
                   <div className="space-y-1">
                     {desktopUsers.map((user) => (
                       <div 
-                        key={user.userId} 
+                        key={user.odliysfuq} 
                         className="flex items-center gap-2 text-sm py-1 px-2 rounded-md bg-muted/50"
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
@@ -60,7 +59,7 @@ const LiveUsersPanel = () => {
                   <div className="space-y-1">
                     {mobileUsers.map((user) => (
                       <div 
-                        key={user.userId} 
+                        key={user.odliysfuq} 
                         className="flex items-center gap-2 text-sm py-1 px-2 rounded-md bg-muted/50"
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
