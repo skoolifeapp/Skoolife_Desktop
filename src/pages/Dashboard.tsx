@@ -112,7 +112,33 @@ const Dashboard = () => {
         .select('*')
         .eq('user_id', user.id);
 
-      setSubjects(subjectsData || []);
+      // Auto-archive subjects with past exam dates
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const subjectsToArchive = (subjectsData || []).filter(s => 
+        s.status === 'active' && 
+        s.exam_date && 
+        new Date(s.exam_date) < today
+      );
+
+      if (subjectsToArchive.length > 0) {
+        await Promise.all(
+          subjectsToArchive.map(s => 
+            supabase
+              .from('subjects')
+              .update({ status: 'archived' })
+              .eq('id', s.id)
+          )
+        );
+        // Refetch subjects after archiving
+        const { data: updatedSubjects } = await supabase
+          .from('subjects')
+          .select('*')
+          .eq('user_id', user.id);
+        setSubjects(updatedSubjects || []);
+      } else {
+        setSubjects(subjectsData || []);
+      }
 
       // Fetch revision sessions
       const { data: sessionsData } = await supabase
