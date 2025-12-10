@@ -28,6 +28,7 @@ interface SupportDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onShowTutorial?: () => void;
+  onUnreadCountChange?: () => void;
 }
 
 interface Conversation {
@@ -45,7 +46,7 @@ interface Message {
   created_at: string;
 }
 
-const SupportDrawer = ({ open, onOpenChange, onShowTutorial }: SupportDrawerProps) => {
+const SupportDrawer = ({ open, onOpenChange, onShowTutorial, onUnreadCountChange }: SupportDrawerProps) => {
   const { user } = useAuth();
   const location = useLocation();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -124,6 +125,9 @@ const SupportDrawer = ({ open, onOpenChange, onShowTutorial }: SupportDrawerProp
       .update({ read_by_user: true })
       .eq('conversation_id', conv.id)
       .eq('sender_type', 'admin');
+    
+    // Notify parent to refresh unread count
+    onUnreadCountChange?.();
   };
 
   const handleSendMessage = async () => {

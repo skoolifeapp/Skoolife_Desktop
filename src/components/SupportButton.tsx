@@ -158,6 +158,7 @@ const SupportButton = ({ onShowTutorial }: SupportButtonProps) => {
         open={drawerOpen} 
         onOpenChange={setDrawerOpen}
         onShowTutorial={onShowTutorial}
+        onUnreadCountChange={fetchUnreadCount}
       />
     </>
   );
