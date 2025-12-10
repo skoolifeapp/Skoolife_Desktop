@@ -37,7 +37,7 @@ const AdminSidebar = ({ children }: AdminSidebarProps) => {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex fixed left-0 top-0 h-full w-56 flex-col bg-card border-r border-border p-5 z-50">
         <Link to="/admin" className="flex items-center gap-3 mb-10">
-          <img src={logo} alt="Skoolife" className="h-9 w-auto" />
+          <img src={logo} alt="Skoolife" className="h-9 w-auto rounded-xl" />
           <span className="font-bold text-xl text-foreground">Skoolife</span>
         </Link>
 
@@ -75,7 +75,7 @@ const AdminSidebar = ({ children }: AdminSidebarProps) => {
       {/* Mobile Header */}
       <header className="lg:hidden sticky top-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
         <Link to="/admin" className="flex items-center gap-2">
-          <img src={logo} alt="Skoolife" className="h-8 w-auto" />
+          <img src={logo} alt="Skoolife" className="h-8 w-auto rounded-lg" />
           <span className="font-bold text-lg text-foreground">Admin</span>
         </Link>
         <div className="flex items-center gap-2">
