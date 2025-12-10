@@ -1,7 +1,8 @@
-import { format, isSameDay, parseISO } from 'date-fns';
+import { format, isSameDay, parseISO, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEffect, useRef, useState } from 'react';
-
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from 'lucide-react';
 import type { RevisionSession, CalendarEvent, Subject } from '@/types/planning';
 
 export interface GridClickData {
@@ -486,20 +487,53 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], onSess
               {/* Exam banners */}
               {dayExams.length > 0 && (
                 <div className="px-1 pb-1 space-y-1">
-                  {dayExams.map((exam) => (
-                    <div 
-                      key={exam.id}
-                      className="px-2 py-1 rounded-md text-xs font-medium min-w-0 text-left"
-                      style={{ 
-                        backgroundColor: exam.color + '20',
-                        borderLeft: `3px solid ${exam.color}`
-                      }}
-                    >
-                      <span className="truncate block min-w-0 text-left" style={{ color: exam.color }}>
-                        {exam.name}
-                      </span>
-                    </div>
-                  ))}
+                  {dayExams.map((exam) => {
+                    const examDate = parseISO(exam.exam_date);
+                    const daysUntil = differenceInDays(examDate, new Date());
+                    const daysLabel = daysUntil === 0 ? "Aujourd'hui" : daysUntil === 1 ? "Demain" : `Dans ${daysUntil} jours`;
+                    
+                    return (
+                      <Popover key={exam.id}>
+                        <PopoverTrigger asChild>
+                          <div 
+                            className="px-2 py-1 rounded-md text-xs font-medium min-w-0 text-left cursor-pointer hover:opacity-80 transition-opacity"
+                            style={{ 
+                              backgroundColor: exam.color + '20',
+                              borderLeft: `3px solid ${exam.color}`
+                            }}
+                          >
+                            <span className="truncate block min-w-0 text-left" style={{ color: exam.color }}>
+                              {exam.name}
+                            </span>
+                          </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 p-3" align="start">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: exam.color }}
+                              />
+                              <h4 className="font-semibold text-sm">{exam.name}</h4>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Calendar className="w-4 h-4" />
+                              <span>{format(examDate, 'EEEE d MMMM yyyy', { locale: fr })}</span>
+                            </div>
+                            <div 
+                              className="text-xs font-medium px-2 py-1 rounded-md w-fit"
+                              style={{ 
+                                backgroundColor: exam.color + '20',
+                                color: exam.color
+                              }}
+                            >
+                              {daysLabel}
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    );
+                  })}
                 </div>
               )}
             </div>
