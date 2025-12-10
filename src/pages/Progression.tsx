@@ -5,13 +5,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Clock, CheckCircle2, Target, TrendingUp, Loader2, BarChart3
+  Clock, CheckCircle2, Target, TrendingUp, Loader2, BarChart3, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Button } from '@/components/ui/button';
 import SupportButton from '@/components/SupportButton';
 import AppSidebar from '@/components/AppSidebar';
 import { ProgressionTutorialOverlay } from '@/components/ProgressionTutorialOverlay';
-import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
+import { format, startOfWeek, endOfWeek, subWeeks, addWeeks, isSameWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 interface Subject {
@@ -49,12 +50,13 @@ interface SubjectStats {
 
 const Progression = () => {
   const [loading, setLoading] = useState(true);
+  const [selectedWeekStart, setSelectedWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [currentWeekStats, setCurrentWeekStats] = useState<WeekStats | null>(null);
   const [subjectStats, setSubjectStats] = useState<SubjectStats[]>([]);
   const [weekHistory, setWeekHistory] = useState<WeekStats[]>([]);
   const [showTutorial, setShowTutorial] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  
+  const [allSessions, setAllSessions] = useState<RevisionSession[]>([]);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -141,20 +143,23 @@ const Progression = () => {
 
       setSubjects(subjectsData || []);
 
-      // Fetch all revision sessions for the last 5 weeks
-      const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-      const fiveWeeksAgo = subWeeks(currentWeekStart, 4);
+      // Fetch all revision sessions (wider range for navigation)
+      const tenWeeksAgo = subWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), 10);
+      const tenWeeksAhead = addWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), 10);
 
       const { data: sessionsData } = await supabase
         .from('revision_sessions')
         .select('id, subject_id, date, start_time, end_time, status')
         .eq('user_id', user.id)
-        .gte('date', format(fiveWeeksAgo, 'yyyy-MM-dd'))
+        .gte('date', format(tenWeeksAgo, 'yyyy-MM-dd'))
+        .lte('date', format(tenWeeksAhead, 'yyyy-MM-dd'))
         .order('date', { ascending: true });
 
       const sessions = sessionsData || [];
+      setAllSessions(sessions);
 
       // Current week stats
+      const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
       const currentStats = calculateWeekStats(sessions, currentWeekStart);
       setCurrentWeekStats(currentStats);
 
@@ -167,45 +172,75 @@ const Progression = () => {
       setWeekHistory(history);
 
       // Subject stats for current week
-      const currentWeekEnd = endOfWeek(currentWeekStart, { weekStartsOn: 1 });
-      const weekStartStr = format(currentWeekStart, 'yyyy-MM-dd');
-      const weekEndStr = format(currentWeekEnd, 'yyyy-MM-dd');
-      
-      const currentWeekSessions = sessions.filter(
-        s => s.date >= weekStartStr && s.date <= weekEndStr
-      );
-
-      const subjectStatsMap = new Map<string, SubjectStats>();
-      
-      currentWeekSessions.forEach(session => {
-        const subject = subjectsData?.find(s => s.id === session.subject_id);
-        if (!subject) return;
-
-        const existing = subjectStatsMap.get(session.subject_id) || {
-          subjectId: session.subject_id,
-          subjectName: subject.name,
-          color: subject.color || '#FFC107',
-          doneHours: 0,
-          plannedHours: 0,
-        };
-
-        const duration = calculateSessionDuration(session.start_time, session.end_time);
-        existing.plannedHours += duration;
-        
-        if (session.status === 'done') {
-          existing.doneHours += duration;
-        }
-
-        subjectStatsMap.set(session.subject_id, existing);
-      });
-
-      setSubjectStats(Array.from(subjectStatsMap.values()));
+      updateSubjectStats(sessions, subjectsData || [], currentWeekStart);
 
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const updateSubjectStats = (sessions: RevisionSession[], subjectsData: Subject[], weekStart: Date) => {
+    const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+    const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+    const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
+    
+    const weekSessions = sessions.filter(
+      s => s.date >= weekStartStr && s.date <= weekEndStr
+    );
+
+    const subjectStatsMap = new Map<string, SubjectStats>();
+    
+    weekSessions.forEach(session => {
+      const subject = subjectsData.find(s => s.id === session.subject_id);
+      if (!subject) return;
+
+      const existing = subjectStatsMap.get(session.subject_id) || {
+        subjectId: session.subject_id,
+        subjectName: subject.name,
+        color: subject.color || '#FFC107',
+        doneHours: 0,
+        plannedHours: 0,
+      };
+
+      const duration = calculateSessionDuration(session.start_time, session.end_time);
+      existing.plannedHours += duration;
+      
+      if (session.status === 'done') {
+        existing.doneHours += duration;
+      }
+
+      subjectStatsMap.set(session.subject_id, existing);
+    });
+
+    setSubjectStats(Array.from(subjectStatsMap.values()));
+  };
+
+  // Update stats when selected week changes
+  useEffect(() => {
+    if (allSessions.length > 0 && subjects.length > 0) {
+      const stats = calculateWeekStats(allSessions, selectedWeekStart);
+      setCurrentWeekStats(stats);
+      updateSubjectStats(allSessions, subjects, selectedWeekStart);
+    }
+  }, [selectedWeekStart, allSessions, subjects]);
+
+  const goToPreviousWeek = () => {
+    setSelectedWeekStart(prev => subWeeks(prev, 1));
+  };
+
+  const goToNextWeek = () => {
+    setSelectedWeekStart(prev => addWeeks(prev, 1));
+  };
+
+  const isCurrentWeek = isSameWeek(selectedWeekStart, new Date(), { weekStartsOn: 1 });
+
+  const getWeekLabel = () => {
+    if (isCurrentWeek) return 'Cette semaine';
+    const weekEnd = endOfWeek(selectedWeekStart, { weekStartsOn: 1 });
+    return `${format(selectedWeekStart, 'd', { locale: fr })} - ${format(weekEnd, 'd MMM', { locale: fr })}`;
+  };
   };
 
   const handleSignOut = async () => {
@@ -248,11 +283,19 @@ const Progression = () => {
 
         {/* Current week summary */}
         <Card className="border-0 shadow-md" data-progression-week-stats>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5 text-primary" />
-              Cette semaine
+              {getWeekLabel()}
             </CardTitle>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" onClick={goToPreviousWeek} className="h-8 w-8">
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={goToNextWeek} className="h-8 w-8">
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             {currentWeekStats && (
