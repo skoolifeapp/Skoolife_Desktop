@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { PresenceProvider } from "@/components/PresenceProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
@@ -27,19 +28,21 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/app" element={<Dashboard />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/progression" element={<Progression />} />
-              <Route path="/subjects" element={<Subjects />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/stats" element={<AdminStats />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <PresenceProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/app" element={<Dashboard />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/progression" element={<Progression />} />
+                <Route path="/subjects" element={<Subjects />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/admin/users" element={<AdminUsers />} />
+                <Route path="/admin/stats" element={<AdminStats />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </PresenceProvider>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
