@@ -25,9 +25,8 @@ const Auth = () => {
       if (user) {
         setCheckingRedirect(true);
         
-        // Check if admin first
-        const isAdminUser = await checkIsAdmin();
-        if (isAdminUser) {
+        // Admin check by email - simple redirect
+        if (user.email === 'skoolife.co@gmail.com') {
           navigate('/admin');
           setCheckingRedirect(false);
           return;
@@ -41,10 +40,8 @@ const Auth = () => {
           .single();
         
         if (profile?.is_onboarding_complete) {
-          // Existing user with completed onboarding → go to app
           navigate('/app');
         } else {
-          // New user or incomplete onboarding → go to onboarding
           navigate('/onboarding');
         }
         
@@ -52,7 +49,7 @@ const Auth = () => {
       }
     };
     handleRedirect();
-  }, [user, navigate, checkIsAdmin]);
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

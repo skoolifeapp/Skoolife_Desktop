@@ -55,34 +55,32 @@ const Dashboard = () => {
   const [sessionPopoverOpen, setSessionPopoverOpen] = useState<string | null>(null);
   const [editSessionDialogOpen, setEditSessionDialogOpen] = useState(false);
   
-  const { user, signOut, checkIsAdmin } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const isSigningOut = useRef(false);
 
   useEffect(() => {
     if (isSigningOut.current) return;
     
-    const checkAuthAndRedirect = async () => {
-      if (!user) {
+    // Admin redirect by email
+    if (user?.email === 'skoolife.co@gmail.com') {
+      navigate('/admin');
+      return;
+    }
+    
+    if (!user) {
+      const checkSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
           navigate('/auth');
         }
-        return;
-      }
+      };
+      checkSession();
+      return;
+    }
 
-      // Check if user is admin - redirect to admin dashboard
-      const isAdminUser = await checkIsAdmin();
-      if (isAdminUser) {
-        navigate('/admin');
-        return;
-      }
-
-      fetchData();
-    };
-
-    checkAuthAndRedirect();
-  }, [user, navigate, checkIsAdmin]);
+    fetchData();
+  }, [user, navigate]);
 
   const fetchData = async () => {
     if (!user) return;
