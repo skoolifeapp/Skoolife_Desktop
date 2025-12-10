@@ -125,10 +125,14 @@ const Auth = () => {
                 disabled={loading}
                 onClick={async () => {
                   setLoading(true);
+                  // Use custom domain in production, otherwise use current origin
+                  const baseUrl = window.location.hostname.includes('skoolife.fr') 
+                    ? 'https://app.skoolife.fr' 
+                    : window.location.origin;
                   const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                      redirectTo: `${window.location.origin}/onboarding`,
+                      redirectTo: `${baseUrl}/onboarding`,
                     },
                   });
                   if (error) {
