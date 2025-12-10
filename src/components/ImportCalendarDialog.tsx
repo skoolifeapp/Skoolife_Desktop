@@ -252,12 +252,17 @@ const ImportCalendarDialog = ({ open, onOpenChange, onImportComplete }: ImportCa
 
           {/* Help text */}
           <div className="p-3 rounded-lg bg-secondary/50 text-sm text-muted-foreground">
-            <p>💡 Tu peux exporter ton calendrier depuis :</p>
-            <ul className="mt-1 ml-4 list-disc space-y-1">
-              <li>Google Calendar → Paramètres → Exporter</li>
-              <li>Outlook → Calendrier → Partager → Exporter</li>
-              <li>Ton ENT (espace numérique de travail)</li>
+            <p className="font-medium mb-2">💡 Où trouver ton fichier .ics ?</p>
+            <ul className="ml-4 list-disc space-y-1.5">
+              <li><span className="font-medium">Hyperplanning</span> → Mon planning → Exporter (icône calendrier)</li>
+              <li><span className="font-medium">Pronote</span> → Emploi du temps → Menu → Exporter en iCal</li>
+              <li><span className="font-medium">Celcat</span> → Clic droit sur l'agenda → Télécharger iCal</li>
+              <li><span className="font-medium">ADE Campus</span> → Menu Export → Format iCalendar</li>
+              <li><span className="font-medium">Google Calendar</span> → Paramètres → Exporter</li>
             </ul>
+            <p className="mt-2 text-xs opacity-80">
+              En général, cherche "Export", "iCal" ou "ICS" dans ton espace étudiant.
+            </p>
           </div>
 
           {/* Actions */}
