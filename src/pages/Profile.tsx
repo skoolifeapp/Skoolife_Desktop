@@ -16,11 +16,16 @@ import { Loader2, User } from 'lucide-react';
 import { AppSidebar } from '@/components/AppSidebar';
 
 const LEVELS = [
-  'Lycée',
+  'Lycée - Seconde',
+  'Lycée - Première',
+  'Lycée - Terminale',
   'BTS',
   'BUT',
-  'Licence',
-  'Master',
+  'Licence 1',
+  'Licence 2',
+  'Licence 3',
+  'Master 1',
+  'Master 2',
   'Prépa',
   'Concours',
   'Autre',
