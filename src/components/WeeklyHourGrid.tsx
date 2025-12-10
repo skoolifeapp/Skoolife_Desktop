@@ -1,7 +1,7 @@
 import { format, isSameDay, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEffect, useRef, useState } from 'react';
-import { GraduationCap } from 'lucide-react';
+
 import type { RevisionSession, CalendarEvent, Subject } from '@/types/planning';
 
 export interface GridClickData {
@@ -493,7 +493,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], onSess
                     borderLeft: `3px solid ${exam.color}`
                   }}
                 >
-                  <GraduationCap className="w-3 h-3" style={{ color: exam.color }} />
+                  <span>📝</span>
                   <span className="truncate" style={{ color: exam.color }}>
                     {exam.name}
                   </span>
