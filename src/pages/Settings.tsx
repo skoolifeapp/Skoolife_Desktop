@@ -27,7 +27,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { User, Clock, Loader2, RotateCcw, Settings as SettingsIcon } from 'lucide-react';
+import { Clock, Loader2, RotateCcw, Settings as SettingsIcon } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import SupportButton from '@/components/SupportButton';
 import AppSidebar from '@/components/AppSidebar';
@@ -41,42 +41,6 @@ const DAYS_OF_WEEK = [
   { value: 6, label: 'Sam' },
   { value: 0, label: 'Dim' },
 ];
-
-const LEVELS = [
-  'Lycée',
-  'BTS',
-  'BUT',
-  'Licence',
-  'Master',
-  'Prépa',
-  'Concours',
-  'Autre',
-];
-
-const EXAM_PERIODS = [
-  'Janvier',
-  'Février',
-  'Mars',
-  'Avril',
-  'Mai',
-  'Juin',
-  'Juillet',
-  'Août',
-  'Septembre',
-  'Octobre',
-  'Novembre',
-  'Décembre',
-];
-
-interface ProfileData {
-  first_name: string;
-  last_name: string;
-  email: string;
-  school: string;
-  level: string;
-  main_exam_period: string;
-  weekly_revision_hours: number;
-}
 
 interface PreferencesData {
   preferred_days_of_week: number[];
@@ -98,19 +62,8 @@ const SESSION_DURATIONS = [
 
 const Settings = () => {
   const [loading, setLoading] = useState(true);
-  const [savingProfile, setSavingProfile] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
   const [resettingOnboarding, setResettingOnboarding] = useState(false);
-  
-  const [profile, setProfile] = useState<ProfileData>({
-    first_name: '',
-    last_name: '',
-    email: '',
-    school: '',
-    level: '',
-    main_exam_period: '',
-    weekly_revision_hours: 10,
-  });
 
   const [preferences, setPreferences] = useState<PreferencesData>({
     preferred_days_of_week: [1, 2, 3, 4, 5],
@@ -138,26 +91,6 @@ const Settings = () => {
     if (!user) return;
 
     try {
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (profileData) {
-        setProfile({
-          first_name: profileData.first_name || '',
-          last_name: profileData.last_name || '',
-          email: profileData.email || user.email || '',
-          school: profileData.school || '',
-          level: profileData.level || '',
-          main_exam_period: profileData.main_exam_period || '',
-          weekly_revision_hours: profileData.weekly_revision_hours || 10,
-        });
-      }
-
-      // Fetch preferences
       const { data: prefsData } = await supabase
         .from('user_preferences')
         .select('*')
@@ -184,37 +117,9 @@ const Settings = () => {
     }
   };
 
-  const handleSaveProfile = async () => {
-    if (!user) return;
-
-    setSavingProfile(true);
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          school: profile.school,
-          level: profile.level,
-          main_exam_period: profile.main_exam_period,
-          weekly_revision_hours: profile.weekly_revision_hours,
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-      toast.success('Profil enregistré avec succès');
-    } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors de la sauvegarde du profil');
-    } finally {
-      setSavingProfile(false);
-    }
-  };
-
   const handleSavePreferences = async () => {
     if (!user) return;
 
-    // Validate times
     if (preferences.daily_start_time >= preferences.daily_end_time) {
       toast.error("L'heure de fin doit être après l'heure de début");
       return;
@@ -222,7 +127,6 @@ const Settings = () => {
 
     setSavingPreferences(true);
     try {
-      // Upsert preferences
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
@@ -240,10 +144,10 @@ const Settings = () => {
         });
 
       if (error) throw error;
-      toast.success('Préférences enregistrées avec succès');
+      toast.success('Préférences enregistrées');
     } catch (err) {
       console.error(err);
-      toast.error('Erreur lors de la sauvegarde des préférences');
+      toast.error('Erreur lors de la sauvegarde');
     } finally {
       setSavingPreferences(false);
     }
@@ -291,130 +195,13 @@ const Settings = () => {
     <AppSidebar>
       <div className="flex-1 p-6 md:p-8 space-y-8 overflow-auto">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Profil & paramètres</h1>
+          <h1 className="text-3xl font-bold mb-2">Paramètres</h1>
           <p className="text-muted-foreground">
-            Gère ton profil et tes préférences de révisions
+            Configure tes préférences de révisions
           </p>
         </div>
 
-        {/* Section 1: Profile */}
-        <Card className="border-0 shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5 text-primary" />
-              Informations personnelles
-            </CardTitle>
-            <CardDescription>
-              Tes informations de base
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first_name">Prénom</Label>
-                <Input
-                  id="first_name"
-                  value={profile.first_name}
-                  onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
-                  placeholder="Ton prénom"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="last_name">Nom</Label>
-                <Input
-                  id="last_name"
-                  value={profile.last_name}
-                  onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
-                  placeholder="Ton nom"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                value={profile.email}
-                disabled
-                className="bg-muted"
-              />
-              <p className="text-xs text-muted-foreground">
-                L'email ne peut pas être modifié
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="school">Établissement / école</Label>
-              <Input
-                id="school"
-                value={profile.school}
-                onChange={(e) => setProfile({ ...profile, school: e.target.value })}
-                placeholder="Ex: Université Paris-Saclay"
-              />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Niveau d'études</Label>
-                <Select
-                  value={profile.level}
-                  onValueChange={(value) => setProfile({ ...profile, level: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionne ton niveau" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {LEVELS.map((level) => (
-                      <SelectItem key={level} value={level}>
-                        {level}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Période principale d'examens</Label>
-                <Select
-                  value={profile.main_exam_period}
-                  onValueChange={(value) => setProfile({ ...profile, main_exam_period: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Mois des examens" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {EXAM_PERIODS.map((period) => (
-                      <SelectItem key={period} value={period}>
-                        {period}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Objectif d'heures de révision / semaine : {profile.weekly_revision_hours}h</Label>
-              <Slider
-                value={[profile.weekly_revision_hours]}
-                onValueChange={(value) => setProfile({ ...profile, weekly_revision_hours: value[0] })}
-                min={2}
-                max={40}
-                step={1}
-                className="py-4"
-              />
-              <p className="text-xs text-muted-foreground">
-                Entre 2h et 40h par semaine
-              </p>
-            </div>
-
-            <Button onClick={handleSaveProfile} disabled={savingProfile}>
-              {savingProfile && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Enregistrer mon profil
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Section 2: Revision Preferences */}
+        {/* Section: Revision Preferences */}
         <Card className="border-0 shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -551,7 +338,7 @@ const Settings = () => {
           </CardContent>
         </Card>
 
-        {/* Section 3: Advanced Options */}
+        {/* Section: Advanced Options */}
         <Card className="border-0 shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -595,7 +382,6 @@ const Settings = () => {
           </CardContent>
         </Card>
 
-        {/* Support Button */}
         <SupportButton />
       </div>
     </AppSidebar>
