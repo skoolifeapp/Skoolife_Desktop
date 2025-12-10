@@ -1,10 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AdminSidebar from '@/components/AdminSidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, BookOpen, Calendar, MessageSquare, TrendingUp, CheckCircle } from 'lucide-react';
 
 const AdminStats = () => {
+  const queryClient = useQueryClient();
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
@@ -41,6 +43,41 @@ const AdminStats = () => {
       };
     },
   });
+
+  // Real-time subscriptions
+  useEffect(() => {
+    const channels = [
+      supabase.channel('stats-profiles')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+        })
+        .subscribe(),
+      supabase.channel('stats-subjects')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'subjects' }, () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+        })
+        .subscribe(),
+      supabase.channel('stats-sessions')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'revision_sessions' }, () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+        })
+        .subscribe(),
+      supabase.channel('stats-conversations')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+        })
+        .subscribe(),
+      supabase.channel('stats-events')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, () => {
+          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+        })
+        .subscribe(),
+    ];
+
+    return () => {
+      channels.forEach(channel => supabase.removeChannel(channel));
+    };
+  }, [queryClient]);
 
   const statCards = [
     { title: 'Total utilisateurs', value: stats?.totalUsers || 0, icon: Users, color: 'text-blue-500' },
