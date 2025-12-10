@@ -993,6 +993,15 @@ const Dashboard = () => {
               weekDays={weekDays}
               sessions={sessions}
               calendarEvents={calendarEvents}
+              exams={subjects
+                .filter(s => s.exam_date && s.status !== 'archived')
+                .map(s => ({
+                  id: s.id,
+                  name: s.name,
+                  color: s.color || '#FFC107',
+                  exam_date: s.exam_date!
+                }))
+              }
               onSessionClick={handleSessionClick}
               onEventClick={setSelectedEvent}
               onGridClick={handleGridClick}
