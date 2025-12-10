@@ -101,9 +101,9 @@ export const TutorialOverlay = ({ onComplete }: TutorialOverlayProps) => {
     if (spaceRight >= cardWidth + gap) {
       // Position to the right
       cardStyle.left = targetRect.right + gap;
-      cardStyle.top = Math.max(16, Math.min(targetRect.top, window.innerHeight - cardHeight - 16));
-    } else if (spaceBelow >= cardHeight + gap) {
-      // Position below
+      cardStyle.top = Math.max(16, Math.min(targetRect.top, window.innerHeight - cardHeight - 80));
+    } else if (spaceBelow >= cardHeight + gap + 60) {
+      // Position below - need extra margin for bottom of screen
       cardStyle.top = targetRect.bottom + gap;
       let left = targetRect.left + targetRect.width / 2 - cardWidth / 2;
       left = Math.max(16, Math.min(left, window.innerWidth - cardWidth - 16));
