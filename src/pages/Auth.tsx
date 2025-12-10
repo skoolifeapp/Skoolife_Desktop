@@ -132,7 +132,7 @@ const Auth = () => {
                   const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                      redirectTo: `${baseUrl}/onboarding`,
+                      redirectTo: `${baseUrl}/app`,
                     },
                   });
                   if (error) {
