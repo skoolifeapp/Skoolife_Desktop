@@ -770,7 +770,7 @@ const Dashboard = () => {
   const completedSessions = sessions.filter(s => s.status === 'done').length;
 
   const upcomingExams = subjects
-    .filter(s => s.exam_date)
+    .filter(s => s.exam_date && s.status !== 'archived')
     .sort((a, b) => new Date(a.exam_date!).getTime() - new Date(b.exam_date!).getTime())
     .slice(0, 3);
 
