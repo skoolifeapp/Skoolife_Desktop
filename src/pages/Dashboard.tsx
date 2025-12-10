@@ -121,17 +121,11 @@ const Dashboard = () => {
         .eq('user_id', user.id)
         .order('date', { ascending: true });
 
-      // Map subjects to sessions and filter out completed/archived subjects
-      const sessionsWithSubjects = (sessionsData || [])
-        .map(session => ({
-          ...session,
-          subject: subjectsData?.find(s => s.id === session.subject_id)
-        }))
-        .filter(session => {
-          // Hide sessions for completed or archived subjects
-          const subjectStatus = session.subject?.status || 'active';
-          return subjectStatus === 'active';
-        });
+      // Map subjects to sessions
+      const sessionsWithSubjects = (sessionsData || []).map(session => ({
+        ...session,
+        subject: subjectsData?.find(s => s.id === session.subject_id)
+      }));
 
       setSessions(sessionsWithSubjects);
 
