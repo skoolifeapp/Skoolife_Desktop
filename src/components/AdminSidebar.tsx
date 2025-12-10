@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { MessageSquare, Users, BarChart3, LogOut, Menu, X, Eye } from 'lucide-react';
+import { MessageSquare, Users, BarChart3, LogOut, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
@@ -74,14 +74,6 @@ const AdminSidebar = ({ children }: AdminSidebarProps) => {
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
-            onClick={() => navigate('/app')}
-          >
-            <Eye className="w-5 h-5" />
-            Voir comme étudiant
-          </Button>
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
             onClick={handleSignOut}
           >
             <LogOut className="w-5 h-5" />
@@ -138,17 +130,6 @@ const AdminSidebar = ({ children }: AdminSidebarProps) => {
                 </Link>
               )
             ))}
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 px-4 py-4 text-muted-foreground hover:text-foreground"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                navigate('/app');
-              }}
-            >
-              <Eye className="w-5 h-5" />
-              <span className="text-lg">Voir comme étudiant</span>
-            </Button>
             <Button
               variant="ghost"
               className="w-full justify-start gap-3 px-4 py-4 text-muted-foreground hover:text-foreground"
