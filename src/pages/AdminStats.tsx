@@ -1,47 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AdminSidebar from '@/components/AdminSidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, BookOpen, Calendar, MessageSquare, TrendingUp, CheckCircle, Radio } from 'lucide-react';
+import { useLiveUserCount } from '@/hooks/useLiveUserCount';
 
 const AdminStats = () => {
   const queryClient = useQueryClient();
-  const [liveUsersCount, setLiveUsersCount] = useState(0);
-
-  // Subscribe to presence channel for live users count
-  useEffect(() => {
-    const channel = supabase.channel('skoolife-presence');
-
-    const updateCount = () => {
-      const state = channel.presenceState();
-      // Count unique users (each key in presenceState is a user)
-      const count = Object.keys(state).length;
-      setLiveUsersCount(count);
-    };
-
-    channel
-      .on('presence', { event: 'sync' }, updateCount)
-      .on('presence', { event: 'join' }, updateCount)
-      .on('presence', { event: 'leave' }, updateCount)
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          // Admin must also track to see others
-          await channel.track({ 
-            user_id: 'admin',
-            online_at: new Date().toISOString() 
-          });
-        }
-      });
-
-    // Poll presence state regularly as backup
-    const interval = setInterval(updateCount, 5000);
-
-    return () => {
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
-  }, []);
+  const liveUsersCount = useLiveUserCount();
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],

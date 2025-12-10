@@ -2,39 +2,37 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+/**
+ * Simple presence provider using Supabase Presence.
+ * No manual heartbeat, no polling - Supabase handles everything.
+ */
 export const PresenceProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
 
   useEffect(() => {
     if (!user) return;
 
-    const channel = supabase.channel('skoolife-presence');
+    const channel = supabase.channel('skoolife-presence', {
+      config: {
+        presence: { key: user.id }
+      }
+    });
 
     channel
       .on('presence', { event: 'sync' }, () => {
-        // Presence synced
+        // Nothing to do here for students, counting happens on admin side
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await channel.track({
-            user_id: user.id,
-            online_at: new Date().toISOString(),
+            userId: user.id,
+            email: user.email,
           });
         }
       });
 
-    // Keep connection alive with heartbeat
-    const heartbeat = setInterval(async () => {
-      if (channel.state === 'joined') {
-        await channel.track({
-          user_id: user.id,
-          online_at: new Date().toISOString(),
-        });
-      }
-    }, 30000);
-
+    // Cleanup on unmount or user change
     return () => {
-      clearInterval(heartbeat);
       supabase.removeChannel(channel);
     };
   }, [user]);
