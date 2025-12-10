@@ -1002,22 +1002,6 @@ const Dashboard = () => {
               onEventResize={handleEventResize}
             />
 
-            {/* Empty state */}
-            {sessions.length === 0 && (
-              <Card className="border-0 shadow-md">
-                <CardContent className="py-12 text-center">
-                  <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-                  <h3 className="text-lg font-semibold mb-2">Aucune session planifiée</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Clique sur "Générer mon planning" pour créer tes premières sessions de révision
-                  </p>
-                  <Button variant="hero" onClick={generatePlanning} disabled={generating}>
-                    {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                    Générer mon planning
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
           </div>
         </div>
       </div>
