@@ -13,7 +13,7 @@ interface TutorialStep {
 const tutorialSteps: TutorialStep[] = [
   {
     title: "Importer votre emploi du temps",
-    description: "Commencez par importer le calendrier de votre école au format .ics pour bloquer automatiquement vos heures de cours.",
+    description: "Importez le fichier .ics disponible depuis votre espace étudiant pour bloquer automatiquement vos cours.",
     targetId: "import-calendar-btn",
     icon: <Upload className="w-6 h-6 text-primary" />,
   },
