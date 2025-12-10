@@ -62,8 +62,17 @@ const Dashboard = () => {
   useEffect(() => {
     if (isSigningOut.current) return;
     
+    // Wait for auth to be checked before redirecting
+    // This prevents redirect loop during OAuth callback
     if (!user) {
-      navigate('/auth');
+      // Small delay to allow session to be established after OAuth callback
+      const checkSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          navigate('/auth');
+        }
+      };
+      checkSession();
       return;
     }
 
