@@ -24,12 +24,30 @@ const Auth = () => {
     const handleRedirect = async () => {
       if (user) {
         setCheckingRedirect(true);
+        
+        // Check if admin first
         const isAdminUser = await checkIsAdmin();
         if (isAdminUser) {
           navigate('/admin');
+          setCheckingRedirect(false);
+          return;
+        }
+        
+        // Check if user has completed onboarding
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_onboarding_complete')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.is_onboarding_complete) {
+          // Existing user with completed onboarding → go to app
+          navigate('/app');
         } else {
+          // New user or incomplete onboarding → go to onboarding
           navigate('/onboarding');
         }
+        
         setCheckingRedirect(false);
       }
     };
