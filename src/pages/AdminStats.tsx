@@ -10,6 +10,14 @@ const AdminStats = () => {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
+      // Get admin user IDs to exclude them from stats
+      const { data: adminRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'admin');
+
+      const adminIds = adminRoles?.map(r => r.user_id) || [];
+
       const [profilesRes, subjectsRes, sessionsRes, conversationsRes, eventsRes] = await Promise.all([
         supabase.from('profiles').select('id, created_at, is_onboarding_complete'),
         supabase.from('subjects').select('id, created_at'),
@@ -18,7 +26,8 @@ const AdminStats = () => {
         supabase.from('calendar_events').select('id, created_at'),
       ]);
 
-      const profiles = profilesRes.data || [];
+      // Filter out admin profiles
+      const profiles = (profilesRes.data || []).filter(p => !adminIds.includes(p.id));
       const subjects = subjectsRes.data || [];
       const sessions = sessionsRes.data || [];
       const conversations = conversationsRes.data || [];
