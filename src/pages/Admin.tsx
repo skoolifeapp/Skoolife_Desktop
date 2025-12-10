@@ -106,13 +106,14 @@ const Admin = () => {
         (convData || []).map(async (conv) => {
           const profile = profilesData?.find(p => p.id === conv.user_id);
           
-          const { data: lastMsg } = await supabase
+          const { data: messagesData } = await supabase
             .from('conversation_messages')
-            .select('message, sender_type')
+            .select('message, sender_type, read_by_admin')
             .eq('conversation_id', conv.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+            .order('created_at', { ascending: false });
+
+          const lastMsg = messagesData?.[0];
+          const unreadCount = messagesData?.filter(m => m.sender_type === 'user' && !m.read_by_admin).length || 0;
 
           return {
             ...conv,
@@ -121,6 +122,7 @@ const Admin = () => {
               ? `${profile.first_name} ${profile.last_name || ''}`.trim()
               : undefined,
             last_message: lastMsg?.message?.substring(0, 60) + (lastMsg?.message && lastMsg.message.length > 60 ? '...' : ''),
+            unread_count: unreadCount,
           };
         })
       );
@@ -155,6 +157,18 @@ const Admin = () => {
   const handleSelectConversation = async (conv: Conversation) => {
     setSelectedConversation(conv);
     await fetchMessages(conv.id);
+    
+    // Mark messages as read
+    await supabase
+      .from('conversation_messages')
+      .update({ read_by_admin: true })
+      .eq('conversation_id', conv.id)
+      .eq('sender_type', 'user');
+    
+    // Update local state
+    setConversations(prev => prev.map(c => 
+      c.id === conv.id ? { ...c, unread_count: 0 } : c
+    ));
   };
 
   const handleSendMessage = async () => {
@@ -218,6 +232,7 @@ const Admin = () => {
 
   const openCount = conversations.filter(c => c.status === 'open').length;
   const closedCount = conversations.filter(c => c.status === 'closed').length;
+  const totalUnread = conversations.reduce((sum, c) => sum + (c.unread_count || 0), 0);
 
   if (loading) {
     return (
@@ -342,9 +357,16 @@ const Admin = () => {
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">
-                              {conv.user_name || conv.user_email}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-sm truncate">
+                                {conv.user_name || conv.user_email}
+                              </p>
+                              {(conv.unread_count ?? 0) > 0 && (
+                                <span className="shrink-0 w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium">
+                                  {conv.unread_count}
+                                </span>
+                              )}
+                            </div>
                             {conv.user_name && (
                               <p className="text-xs text-muted-foreground truncate">
                                 {conv.user_email}

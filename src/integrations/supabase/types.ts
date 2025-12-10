@@ -128,6 +128,7 @@ export type Database = {
           created_at: string
           id: string
           message: string
+          read_by_admin: boolean
           sender_id: string
           sender_type: string
         }
@@ -136,6 +137,7 @@ export type Database = {
           created_at?: string
           id?: string
           message: string
+          read_by_admin?: boolean
           sender_id: string
           sender_type: string
         }
@@ -144,6 +146,7 @@ export type Database = {
           created_at?: string
           id?: string
           message?: string
+          read_by_admin?: boolean
           sender_id?: string
           sender_type?: string
         }

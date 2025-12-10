@@ -14,7 +14,7 @@ interface AdminSidebarProps {
 const NAV_ITEMS = [
   { path: '/admin', label: 'Conversations', icon: MessageSquare },
   { path: '/admin/users', label: 'Utilisateurs', icon: Users },
-  { path: '/admin/stats', label: 'Statistiques', icon: BarChart3, disabled: true },
+  { path: '/admin/stats', label: 'Statistiques', icon: BarChart3 },
 ];
 
 const AdminSidebar = ({ children }: AdminSidebarProps) => {
@@ -43,29 +43,19 @@ const AdminSidebar = ({ children }: AdminSidebarProps) => {
 
         <nav className="flex-1 space-y-1">
           {NAV_ITEMS.map((item) => (
-            item.disabled ? (
-              <div
-                key={item.path}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-muted-foreground/50 cursor-not-allowed"
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.label}</span>
-              </div>
-            ) : (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors",
-                  isActive(item.path)
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "text-muted-foreground hover:bg-secondary/50"
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.label}</span>
-              </Link>
-            )
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-xl transition-colors",
+                isActive(item.path)
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-muted-foreground hover:bg-secondary/50"
+              )}
+            >
+              <item.icon className="w-5 h-5" />
+              <span>{item.label}</span>
+            </Link>
           ))}
         </nav>
 
@@ -105,30 +95,20 @@ const AdminSidebar = ({ children }: AdminSidebarProps) => {
         <div className="lg:hidden fixed inset-0 z-40 bg-background/95 backdrop-blur-sm pt-16">
           <nav className="p-4 space-y-2">
             {NAV_ITEMS.map((item) => (
-              item.disabled ? (
-                <div
-                  key={item.path}
-                  className="flex items-center gap-3 px-4 py-4 rounded-xl text-muted-foreground/50 cursor-not-allowed"
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span className="text-lg">{item.label}</span>
-                </div>
-              ) : (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-4 rounded-xl transition-colors",
-                    isActive(item.path)
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-muted-foreground hover:bg-secondary/50"
-                  )}
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span className="text-lg">{item.label}</span>
-                </Link>
-              )
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setMobileMenuOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-4 rounded-xl transition-colors",
+                  isActive(item.path)
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:bg-secondary/50"
+                )}
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="text-lg">{item.label}</span>
+              </Link>
             ))}
             <Button
               variant="ghost"
