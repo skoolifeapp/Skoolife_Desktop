@@ -8,11 +8,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-  MessageSquare, Send, Loader2, ArrowLeft, User, Clock, 
-  CheckCircle, XCircle, RefreshCw
+  MessageSquare, Send, Loader2, User, Clock, 
+  CheckCircle, XCircle, RefreshCw, Inbox, Search
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import AdminSidebar from '@/components/AdminSidebar';
 
 interface Conversation {
   id: string;
@@ -45,6 +47,8 @@ const Admin = () => {
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'open' | 'closed'>('all');
   
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -61,7 +65,6 @@ const Admin = () => {
     if (!user) return;
 
     try {
-      // Check if user is admin
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
@@ -86,29 +89,19 @@ const Admin = () => {
 
   const fetchConversations = async () => {
     try {
-      // Fetch all conversations with user info
       const { data: convData, error } = await supabase
         .from('conversations')
-        .select(`
-          id,
-          user_id,
-          subject,
-          status,
-          created_at,
-          updated_at
-        `)
+        .select('*')
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
 
-      // Fetch profiles for user info
       const userIds = [...new Set(convData?.map(c => c.user_id) || [])];
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('id, email, first_name, last_name')
         .in('id', userIds);
 
-      // Fetch last message for each conversation
       const conversationsWithDetails = await Promise.all(
         (convData || []).map(async (conv) => {
           const profile = profilesData?.find(p => p.id === conv.user_id);
@@ -127,7 +120,7 @@ const Admin = () => {
             user_name: profile?.first_name 
               ? `${profile.first_name} ${profile.last_name || ''}`.trim()
               : undefined,
-            last_message: lastMsg?.message?.substring(0, 50) + (lastMsg?.message && lastMsg.message.length > 50 ? '...' : ''),
+            last_message: lastMsg?.message?.substring(0, 60) + (lastMsg?.message && lastMsg.message.length > 60 ? '...' : ''),
           };
         })
       );
@@ -180,7 +173,6 @@ const Admin = () => {
 
       if (error) throw error;
 
-      // Update conversation updated_at
       await supabase
         .from('conversations')
         .update({ updated_at: new Date().toISOString() })
@@ -213,18 +205,34 @@ const Admin = () => {
     }
   };
 
+  const filteredConversations = conversations.filter(conv => {
+    const matchesSearch = searchQuery === '' || 
+      conv.user_email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conv.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conv.last_message?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || conv.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const openCount = conversations.filter(c => c.status === 'open').length;
+  const closedCount = conversations.filter(c => c.status === 'closed').length;
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
+      <AdminSidebar>
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </AdminSidebar>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
           <CardContent className="p-6 text-center">
             <XCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Accès refusé</h2>
@@ -232,7 +240,6 @@ const Admin = () => {
               Vous n'avez pas les permissions pour accéder à cette page.
             </p>
             <Button onClick={() => navigate('/app')} variant="outline">
-              <ArrowLeft className="w-4 h-4 mr-2" />
               Retour au dashboard
             </Button>
           </CardContent>
@@ -242,51 +249,95 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/app')}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex items-center gap-2">
-              <MessageSquare className="w-6 h-6 text-primary" />
-              <h1 className="text-xl font-bold">Admin - Conversations</h1>
-            </div>
-          </div>
-          <Button variant="outline" size="sm" onClick={fetchConversations}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Actualiser
-          </Button>
+    <AdminSidebar>
+      <div className="flex-1 p-6 overflow-hidden">
+        {/* Stats cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <Card className="border-0 shadow-sm bg-card">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <MessageSquare className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{conversations.length}</p>
+                <p className="text-sm text-muted-foreground">Conversations</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm bg-card">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                <Inbox className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-green-600">{openCount}</p>
+                <p className="text-sm text-muted-foreground">Ouvertes</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-0 shadow-sm bg-card">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{closedCount}</p>
+                <p className="text-sm text-muted-foreground">Fermées</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-120px)]">
+        {/* Main content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-220px)]">
           {/* Conversations list */}
-          <Card className="lg:col-span-1 flex flex-col">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <User className="w-5 h-5" />
-                Conversations ({conversations.length})
-              </CardTitle>
+          <Card className="lg:col-span-1 flex flex-col border-0 shadow-sm">
+            <CardHeader className="pb-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Conversations</CardTitle>
+                <Button variant="ghost" size="icon" onClick={fetchConversations}>
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Rechercher..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 h-9"
+                />
+              </div>
+              <div className="flex gap-1">
+                {(['all', 'open', 'closed'] as const).map((status) => (
+                  <Button
+                    key={status}
+                    variant={statusFilter === status ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setStatusFilter(status)}
+                    className="text-xs flex-1"
+                  >
+                    {status === 'all' ? 'Toutes' : status === 'open' ? 'Ouvertes' : 'Fermées'}
+                  </Button>
+                ))}
+              </div>
             </CardHeader>
-            <CardContent className="flex-1 p-0">
+            <CardContent className="flex-1 p-0 overflow-hidden">
               <ScrollArea className="h-full">
                 <div className="space-y-1 p-3">
-                  {conversations.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">
+                  {filteredConversations.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8 text-sm">
                       Aucune conversation
                     </p>
                   ) : (
-                    conversations.map((conv) => (
+                    filteredConversations.map((conv) => (
                       <div
                         key={conv.id}
                         onClick={() => handleSelectConversation(conv)}
-                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                        className={`p-3 rounded-lg cursor-pointer transition-all ${
                           selectedConversation?.id === conv.id
                             ? 'bg-primary/10 border border-primary/20'
-                            : 'hover:bg-secondary/50'
+                            : 'hover:bg-secondary/50 border border-transparent'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -308,11 +359,11 @@ const Admin = () => {
                           </Badge>
                         </div>
                         {conv.last_message && (
-                          <p className="text-xs text-muted-foreground mt-1 truncate">
+                          <p className="text-xs text-muted-foreground mt-1.5 truncate">
                             {conv.last_message}
                           </p>
                         )}
-                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <p className="text-xs text-muted-foreground/70 mt-1 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {format(new Date(conv.updated_at), 'dd MMM HH:mm', { locale: fr })}
                         </p>
@@ -325,18 +376,25 @@ const Admin = () => {
           </Card>
 
           {/* Messages area */}
-          <Card className="lg:col-span-2 flex flex-col">
+          <Card className="lg:col-span-2 flex flex-col border-0 shadow-sm">
             {selectedConversation ? (
               <>
-                <CardHeader className="pb-3 border-b">
+                <CardHeader className="pb-3 border-b shrink-0">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">
-                        {selectedConversation.user_name || selectedConversation.user_email}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedConversation.subject}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">
+                          {selectedConversation.user_name || selectedConversation.user_email}
+                        </CardTitle>
+                        {selectedConversation.user_name && (
+                          <p className="text-xs text-muted-foreground">
+                            {selectedConversation.user_email}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <Button
                       variant="outline"
@@ -345,12 +403,12 @@ const Admin = () => {
                     >
                       {selectedConversation.status === 'open' ? (
                         <>
-                          <CheckCircle className="w-4 h-4 mr-1" />
+                          <CheckCircle className="w-4 h-4 mr-1.5" />
                           Clôturer
                         </>
                       ) : (
                         <>
-                          <RefreshCw className="w-4 h-4 mr-1" />
+                          <RefreshCw className="w-4 h-4 mr-1.5" />
                           Rouvrir
                         </>
                       )}
@@ -358,7 +416,7 @@ const Admin = () => {
                   </div>
                 </CardHeader>
                 
-                <CardContent className="flex-1 p-0 flex flex-col">
+                <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
                   <ScrollArea className="flex-1 p-4">
                     {loadingMessages ? (
                       <div className="flex items-center justify-center py-8">
@@ -376,10 +434,10 @@ const Admin = () => {
                             className={`flex ${msg.sender_type === 'admin' ? 'justify-end' : 'justify-start'}`}
                           >
                             <div
-                              className={`max-w-[80%] rounded-lg p-3 ${
+                              className={`max-w-[75%] rounded-2xl p-3 ${
                                 msg.sender_type === 'admin'
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-secondary'
+                                  ? 'bg-primary text-primary-foreground rounded-br-md'
+                                  : 'bg-secondary rounded-bl-md'
                               }`}
                             >
                               <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
@@ -397,13 +455,13 @@ const Admin = () => {
                     )}
                   </ScrollArea>
 
-                  <div className="p-4 border-t">
+                  <div className="p-4 border-t shrink-0">
                     <div className="flex gap-2">
                       <Textarea
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         placeholder="Écrire votre réponse..."
-                        className="resize-none"
+                        className="resize-none min-h-[60px]"
                         rows={2}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
@@ -415,7 +473,8 @@ const Admin = () => {
                       <Button 
                         onClick={handleSendMessage}
                         disabled={!newMessage.trim() || sending}
-                        className="shrink-0"
+                        className="shrink-0 h-auto"
+                        size="icon"
                       >
                         {sending ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -430,15 +489,16 @@ const Admin = () => {
             ) : (
               <CardContent className="flex-1 flex items-center justify-center">
                 <div className="text-center text-muted-foreground">
-                  <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Sélectionnez une conversation</p>
+                  <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-30" />
+                  <p className="text-lg font-medium mb-1">Sélectionnez une conversation</p>
+                  <p className="text-sm">Choisissez une conversation dans la liste pour voir les messages</p>
                 </div>
               </CardContent>
             )}
           </Card>
         </div>
       </div>
-    </div>
+    </AdminSidebar>
   );
 };
 
