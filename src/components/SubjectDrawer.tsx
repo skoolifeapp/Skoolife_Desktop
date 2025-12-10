@@ -49,7 +49,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
   const [priority, setPriority] = useState(3);
   const [color, setColor] = useState(SUBJECT_COLORS[0]);
   const [notes, setNotes] = useState('');
-  const [isArchived, setIsArchived] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -65,7 +65,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
       setPriority(subject.exam_weight);
       setColor(subject.color);
       setNotes(subject.notes || '');
-      setIsArchived(subject.status === 'archived');
+      setIsCompleted(subject.status === 'completed' || subject.status === 'archived');
     } else {
       // Reset form for new subject
       setName('');
@@ -74,7 +74,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
       setPriority(3);
       setColor(SUBJECT_COLORS[Math.floor(Math.random() * SUBJECT_COLORS.length)]);
       setNotes('');
-      setIsArchived(false);
+      setIsCompleted(false);
     }
   }, [subject, open]);
 
@@ -95,7 +95,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
         exam_weight: priority,
         color,
         notes: notes.trim() || null,
-        status: isArchived ? 'archived' : 'active',
+        status: isCompleted ? 'completed' : 'active',
       };
 
       if (isEditing && subject) {
@@ -261,15 +261,15 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
             {/* Status */}
             <div className="flex items-center justify-between py-2">
               <div className="space-y-0.5">
-                <Label htmlFor="archived">Archiver cette matière</Label>
+                <Label htmlFor="completed">Marquer comme terminée</Label>
                 <p className="text-xs text-muted-foreground">
-                  Les matières archivées ne sont plus utilisées pour générer le planning
+                  Les matières terminées n'affichent plus leurs sessions de révision
                 </p>
               </div>
               <Switch
-                id="archived"
-                checked={isArchived}
-                onCheckedChange={setIsArchived}
+                id="completed"
+                checked={isCompleted}
+                onCheckedChange={setIsCompleted}
               />
             </div>
           </div>
