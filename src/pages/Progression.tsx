@@ -291,6 +291,16 @@ const Progression = () => {
               <Button variant="ghost" size="icon" onClick={goToPreviousWeek} className="h-8 w-8">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
+              {!isCurrentWeek && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setSelectedWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+                  className="h-8 text-xs"
+                >
+                  Aujourd'hui
+                </Button>
+              )}
               <Button variant="ghost" size="icon" onClick={goToNextWeek} className="h-8 w-8">
                 <ChevronRight className="w-4 h-4" />
               </Button>
