@@ -11,16 +11,31 @@ export const ProgressionTutorialOverlay = ({ onComplete }: ProgressionTutorialOv
   const [step, setStep] = useState(1);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
 
+  // Determine actual step to show (skip step 2 if no subjects)
+  const [actualStep, setActualStep] = useState(step);
+
   useEffect(() => {
     const updateTargetRect = () => {
       let selector = '';
-      if (step === 1) {
+      let currentStep = step;
+      
+      if (currentStep === 1) {
         selector = '[data-progression-week-stats]';
-      } else if (step === 2) {
-        selector = '[data-progression-subject-breakdown]';
-      } else if (step === 3) {
+      } else if (currentStep === 2) {
+        // Check if subject breakdown exists
+        const subjectElement = document.querySelector('[data-progression-subject-breakdown]');
+        if (!subjectElement) {
+          // Skip to history
+          selector = '[data-progression-history]';
+          currentStep = 3;
+        } else {
+          selector = '[data-progression-subject-breakdown]';
+        }
+      } else if (currentStep === 3) {
         selector = '[data-progression-history]';
       }
+
+      setActualStep(currentStep);
 
       const element = document.querySelector(selector);
       if (element) {
@@ -30,11 +45,13 @@ export const ProgressionTutorialOverlay = ({ onComplete }: ProgressionTutorialOv
       }
     };
 
-    updateTargetRect();
+    // Delay to ensure DOM is ready
+    const timer = setTimeout(updateTargetRect, 50);
     window.addEventListener('resize', updateTargetRect);
     window.addEventListener('scroll', updateTargetRect, true);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('resize', updateTargetRect);
       window.removeEventListener('scroll', updateTargetRect, true);
     };
@@ -88,7 +105,7 @@ export const ProgressionTutorialOverlay = ({ onComplete }: ProgressionTutorialOv
     },
   };
 
-  const current = stepContent[step as keyof typeof stepContent];
+  const current = stepContent[actualStep as keyof typeof stepContent];
 
   // Calculate card position
   let cardStyle: React.CSSProperties = {
@@ -184,7 +201,7 @@ export const ProgressionTutorialOverlay = ({ onComplete }: ProgressionTutorialOv
           
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
             <span className="text-xs text-muted-foreground">
-              Étape {step}/{totalSteps}
+              Étape {actualStep}/{totalSteps}
             </span>
             <div className="flex gap-2">
               <Button
