@@ -117,6 +117,13 @@ const SupportDrawer = ({ open, onOpenChange, onShowTutorial }: SupportDrawerProp
   const handleSelectConversation = async (conv: Conversation) => {
     setSelectedConversation(conv);
     await fetchMessages(conv.id);
+    
+    // Mark admin messages as read by user
+    await supabase
+      .from('conversation_messages')
+      .update({ read_by_user: true })
+      .eq('conversation_id', conv.id)
+      .eq('sender_type', 'admin');
   };
 
   const handleSendMessage = async () => {
