@@ -43,6 +43,7 @@ const DAYS_OF_WEEK = [
 ];
 
 interface PreferencesData {
+  weekly_revision_hours: number;
   preferred_days_of_week: number[];
   daily_start_time: string;
   daily_end_time: string;
@@ -66,6 +67,7 @@ const Settings = () => {
   const [resettingOnboarding, setResettingOnboarding] = useState(false);
 
   const [preferences, setPreferences] = useState<PreferencesData>({
+    weekly_revision_hours: 10,
     preferred_days_of_week: [1, 2, 3, 4, 5],
     daily_start_time: '08:00',
     daily_end_time: '22:00',
@@ -91,24 +93,25 @@ const Settings = () => {
     if (!user) return;
 
     try {
-      const { data: prefsData } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const [prefsRes, profileRes] = await Promise.all([
+        supabase.from('user_preferences').select('*').eq('user_id', user.id).maybeSingle(),
+        supabase.from('profiles').select('weekly_revision_hours').eq('id', user.id).single(),
+      ]);
 
-      if (prefsData) {
-        setPreferences({
-          preferred_days_of_week: prefsData.preferred_days_of_week || [1, 2, 3, 4, 5],
-          daily_start_time: prefsData.daily_start_time || '08:00',
-          daily_end_time: prefsData.daily_end_time || '22:00',
-          max_hours_per_day: prefsData.max_hours_per_day || 4,
-          session_duration_minutes: (prefsData as any).session_duration_minutes || 90,
-          avoid_late_evening: prefsData.avoid_late_evening || false,
-          avoid_early_morning: prefsData.avoid_early_morning || false,
-          notes: prefsData.notes || '',
-        });
-      }
+      const prefsData = prefsRes.data;
+      const profileData = profileRes.data;
+
+      setPreferences({
+        weekly_revision_hours: profileData?.weekly_revision_hours || 10,
+        preferred_days_of_week: prefsData?.preferred_days_of_week || [1, 2, 3, 4, 5],
+        daily_start_time: prefsData?.daily_start_time || '08:00',
+        daily_end_time: prefsData?.daily_end_time || '22:00',
+        max_hours_per_day: prefsData?.max_hours_per_day || 4,
+        session_duration_minutes: (prefsData as any)?.session_duration_minutes || 90,
+        avoid_late_evening: prefsData?.avoid_late_evening || false,
+        avoid_early_morning: prefsData?.avoid_early_morning || false,
+        notes: prefsData?.notes || '',
+      });
     } catch (err) {
       console.error(err);
       toast.error('Erreur lors du chargement des données');
@@ -127,9 +130,8 @@ const Settings = () => {
 
     setSavingPreferences(true);
     try {
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
+      const [prefsError, profileError] = await Promise.all([
+        supabase.from('user_preferences').upsert({
           user_id: user.id,
           preferred_days_of_week: preferences.preferred_days_of_week,
           daily_start_time: preferences.daily_start_time,
@@ -139,11 +141,13 @@ const Settings = () => {
           avoid_late_evening: preferences.avoid_late_evening,
           avoid_early_morning: preferences.avoid_early_morning,
           notes: preferences.notes,
-        } as any, {
-          onConflict: 'user_id'
-        });
+        } as any, { onConflict: 'user_id' }),
+        supabase.from('profiles').update({
+          weekly_revision_hours: preferences.weekly_revision_hours,
+        }).eq('id', user.id),
+      ]);
 
-      if (error) throw error;
+      if (prefsError.error || profileError.error) throw prefsError.error || profileError.error;
       toast.success('Préférences enregistrées');
     } catch (err) {
       console.error(err);
@@ -213,6 +217,21 @@ const Settings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label>Objectif hebdomadaire : {preferences.weekly_revision_hours}h</Label>
+              <Slider
+                value={[preferences.weekly_revision_hours]}
+                onValueChange={(value) => setPreferences({ ...preferences, weekly_revision_hours: value[0] })}
+                min={2}
+                max={40}
+                step={1}
+                className="py-4"
+              />
+              <p className="text-xs text-muted-foreground">
+                Entre 2h et 40h par semaine
+              </p>
+            </div>
+
             <div className="space-y-3">
               <Label>Jours de révision préférés</Label>
               <div className="flex flex-wrap gap-2">

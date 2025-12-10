@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -49,7 +48,6 @@ interface ProfileData {
   school: string;
   level: string;
   main_exam_period: string;
-  weekly_revision_hours: number;
 }
 
 const Profile = () => {
@@ -62,7 +60,6 @@ const Profile = () => {
     school: '',
     level: '',
     main_exam_period: '',
-    weekly_revision_hours: 10,
   });
 
   const { user } = useAuth();
@@ -92,7 +89,6 @@ const Profile = () => {
           school: profileData.school || '',
           level: profileData.level || '',
           main_exam_period: profileData.main_exam_period || '',
-          weekly_revision_hours: profileData.weekly_revision_hours || 10,
         });
       }
     } catch (err) {
@@ -115,7 +111,6 @@ const Profile = () => {
           school: profile.school,
           level: profile.level,
           main_exam_period: profile.main_exam_period,
-          weekly_revision_hours: profile.weekly_revision_hours,
         })
         .eq('id', user.id);
     } catch (err) {
@@ -250,20 +245,6 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Objectif hebdomadaire : {profile.weekly_revision_hours}h</Label>
-                <Slider
-                  value={[profile.weekly_revision_hours]}
-                  onValueChange={(value) => setProfile({ ...profile, weekly_revision_hours: value[0] })}
-                  min={2}
-                  max={40}
-                  step={1}
-                  className="py-4"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Entre 2h et 40h par semaine
-                </p>
-              </div>
 
               <Button onClick={handleSave} disabled={saving} className="w-full">
                 {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
