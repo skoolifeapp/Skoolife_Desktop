@@ -312,6 +312,9 @@ const Dashboard = () => {
           return isSameDay(eventDate, currentDate) && e.is_blocking;
         });
 
+        // Get existing revision sessions for this day (done/skipped ones that weren't deleted)
+        const dayExistingSessions = sessions.filter(s => s.date === dateStr);
+
         let slotsUsedToday = 0;
         for (const slot of timeSlots) {
           if (sessionIndex >= sessionsCount) break;
@@ -321,13 +324,22 @@ const Dashboard = () => {
           if (isToday && slot.start < currentTimeStr) continue;
 
           // Check if slot conflicts with calendar events
-          const hasConflict = dayEvents.some(e => {
+          const hasEventConflict = dayEvents.some(e => {
             const eventStart = format(parseISO(e.start_datetime), 'HH:mm');
             const eventEnd = format(parseISO(e.end_datetime), 'HH:mm');
             return (slot.start >= eventStart && slot.start < eventEnd) ||
                    (slot.end > eventStart && slot.end <= eventEnd) ||
                    (slot.start <= eventStart && slot.end >= eventEnd);
           });
+
+          // Check if slot conflicts with existing revision sessions
+          const hasSessionConflict = dayExistingSessions.some(s => {
+            return (slot.start >= s.start_time && slot.start < s.end_time) ||
+                   (slot.end > s.start_time && slot.end <= s.end_time) ||
+                   (slot.start <= s.start_time && slot.end >= s.end_time);
+          });
+
+          const hasConflict = hasEventConflict || hasSessionConflict;
 
           if (!hasConflict) {
             // Filter subjects that still have exams after this date AND haven't reached target_hours
@@ -523,6 +535,7 @@ const Dashboard = () => {
         // Get existing blocks for this day
         const dayEvents = weekEvents.filter(e => isSameDay(parseISO(e.start_datetime), currentDate));
         const daySessions = weekSessions.filter(s => s.date === dateStr);
+        const isToday = isSameDay(currentDate, new Date());
 
         // Calculate hours already scheduled today
         const hoursScheduledToday = daySessions.reduce((acc, s) => {
@@ -553,6 +566,13 @@ const Dashboard = () => {
 
         // Add lunch break as blocked (12:30-14:00)
         blockedRanges.push({ start: 12.5 * 60, end: 14 * 60 });
+
+        // Block time before current time if it's today
+        if (isToday) {
+          const now = new Date();
+          const currentMinutes = now.getHours() * 60 + now.getMinutes();
+          blockedRanges.push({ start: 0, end: currentMinutes });
+        }
 
         // Sort blocked ranges
         blockedRanges.sort((a, b) => a.start - b.start);
