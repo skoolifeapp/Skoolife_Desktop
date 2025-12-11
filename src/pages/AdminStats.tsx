@@ -274,8 +274,7 @@ const AdminStats = () => {
 
   const getDelta = (key: string, currentValue: number): number | null => {
     if (!previousStats || previousStats[key] === undefined) return null;
-    const delta = currentValue - previousStats[key];
-    return delta !== 0 ? delta : null;
+    return currentValue - previousStats[key];
   };
 
   const exportToCSV = () => {
@@ -350,10 +349,16 @@ const AdminStats = () => {
             <span className="text-3xl font-bold">{value}</span>
             {delta !== null && (
               <Badge 
-                variant={delta > 0 ? "default" : "destructive"} 
-                className={`text-xs ${delta > 0 ? 'bg-green-500/20 text-green-600 border-green-500/30' : 'bg-red-500/20 text-red-600 border-red-500/30'}`}
+                variant="outline"
+                className={`text-xs ${
+                  delta > 0 
+                    ? 'bg-green-500/20 text-green-600 border-green-500/30' 
+                    : delta < 0 
+                      ? 'bg-red-500/20 text-red-600 border-red-500/30'
+                      : 'bg-muted text-muted-foreground border-border'
+                }`}
               >
-                {delta > 0 ? '+' : ''}{delta}
+                {delta > 0 ? '+' : ''}{delta === 0 ? '=' : delta}
               </Badge>
             )}
           </div>
