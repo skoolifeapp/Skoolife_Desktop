@@ -291,6 +291,7 @@ const Dashboard = () => {
       });
 
       const today = startOfDay(new Date());
+      const currentTimeStr = format(new Date(), 'HH:mm');
       
       // Track scheduled hours per subject to respect target_hours
       const scheduledHoursPerSubject: Record<string, number> = {};
@@ -302,6 +303,7 @@ const Dashboard = () => {
         // Skip days before today
         if (currentDate < today) continue;
         
+        const isToday = isSameDay(currentDate, new Date());
         const dateStr = format(currentDate, 'yyyy-MM-dd');
 
         // Check blocking events for this day
@@ -314,6 +316,9 @@ const Dashboard = () => {
         for (const slot of timeSlots) {
           if (sessionIndex >= sessionsCount) break;
           if (slotsUsedToday >= maxSessionsPerDay) break;
+          
+          // Skip slots before current time if it's today
+          if (isToday && slot.start < currentTimeStr) continue;
 
           // Check if slot conflicts with calendar events
           const hasConflict = dayEvents.some(e => {
