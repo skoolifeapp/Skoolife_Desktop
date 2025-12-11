@@ -13,11 +13,26 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 
+const STORAGE_KEY = 'admin-stats-previous';
+
 const AdminStats = () => {
   const queryClient = useQueryClient();
   const liveUsersCount = useLiveUserCount();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isConnected, setIsConnected] = useState(true);
+  const [previousStats, setPreviousStats] = useState<Record<string, number> | null>(null);
+
+  // Load previous stats from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        setPreviousStats(JSON.parse(stored));
+      } catch (e) {
+        console.error('Failed to parse previous stats');
+      }
+    }
+  }, []);
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
@@ -226,6 +241,43 @@ const AdminStats = () => {
     };
   }, [queryClient]);
 
+  // Save current stats to localStorage when leaving (beforeunload)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (stats) {
+        const toStore: Record<string, number> = {
+          totalUsers: stats.totalUsers,
+          activeUsers: stats.activeUsers,
+          newUsersThisMonth: stats.newUsersThisMonth,
+          totalSubjects: stats.totalSubjects,
+          totalSessions: stats.totalSessions,
+          completedSessions: stats.completedSessions,
+          totalConversations: stats.totalConversations,
+          openConversations: stats.openConversations,
+          totalEvents: stats.totalEvents,
+          nbPlanningGeneratedFirstTime: stats.nbPlanningGeneratedFirstTime,
+          nbPlanningGeneratedWeekly: stats.nbPlanningGeneratedWeekly,
+          usersGeneratedPlanningWeekly: stats.usersGeneratedPlanningWeekly,
+          activeUsersThisWeek: stats.activeUsersThisWeek,
+          nbUsers2PlusSessionsWeekly: stats.nbUsers2PlusSessionsWeekly,
+          nbUsers3PlusSessionsWeekly: stats.nbUsers3PlusSessionsWeekly,
+          nbUsersReturningWithoutNudge: stats.nbUsersReturningWithoutNudge,
+          nbCoreUsers: stats.nbCoreUsers,
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [stats]);
+
+  const getDelta = (key: string, currentValue: number): number | null => {
+    if (!previousStats || previousStats[key] === undefined) return null;
+    const delta = currentValue - previousStats[key];
+    return delta !== 0 ? delta : null;
+  };
+
   const exportToCSV = () => {
     if (!stats) return;
 
@@ -276,25 +328,40 @@ const AdminStats = () => {
     link.click();
   };
 
-  const StatCard = ({ title, value, icon: Icon, color, subtitle, pulse }: {
+  const StatCard = ({ title, value, icon: Icon, color, subtitle, pulse, deltaKey }: {
     title: string;
     value: number | string;
     icon: any;
     color: string;
     subtitle?: string;
     pulse?: boolean;
-  }) => (
-    <Card className={pulse ? 'ring-1 ring-red-500/30' : ''}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <Icon className={`w-5 h-5 ${color} ${pulse ? 'animate-pulse' : ''}`} />
-      </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-bold">{value}</div>
-        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
-      </CardContent>
-    </Card>
-  );
+    deltaKey?: string;
+  }) => {
+    const delta = deltaKey && typeof value === 'number' ? getDelta(deltaKey, value) : null;
+    
+    return (
+      <Card className={pulse ? 'ring-1 ring-red-500/30' : ''}>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+          <Icon className={`w-5 h-5 ${color} ${pulse ? 'animate-pulse' : ''}`} />
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <span className="text-3xl font-bold">{value}</span>
+            {delta !== null && (
+              <Badge 
+                variant={delta > 0 ? "default" : "destructive"} 
+                className={`text-xs ${delta > 0 ? 'bg-green-500/20 text-green-600 border-green-500/30' : 'bg-red-500/20 text-red-600 border-red-500/30'}`}
+              >
+                {delta > 0 ? '+' : ''}{delta}
+              </Badge>
+            )}
+          </div>
+          {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+        </CardContent>
+      </Card>
+    );
+  };
 
   const RateCard = ({ title, rate, numerator, denominator, icon: Icon, color }: {
     title: string;
@@ -362,14 +429,14 @@ const AdminStats = () => {
             <TabsContent value="general" className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <StatCard title="Connectés en live" value={liveUsersCount} icon={Radio} color="text-red-500" pulse />
-                <StatCard title="Total utilisateurs" value={stats?.totalUsers || 0} icon={Users} color="text-blue-500" />
-                <StatCard title="Utilisateurs actifs" value={stats?.activeUsers || 0} icon={CheckCircle} color="text-green-500" subtitle="Onboarding complété" />
-                <StatCard title="Nouveaux ce mois" value={stats?.newUsersThisMonth || 0} icon={TrendingUp} color="text-purple-500" />
-                <StatCard title="Matières créées" value={stats?.totalSubjects || 0} icon={BookOpen} color="text-orange-500" />
-                <StatCard title="Sessions de révision" value={stats?.totalSessions || 0} icon={Calendar} color="text-cyan-500" />
-                <StatCard title="Sessions terminées" value={stats?.completedSessions || 0} icon={CheckCircle} color="text-emerald-500" />
-                <StatCard title="Conversations support" value={stats?.totalConversations || 0} icon={MessageSquare} color="text-pink-500" />
-                <StatCard title="Conversations ouvertes" value={stats?.openConversations || 0} icon={MessageSquare} color="text-yellow-500" />
+                <StatCard title="Total utilisateurs" value={stats?.totalUsers || 0} icon={Users} color="text-blue-500" deltaKey="totalUsers" />
+                <StatCard title="Utilisateurs actifs" value={stats?.activeUsers || 0} icon={CheckCircle} color="text-green-500" subtitle="Onboarding complété" deltaKey="activeUsers" />
+                <StatCard title="Nouveaux ce mois" value={stats?.newUsersThisMonth || 0} icon={TrendingUp} color="text-purple-500" deltaKey="newUsersThisMonth" />
+                <StatCard title="Matières créées" value={stats?.totalSubjects || 0} icon={BookOpen} color="text-orange-500" deltaKey="totalSubjects" />
+                <StatCard title="Sessions de révision" value={stats?.totalSessions || 0} icon={Calendar} color="text-cyan-500" deltaKey="totalSessions" />
+                <StatCard title="Sessions terminées" value={stats?.completedSessions || 0} icon={CheckCircle} color="text-emerald-500" deltaKey="completedSessions" />
+                <StatCard title="Conversations support" value={stats?.totalConversations || 0} icon={MessageSquare} color="text-pink-500" deltaKey="totalConversations" />
+                <StatCard title="Conversations ouvertes" value={stats?.openConversations || 0} icon={MessageSquare} color="text-yellow-500" deltaKey="openConversations" />
               </div>
             </TabsContent>
 
@@ -390,6 +457,7 @@ const AdminStats = () => {
                   icon={Zap} 
                   color="text-amber-500"
                   subtitle="Au moins une fois"
+                  deltaKey="nbPlanningGeneratedFirstTime"
                 />
                 <RateCard 
                   title="Taux d'activation" 
@@ -419,6 +487,7 @@ const AdminStats = () => {
                   icon={Calendar} 
                   color="text-blue-500"
                   subtitle="Cette semaine (total clics)"
+                  deltaKey="nbPlanningGeneratedWeekly"
                 />
                 <StatCard 
                   title="Utilisateurs distincts" 
@@ -426,13 +495,15 @@ const AdminStats = () => {
                   icon={Users} 
                   color="text-indigo-500"
                   subtitle="Ont généré un planning"
+                  deltaKey="usersGeneratedPlanningWeekly"
                 />
                 <StatCard 
                   title="Utilisateurs actifs" 
                   value={stats?.activeUsersThisWeek || 0} 
-                  icon={UserCheck} 
+                  icon={UserCheck}
                   color="text-teal-500"
                   subtitle="Ont ouvert l'app"
+                  deltaKey="activeUsersThisWeek"
                 />
                 <RateCard 
                   title="Taux d'usage planning" 
@@ -461,12 +532,14 @@ const AdminStats = () => {
                   value={stats?.nbUsers2PlusSessionsWeekly || 0} 
                   icon={Users} 
                   color="text-blue-500"
+                  deltaKey="nbUsers2PlusSessionsWeekly"
                 />
                 <StatCard 
                   title="≥ 3 sessions/semaine" 
                   value={stats?.nbUsers3PlusSessionsWeekly || 0} 
                   icon={Users} 
                   color="text-indigo-500"
+                  deltaKey="nbUsers3PlusSessionsWeekly"
                 />
                 <StatCard 
                   title="Retour organique" 
@@ -474,6 +547,7 @@ const AdminStats = () => {
                   icon={UserCheck} 
                   color="text-green-500"
                   subtitle="Sans email/notif"
+                  deltaKey="nbUsersReturningWithoutNudge"
                 />
                 <RateCard 
                   title="Taux rétention 2+ sessions" 
@@ -522,6 +596,7 @@ const AdminStats = () => {
                   icon={Flame} 
                   color="text-orange-500"
                   subtitle="Utilisateurs engagés"
+                  deltaKey="nbCoreUsers"
                 />
                 <RateCard 
                   title="Taux Core Users" 
