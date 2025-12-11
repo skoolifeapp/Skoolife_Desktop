@@ -528,7 +528,7 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initial
                       Bloquer ce créneau pour le planning de révisions
                     </FormLabel>
                     <p className="text-xs text-muted-foreground">
-                      L'IA évitera de placer des sessions de révision sur ce créneau.
+                      Aucune session de révision ne sera placée sur ce créneau.
                     </p>
                   </div>
                 </FormItem>
