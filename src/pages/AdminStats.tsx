@@ -437,6 +437,7 @@ const AdminStats = () => {
                 <StatCard title="Sessions terminées" value={stats?.completedSessions || 0} icon={CheckCircle} color="text-emerald-500" deltaKey="completedSessions" />
                 <StatCard title="Conversations support" value={stats?.totalConversations || 0} icon={MessageSquare} color="text-pink-500" deltaKey="totalConversations" />
                 <StatCard title="Conversations ouvertes" value={stats?.openConversations || 0} icon={MessageSquare} color="text-yellow-500" deltaKey="openConversations" />
+                <StatCard title="Évènements calendrier" value={stats?.totalEvents || 0} icon={Calendar} color="text-indigo-500" deltaKey="totalEvents" />
               </div>
             </TabsContent>
 
