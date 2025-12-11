@@ -318,6 +318,75 @@ export type Database = {
           },
         ]
       }
+      stats_snapshots: {
+        Row: {
+          active_users: number
+          active_users_this_week: number
+          completed_sessions: number
+          created_at: string
+          id: string
+          nb_core_users: number
+          nb_planning_generated_first_time: number
+          nb_planning_generated_weekly: number
+          nb_users_2plus_sessions_weekly: number
+          nb_users_3plus_sessions_weekly: number
+          nb_users_returning_without_nudge: number
+          new_users_this_month: number
+          open_conversations: number
+          snapshot_date: string
+          total_conversations: number
+          total_events: number
+          total_sessions: number
+          total_subjects: number
+          total_users: number
+          users_generated_planning_weekly: number
+        }
+        Insert: {
+          active_users?: number
+          active_users_this_week?: number
+          completed_sessions?: number
+          created_at?: string
+          id?: string
+          nb_core_users?: number
+          nb_planning_generated_first_time?: number
+          nb_planning_generated_weekly?: number
+          nb_users_2plus_sessions_weekly?: number
+          nb_users_3plus_sessions_weekly?: number
+          nb_users_returning_without_nudge?: number
+          new_users_this_month?: number
+          open_conversations?: number
+          snapshot_date?: string
+          total_conversations?: number
+          total_events?: number
+          total_sessions?: number
+          total_subjects?: number
+          total_users?: number
+          users_generated_planning_weekly?: number
+        }
+        Update: {
+          active_users?: number
+          active_users_this_week?: number
+          completed_sessions?: number
+          created_at?: string
+          id?: string
+          nb_core_users?: number
+          nb_planning_generated_first_time?: number
+          nb_planning_generated_weekly?: number
+          nb_users_2plus_sessions_weekly?: number
+          nb_users_3plus_sessions_weekly?: number
+          nb_users_returning_without_nudge?: number
+          new_users_this_month?: number
+          open_conversations?: number
+          snapshot_date?: string
+          total_conversations?: number
+          total_events?: number
+          total_sessions?: number
+          total_subjects?: number
+          total_users?: number
+          users_generated_planning_weekly?: number
+        }
+        Relationships: []
+      }
       subjects: {
         Row: {
           color: string | null

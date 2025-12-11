@@ -6,33 +6,33 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Users, BookOpen, Calendar, MessageSquare, TrendingUp, CheckCircle, Radio, Target, Zap, BarChart3, UserCheck, Flame, Download, Wifi } from 'lucide-react';
 import { useLiveUserCount } from '@/hooks/useLiveUserCount';
-import { startOfWeek, subWeeks, endOfWeek, isWithinInterval, format } from 'date-fns';
+import { startOfWeek, subWeeks, endOfWeek, isWithinInterval, format, subDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import { Badge } from '@/components/ui/badge';
-
-const STORAGE_KEY = 'admin-stats-previous';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const AdminStats = () => {
   const queryClient = useQueryClient();
   const liveUsersCount = useLiveUserCount();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isConnected, setIsConnected] = useState(true);
-  const [previousStats, setPreviousStats] = useState<Record<string, number> | null>(null);
+  const [compareMode, setCompareMode] = useState<'yesterday' | 'lastWeek'>('yesterday');
 
-  // Load previous stats from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setPreviousStats(JSON.parse(stored));
-      } catch (e) {
-        console.error('Failed to parse previous stats');
-      }
-    }
-  }, []);
+  // Fetch historical snapshots
+  const { data: snapshots } = useQuery({
+    queryKey: ['stats-snapshots'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('stats_snapshots')
+        .select('*')
+        .order('snapshot_date', { ascending: false })
+        .limit(90); // Last 90 days
+      return data || [];
+    },
+  });
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
@@ -241,40 +241,87 @@ const AdminStats = () => {
     };
   }, [queryClient]);
 
-  // Save current stats to localStorage when leaving (beforeunload)
+  // Save daily snapshot to database
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (stats) {
-        const toStore: Record<string, number> = {
-          totalUsers: stats.totalUsers,
-          activeUsers: stats.activeUsers,
-          newUsersThisMonth: stats.newUsersThisMonth,
-          totalSubjects: stats.totalSubjects,
-          totalSessions: stats.totalSessions,
-          completedSessions: stats.completedSessions,
-          totalConversations: stats.totalConversations,
-          openConversations: stats.openConversations,
-          totalEvents: stats.totalEvents,
-          nbPlanningGeneratedFirstTime: stats.nbPlanningGeneratedFirstTime,
-          nbPlanningGeneratedWeekly: stats.nbPlanningGeneratedWeekly,
-          usersGeneratedPlanningWeekly: stats.usersGeneratedPlanningWeekly,
-          activeUsersThisWeek: stats.activeUsersThisWeek,
-          nbUsers2PlusSessionsWeekly: stats.nbUsers2PlusSessionsWeekly,
-          nbUsers3PlusSessionsWeekly: stats.nbUsers3PlusSessionsWeekly,
-          nbUsersReturningWithoutNudge: stats.nbUsersReturningWithoutNudge,
-          nbCoreUsers: stats.nbCoreUsers,
-        };
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
-      }
+    const saveSnapshot = async () => {
+      if (!stats) return;
+      
+      const today = format(new Date(), 'yyyy-MM-dd');
+      
+      // Upsert today's snapshot
+      await supabase
+        .from('stats_snapshots')
+        .upsert({
+          snapshot_date: today,
+          total_users: stats.totalUsers,
+          active_users: stats.activeUsers,
+          new_users_this_month: stats.newUsersThisMonth,
+          total_subjects: stats.totalSubjects,
+          total_sessions: stats.totalSessions,
+          completed_sessions: stats.completedSessions,
+          total_conversations: stats.totalConversations,
+          open_conversations: stats.openConversations,
+          total_events: stats.totalEvents,
+          nb_planning_generated_first_time: stats.nbPlanningGeneratedFirstTime,
+          nb_planning_generated_weekly: stats.nbPlanningGeneratedWeekly,
+          users_generated_planning_weekly: stats.usersGeneratedPlanningWeekly,
+          active_users_this_week: stats.activeUsersThisWeek,
+          nb_users_2plus_sessions_weekly: stats.nbUsers2PlusSessionsWeekly,
+          nb_users_3plus_sessions_weekly: stats.nbUsers3PlusSessionsWeekly,
+          nb_users_returning_without_nudge: stats.nbUsersReturningWithoutNudge,
+          nb_core_users: stats.nbCoreUsers,
+        }, { onConflict: 'snapshot_date' });
+      
+      queryClient.invalidateQueries({ queryKey: ['stats-snapshots'] });
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [stats]);
+    saveSnapshot();
+  }, [stats, queryClient]);
+
+  // Get comparison snapshot based on mode
+  const getComparisonSnapshot = () => {
+    if (!snapshots || snapshots.length < 2) return null;
+    
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const yesterday = format(subWeeks(new Date(), 0).setDate(new Date().getDate() - 1), 'yyyy-MM-dd');
+    const lastWeekDate = format(subWeeks(new Date(), 1), 'yyyy-MM-dd');
+    
+    if (compareMode === 'yesterday') {
+      return snapshots.find(s => s.snapshot_date !== today) || null;
+    } else {
+      return snapshots.find(s => s.snapshot_date <= lastWeekDate) || null;
+    }
+  };
+
+  const comparisonSnapshot = getComparisonSnapshot();
 
   const getDelta = (key: string, currentValue: number): number | null => {
-    if (!previousStats || previousStats[key] === undefined) return null;
-    return currentValue - previousStats[key];
+    if (!comparisonSnapshot) return null;
+    
+    const keyMap: Record<string, string> = {
+      totalUsers: 'total_users',
+      activeUsers: 'active_users',
+      newUsersThisMonth: 'new_users_this_month',
+      totalSubjects: 'total_subjects',
+      totalSessions: 'total_sessions',
+      completedSessions: 'completed_sessions',
+      totalConversations: 'total_conversations',
+      openConversations: 'open_conversations',
+      totalEvents: 'total_events',
+      nbPlanningGeneratedFirstTime: 'nb_planning_generated_first_time',
+      nbPlanningGeneratedWeekly: 'nb_planning_generated_weekly',
+      usersGeneratedPlanningWeekly: 'users_generated_planning_weekly',
+      activeUsersThisWeek: 'active_users_this_week',
+      nbUsers2PlusSessionsWeekly: 'nb_users_2plus_sessions_weekly',
+      nbUsers3PlusSessionsWeekly: 'nb_users_3plus_sessions_weekly',
+      nbUsersReturningWithoutNudge: 'nb_users_returning_without_nudge',
+      nbCoreUsers: 'nb_core_users',
+    };
+    
+    const dbKey = keyMap[key];
+    if (!dbKey || comparisonSnapshot[dbKey] === undefined) return null;
+    
+    return currentValue - (comparisonSnapshot[dbKey] as number);
   };
 
   const exportToCSV = () => {
@@ -396,13 +443,27 @@ const AdminStats = () => {
     retention2Plus: { label: 'Rétention 2+', color: 'hsl(280, 67%, 54%)' },
   };
 
+  // Transform snapshots to chart data (last 30 days, reversed for chronological order)
+  const historicalChartData = (snapshots || [])
+    .slice(0, 30)
+    .reverse()
+    .map(s => ({
+      date: format(new Date(s.snapshot_date), 'd MMM', { locale: fr }),
+      totalUsers: s.total_users,
+      activeUsers: s.active_users,
+      planningGenerated: s.nb_planning_generated_weekly,
+      planningUsers: s.users_generated_planning_weekly,
+      activeUsersWeek: s.active_users_this_week,
+      retention2Plus: s.nb_users_2plus_sessions_weekly,
+    }));
+
   return (
     <AdminSidebar>
       <div className="p-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Statistiques</h1>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
               <Badge variant={isConnected ? "default" : "destructive"} className="gap-1.5">
                 <Wifi className={`w-3 h-3 ${isConnected ? 'animate-pulse' : ''}`} />
                 {isConnected ? 'Temps réel' : 'Déconnecté'}
@@ -410,12 +471,28 @@ const AdminStats = () => {
               <span className="text-xs text-muted-foreground">
                 Mis à jour : {format(lastUpdated, 'HH:mm:ss', { locale: fr })}
               </span>
+              {comparisonSnapshot && (
+                <span className="text-xs text-muted-foreground">
+                  • Comparé au {format(new Date(comparisonSnapshot.snapshot_date), 'd MMM', { locale: fr })}
+                </span>
+              )}
             </div>
           </div>
-          <Button onClick={exportToCSV} variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
-            Exporter CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={compareMode} onValueChange={(v) => setCompareMode(v as 'yesterday' | 'lastWeek')}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="yesterday">vs Hier</SelectItem>
+                <SelectItem value="lastWeek">vs Semaine -1</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={exportToCSV} variant="outline" className="gap-2">
+              <Download className="w-4 h-4" />
+              Exporter CSV
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -619,36 +696,44 @@ const AdminStats = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="w-5 h-5 text-primary" />
-                    Évolution sur 8 semaines
+                    Évolution sur 30 jours
                   </CardTitle>
-                  <CardDescription>Tendances des métriques clés</CardDescription>
+                  <CardDescription>
+                    Historique des métriques basé sur {historicalChartData.length} snapshots enregistrés
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                    <AreaChart data={stats?.weeklyHistory || []}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="week" className="text-xs" />
-                      <YAxis className="text-xs" />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Legend />
-                      <Area 
-                        type="monotone" 
-                        dataKey="totalUsers" 
-                        name="Total Users"
-                        stroke="hsl(var(--primary))" 
-                        fill="hsl(var(--primary))" 
-                        fillOpacity={0.2}
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="activeUsers" 
-                        name="Actifs"
-                        stroke="hsl(142, 76%, 36%)" 
-                        fill="hsl(142, 76%, 36%)" 
-                        fillOpacity={0.2}
-                      />
-                    </AreaChart>
-                  </ChartContainer>
+                  {historicalChartData.length > 0 ? (
+                    <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                      <AreaChart data={historicalChartData}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="date" className="text-xs" />
+                        <YAxis className="text-xs" />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Legend />
+                        <Area 
+                          type="monotone" 
+                          dataKey="totalUsers" 
+                          name="Total Users"
+                          stroke="hsl(var(--primary))" 
+                          fill="hsl(var(--primary))" 
+                          fillOpacity={0.2}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="activeUsers" 
+                          name="Actifs"
+                          stroke="hsl(142, 76%, 36%)" 
+                          fill="hsl(142, 76%, 36%)" 
+                          fillOpacity={0.2}
+                        />
+                      </AreaChart>
+                    </ChartContainer>
+                  ) : (
+                    <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                      Aucun historique disponible. Les données seront collectées quotidiennement.
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -658,30 +743,36 @@ const AdminStats = () => {
                     <CardTitle className="text-sm">Plannings générés</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ChartContainer config={chartConfig} className="h-[200px] w-full">
-                      <LineChart data={stats?.weeklyHistory || []}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis dataKey="week" className="text-xs" />
-                        <YAxis className="text-xs" />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Line 
-                          type="monotone" 
-                          dataKey="planningGenerated" 
-                          name="Plannings"
-                          stroke="hsl(45, 93%, 47%)" 
-                          strokeWidth={2}
-                          dot={{ fill: "hsl(45, 93%, 47%)" }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="planningUsers" 
-                          name="Users planning"
-                          stroke="hsl(199, 89%, 48%)" 
-                          strokeWidth={2}
-                          dot={{ fill: "hsl(199, 89%, 48%)" }}
-                        />
-                      </LineChart>
-                    </ChartContainer>
+                    {historicalChartData.length > 0 ? (
+                      <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                        <LineChart data={historicalChartData}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="date" className="text-xs" />
+                          <YAxis className="text-xs" />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Line 
+                            type="monotone" 
+                            dataKey="planningGenerated" 
+                            name="Plannings"
+                            stroke="hsl(45, 93%, 47%)" 
+                            strokeWidth={2}
+                            dot={{ fill: "hsl(45, 93%, 47%)" }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="planningUsers" 
+                            name="Users planning"
+                            stroke="hsl(199, 89%, 48%)" 
+                            strokeWidth={2}
+                            dot={{ fill: "hsl(199, 89%, 48%)" }}
+                          />
+                        </LineChart>
+                      </ChartContainer>
+                    ) : (
+                      <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
+                        Pas encore de données
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -690,30 +781,36 @@ const AdminStats = () => {
                     <CardTitle className="text-sm">Rétention</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ChartContainer config={chartConfig} className="h-[200px] w-full">
-                      <LineChart data={stats?.weeklyHistory || []}>
-                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                        <XAxis dataKey="week" className="text-xs" />
-                        <YAxis className="text-xs" />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Line 
-                          type="monotone" 
-                          dataKey="activeUsersWeek" 
-                          name="Actifs/semaine"
-                          stroke="hsl(199, 89%, 48%)" 
-                          strokeWidth={2}
-                          dot={{ fill: "hsl(199, 89%, 48%)" }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="retention2Plus" 
-                          name="Rétention 2+"
-                          stroke="hsl(280, 67%, 54%)" 
-                          strokeWidth={2}
-                          dot={{ fill: "hsl(280, 67%, 54%)" }}
-                        />
-                      </LineChart>
-                    </ChartContainer>
+                    {historicalChartData.length > 0 ? (
+                      <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                        <LineChart data={historicalChartData}>
+                          <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                          <XAxis dataKey="date" className="text-xs" />
+                          <YAxis className="text-xs" />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Line 
+                            type="monotone" 
+                            dataKey="activeUsersWeek" 
+                            name="Actifs/semaine"
+                            stroke="hsl(199, 89%, 48%)" 
+                            strokeWidth={2}
+                            dot={{ fill: "hsl(199, 89%, 48%)" }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="retention2Plus" 
+                            name="Rétention 2+"
+                            stroke="hsl(280, 67%, 54%)" 
+                            strokeWidth={2}
+                            dot={{ fill: "hsl(280, 67%, 54%)" }}
+                          />
+                        </LineChart>
+                      </ChartContainer>
+                    ) : (
+                      <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
+                        Pas encore de données
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
