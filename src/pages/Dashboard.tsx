@@ -824,6 +824,10 @@ const Dashboard = () => {
   };
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  
+  // Check if the selected week is in the past (before current week)
+  const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const isPastWeek = weekStart < currentWeekStart;
 
   const getSessionsForDay = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -943,7 +947,7 @@ const Dashboard = () => {
                 size="lg" 
                 className="w-full"
                 onClick={generatePlanning}
-                disabled={generating || adjusting}
+                disabled={generating || adjusting || isPastWeek}
               >
                 {generating ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -957,7 +961,7 @@ const Dashboard = () => {
                 size="lg" 
                 className="w-full"
                 onClick={adjustWeek}
-                disabled={adjusting || generating}
+                disabled={adjusting || generating || isPastWeek}
               >
                 {adjusting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
