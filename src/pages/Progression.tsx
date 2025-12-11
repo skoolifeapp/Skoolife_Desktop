@@ -14,6 +14,8 @@ import AppSidebar from '@/components/AppSidebar';
 import { ProgressionTutorialOverlay } from '@/components/ProgressionTutorialOverlay';
 import { format, startOfWeek, endOfWeek, subWeeks, addWeeks, isSameWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { MobileRestrictedPage } from '@/components/MobileRestrictedPage';
 
 interface Subject {
   id: string;
@@ -59,6 +61,12 @@ const Progression = () => {
   const [allSessions, setAllSessions] = useState<RevisionSession[]>([]);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
+  // Show restricted page on mobile
+  if (isMobile) {
+    return <MobileRestrictedPage pageName="Progression" />;
+  }
 
   useEffect(() => {
     if (!user) {

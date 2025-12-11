@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
+import Today from "./pages/Today";
 import Settings from "./pages/Settings";
 import Progression from "./pages/Progression";
 import Subjects from "./pages/Subjects";
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/app" element={<Dashboard />} />
+                <Route path="/today" element={<Today />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/progression" element={<Progression />} />
                 <Route path="/subjects" element={<Subjects />} />

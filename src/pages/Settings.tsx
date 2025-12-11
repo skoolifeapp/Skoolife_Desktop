@@ -31,6 +31,8 @@ import { Clock, Loader2, RotateCcw, Settings as SettingsIcon } from 'lucide-reac
 import { Checkbox } from '@/components/ui/checkbox';
 import SupportButton from '@/components/SupportButton';
 import AppSidebar from '@/components/AppSidebar';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { MobileRestrictedPage } from '@/components/MobileRestrictedPage';
 
 const DAYS_OF_WEEK = [
   { value: 1, label: 'Lun' },
@@ -65,6 +67,7 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [savingPreferences, setSavingPreferences] = useState(false);
   const [resettingOnboarding, setResettingOnboarding] = useState(false);
+  const isMobile = useIsMobile();
 
   const [preferences, setPreferences] = useState<PreferencesData>({
     weekly_revision_hours: 10,
@@ -80,6 +83,11 @@ const Settings = () => {
 
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Show restricted page on mobile
+  if (isMobile) {
+    return <MobileRestrictedPage pageName="Paramètres" />;
+  }
 
   useEffect(() => {
     if (!user) {

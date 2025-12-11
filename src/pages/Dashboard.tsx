@@ -72,6 +72,13 @@ const Dashboard = () => {
       return;
     }
     
+    // Redirect mobile users to /today
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      navigate('/today');
+      return;
+    }
+    
     if (!user) {
       const checkSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();

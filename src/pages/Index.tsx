@@ -12,7 +12,9 @@ const Index = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate('/app');
+      // Redirect to /today on mobile, /app on desktop
+      const isMobile = window.innerWidth < 768;
+      navigate(isMobile ? '/today' : '/app');
     }
   }, [user, loading, navigate]);
 

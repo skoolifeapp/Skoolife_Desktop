@@ -15,6 +15,8 @@ import SubjectDrawer from '@/components/SubjectDrawer';
 import { SubjectsTutorialOverlay } from '@/components/SubjectsTutorialOverlay';
 import SupportButton from '@/components/SupportButton';
 import AppSidebar from '@/components/AppSidebar';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { MobileRestrictedPage } from '@/components/MobileRestrictedPage';
 
 const Subjects = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -23,9 +25,15 @@ const Subjects = () => {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'terminated'>('all');
   const [showTutorial, setShowTutorial] = useState(false);
+  const isMobile = useIsMobile();
 
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Show restricted page on mobile
+  if (isMobile) {
+    return <MobileRestrictedPage pageName="Matières" />;
+  }
 
   useEffect(() => {
     if (!user) {
