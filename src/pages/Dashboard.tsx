@@ -291,6 +291,11 @@ const Dashboard = () => {
       });
 
       const today = startOfDay(new Date());
+      
+      // Track scheduled hours per subject to respect target_hours
+      const scheduledHoursPerSubject: Record<string, number> = {};
+      sortedSubjects.forEach(s => { scheduledHoursPerSubject[s.id] = 0; });
+      
       for (const dayOffset of workDays) {
         const currentDate = addDays(weekStart, dayOffset);
         
@@ -320,11 +325,19 @@ const Dashboard = () => {
           });
 
           if (!hasConflict) {
-            // Filter subjects that still have exams after this date
+            // Filter subjects that still have exams after this date AND haven't reached target_hours
             const eligibleSubjects = sortedSubjects.filter(s => {
-              if (!s.exam_date) return true; // No exam date = always eligible
-              const examDate = parseISO(s.exam_date);
-              return currentDate < examDate; // Only if session date is BEFORE exam date
+              // Check exam date constraint
+              if (s.exam_date) {
+                const examDate = parseISO(s.exam_date);
+                if (currentDate >= examDate) return false;
+              }
+              // Check target_hours constraint
+              if (s.target_hours && s.target_hours > 0) {
+                const sessionHours = sessionDuration / 60;
+                if (scheduledHoursPerSubject[s.id] + sessionHours > s.target_hours) return false;
+              }
+              return true;
             });
             
             if (eligibleSubjects.length === 0) continue; // No subject to assign for this day
@@ -342,6 +355,9 @@ const Dashboard = () => {
               status: 'planned',
               notes: null
             });
+
+            // Track scheduled hours
+            scheduledHoursPerSubject[subject.id] += sessionDuration / 60;
 
             sessionIndex++;
             slotsUsedToday++;
