@@ -1,12 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AdminSidebar from '@/components/AdminSidebar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Users, BookOpen, Calendar, MessageSquare, TrendingUp, CheckCircle, Radio, Target, Zap, BarChart3, UserCheck, Flame } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Users, BookOpen, Calendar, MessageSquare, TrendingUp, CheckCircle, Radio, Target, Zap, BarChart3, UserCheck, Flame, Download } from 'lucide-react';
 import { useLiveUserCount } from '@/hooks/useLiveUserCount';
-import { startOfWeek, subWeeks, endOfWeek, isWithinInterval, startOfDay, subDays } from 'date-fns';
+import { startOfWeek, subWeeks, endOfWeek, isWithinInterval, format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 
 const AdminStats = () => {
   const queryClient = useQueryClient();
@@ -15,7 +19,6 @@ const AdminStats = () => {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      // Get admin user IDs to exclude them from stats
       const { data: adminRoles } = await supabase
         .from('user_roles')
         .select('user_id')
@@ -33,7 +36,6 @@ const AdminStats = () => {
         supabase.from('user_activity').select('id, user_id, source, created_at'),
       ]);
 
-      // Filter out admin profiles
       const profiles = (profilesRes.data || []).filter(p => !adminIds.includes(p.id));
       const subjects = subjectsRes.data || [];
       const sessions = sessionsRes.data || [];
@@ -46,7 +48,7 @@ const AdminStats = () => {
       const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 });
       const thisWeekEnd = endOfWeek(now, { weekStartsOn: 1 });
       const lastWeekStart = subWeeks(thisWeekStart, 1);
-      const lastWeekEnd = subWeeks(thisWeekEnd, 1);
+      const lastWeekEnd = subWeeks(thisWeekStart, 1);
 
       const thisMonth = (date: string) => {
         const d = new Date(date);
@@ -66,23 +68,21 @@ const AdminStats = () => {
       const activeUsers = profiles.filter(p => p.is_onboarding_complete).length;
       const newUsersThisMonth = profiles.filter(p => p.created_at && thisMonth(p.created_at)).length;
 
-      // 2. Activation produit
+      // Activation
       const usersWithPlanning = new Set(aiPlans.map(p => p.user_id));
       const nbPlanningGeneratedFirstTime = usersWithPlanning.size;
       const firstWeekActivationRate = activeUsers > 0 ? (nbPlanningGeneratedFirstTime / activeUsers) * 100 : 0;
 
-      // 3. Usage hebdo du planning
+      // Usage hebdo
       const plansThisWeek = aiPlans.filter(p => p.created_at && isThisWeek(p.created_at));
       const nbPlanningGeneratedWeekly = plansThisWeek.length;
       const usersGeneratedPlanningWeekly = new Set(plansThisWeek.map(p => p.user_id)).size;
       
-      // Active users this week (opened the app)
       const activityThisWeek = activity.filter(a => a.created_at && isThisWeek(a.created_at));
       const activeUsersThisWeek = new Set(activityThisWeek.map(a => a.user_id)).size;
       const planningUsageRateWeekly = activeUsersThisWeek > 0 ? (usersGeneratedPlanningWeekly / activeUsersThisWeek) * 100 : 0;
 
-      // 4. Rétention
-      // Count sessions per user this week
+      // Rétention
       const userSessionsThisWeek: Record<string, number> = {};
       activityThisWeek.forEach(a => {
         userSessionsThisWeek[a.user_id] = (userSessionsThisWeek[a.user_id] || 0) + 1;
@@ -93,7 +93,6 @@ const AdminStats = () => {
       const retention2SessionsRate = activeUsers > 0 ? (nbUsers2PlusSessionsWeekly / activeUsers) * 100 : 0;
       const retention3SessionsRate = activeUsers > 0 ? (nbUsers3PlusSessionsWeekly / activeUsers) * 100 : 0;
 
-      // Organic retention (without email/notification)
       const organicActivityThisWeek = activityThisWeek.filter(a => a.source === 'organic');
       const nbUsersReturningWithoutNudge = new Set(organicActivityThisWeek.map(a => a.user_id)).size;
       
@@ -101,7 +100,7 @@ const AdminStats = () => {
       const activeUsersLastWeek = new Set(activityLastWeek.map(a => a.user_id)).size;
       const organicRetentionRate = activeUsersLastWeek > 0 ? (nbUsersReturningWithoutNudge / activeUsersLastWeek) * 100 : 0;
 
-      // 5. Core users (3 semaines consécutives avec onboarding + planning + 2+ sessions)
+      // Core users
       const threeWeeksAgo = subWeeks(thisWeekStart, 2);
       const weeks = [
         { start: threeWeeksAgo, end: endOfWeek(threeWeeksAgo, { weekStartsOn: 1 }) },
@@ -113,7 +112,6 @@ const AdminStats = () => {
         .filter(p => p.is_onboarding_complete)
         .map(p => p.id)
         .filter(userId => {
-          // Check each week
           return weeks.every(week => {
             const weekPlans = aiPlans.filter(
               plan => plan.user_id === userId && 
@@ -132,8 +130,45 @@ const AdminStats = () => {
       const nbCoreUsers = coreUserIds.length;
       const coreUsersRate = activeUsers > 0 ? (nbCoreUsers / activeUsers) * 100 : 0;
 
+      // Historical data for charts (last 8 weeks)
+      const weeklyHistory = [];
+      for (let i = 7; i >= 0; i--) {
+        const weekStart = subWeeks(thisWeekStart, i);
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+        
+        const weekProfiles = profiles.filter(p => 
+          p.created_at && new Date(p.created_at) <= weekEnd
+        );
+        const weekActiveProfiles = weekProfiles.filter(p => p.is_onboarding_complete);
+        
+        const weekPlans = aiPlans.filter(p => 
+          p.created_at && isWithinInterval(new Date(p.created_at), { start: weekStart, end: weekEnd })
+        );
+        const weekActivity = activity.filter(a => 
+          a.created_at && isWithinInterval(new Date(a.created_at), { start: weekStart, end: weekEnd })
+        );
+        
+        const weekActiveUsers = new Set(weekActivity.map(a => a.user_id)).size;
+        const weekPlanningUsers = new Set(weekPlans.map(p => p.user_id)).size;
+        
+        const userSessions: Record<string, number> = {};
+        weekActivity.forEach(a => {
+          userSessions[a.user_id] = (userSessions[a.user_id] || 0) + 1;
+        });
+        const week2PlusSessions = Object.values(userSessions).filter(c => c >= 2).length;
+
+        weeklyHistory.push({
+          week: format(weekStart, 'd MMM', { locale: fr }),
+          totalUsers: weekProfiles.length,
+          activeUsers: weekActiveProfiles.length,
+          planningGenerated: weekPlans.length,
+          activeUsersWeek: weekActiveUsers,
+          planningUsers: weekPlanningUsers,
+          retention2Plus: week2PlusSessions,
+        });
+      }
+
       return {
-        // Basic
         totalUsers,
         activeUsers,
         newUsersThisMonth,
@@ -143,24 +178,21 @@ const AdminStats = () => {
         totalConversations: conversations.length,
         openConversations: conversations.filter(c => c.status === 'open').length,
         totalEvents: events.length,
-        // Activation
         nbPlanningGeneratedFirstTime,
         firstWeekActivationRate,
-        // Usage hebdo
         nbPlanningGeneratedWeekly,
         usersGeneratedPlanningWeekly,
         activeUsersThisWeek,
         planningUsageRateWeekly,
-        // Rétention
         nbUsers2PlusSessionsWeekly,
         nbUsers3PlusSessionsWeekly,
         retention2SessionsRate,
         retention3SessionsRate,
         nbUsersReturningWithoutNudge,
         organicRetentionRate,
-        // Core users
         nbCoreUsers,
         coreUsersRate,
+        weeklyHistory,
       };
     },
   });
@@ -210,6 +242,56 @@ const AdminStats = () => {
     };
   }, [queryClient]);
 
+  const exportToCSV = () => {
+    if (!stats) return;
+
+    const csvData = [
+      ['Métrique', 'Valeur'],
+      ['Total utilisateurs', stats.totalUsers],
+      ['Utilisateurs actifs', stats.activeUsers],
+      ['Nouveaux ce mois', stats.newUsersThisMonth],
+      ['Matières créées', stats.totalSubjects],
+      ['Sessions de révision', stats.totalSessions],
+      ['Sessions terminées', stats.completedSessions],
+      ['Conversations support', stats.totalConversations],
+      ['Conversations ouvertes', stats.openConversations],
+      ['Événements calendrier', stats.totalEvents],
+      [''],
+      ['ACTIVATION'],
+      ['Ont généré un planning', stats.nbPlanningGeneratedFirstTime],
+      ['Taux activation (%)', stats.firstWeekActivationRate.toFixed(1)],
+      [''],
+      ['USAGE HEBDO'],
+      ['Plannings générés cette semaine', stats.nbPlanningGeneratedWeekly],
+      ['Utilisateurs ayant généré un planning', stats.usersGeneratedPlanningWeekly],
+      ['Utilisateurs actifs cette semaine', stats.activeUsersThisWeek],
+      ['Taux usage planning (%)', stats.planningUsageRateWeekly.toFixed(1)],
+      [''],
+      ['RÉTENTION'],
+      ['≥2 sessions/semaine', stats.nbUsers2PlusSessionsWeekly],
+      ['≥3 sessions/semaine', stats.nbUsers3PlusSessionsWeekly],
+      ['Taux rétention 2+ (%)', stats.retention2SessionsRate.toFixed(1)],
+      ['Taux rétention 3+ (%)', stats.retention3SessionsRate.toFixed(1)],
+      ['Retour organique', stats.nbUsersReturningWithoutNudge],
+      ['Taux rétention organique (%)', stats.organicRetentionRate.toFixed(1)],
+      [''],
+      ['CORE USERS'],
+      ['Core users', stats.nbCoreUsers],
+      ['Taux core users (%)', stats.coreUsersRate.toFixed(1)],
+      [''],
+      ['HISTORIQUE HEBDOMADAIRE'],
+      ['Semaine', 'Total Users', 'Actifs', 'Plannings générés', 'Users actifs semaine', 'Users planning', 'Rétention 2+'],
+      ...stats.weeklyHistory.map(w => [w.week, w.totalUsers, w.activeUsers, w.planningGenerated, w.activeUsersWeek, w.planningUsers, w.retention2Plus]),
+    ];
+
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `skoolife-stats-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+  };
+
   const StatCard = ({ title, value, icon: Icon, color, subtitle, pulse }: {
     title: string;
     value: number | string;
@@ -250,24 +332,39 @@ const AdminStats = () => {
     </Card>
   );
 
+  const chartConfig = {
+    totalUsers: { label: 'Total Users', color: 'hsl(var(--primary))' },
+    activeUsers: { label: 'Actifs', color: 'hsl(142, 76%, 36%)' },
+    planningGenerated: { label: 'Plannings', color: 'hsl(45, 93%, 47%)' },
+    activeUsersWeek: { label: 'Actifs/semaine', color: 'hsl(199, 89%, 48%)' },
+    retention2Plus: { label: 'Rétention 2+', color: 'hsl(280, 67%, 54%)' },
+  };
+
   return (
     <AdminSidebar>
       <div className="p-6 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Statistiques</h1>
-          <p className="text-muted-foreground">Vue d'ensemble de la plateforme</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Statistiques</h1>
+            <p className="text-muted-foreground">Vue d'ensemble de la plateforme</p>
+          </div>
+          <Button onClick={exportToCSV} variant="outline" className="gap-2">
+            <Download className="w-4 h-4" />
+            Exporter CSV
+          </Button>
         </div>
 
         {isLoading ? (
           <div className="text-center text-muted-foreground py-12">Chargement...</div>
         ) : (
           <Tabs defaultValue="general" className="space-y-4">
-            <TabsList>
+            <TabsList className="flex-wrap">
               <TabsTrigger value="general">Général</TabsTrigger>
               <TabsTrigger value="activation">Activation</TabsTrigger>
               <TabsTrigger value="usage">Usage Hebdo</TabsTrigger>
               <TabsTrigger value="retention">Rétention</TabsTrigger>
               <TabsTrigger value="core">Core Users</TabsTrigger>
+              <TabsTrigger value="evolution">Évolution</TabsTrigger>
             </TabsList>
 
             <TabsContent value="general" className="space-y-4">
@@ -442,6 +539,111 @@ const AdminStats = () => {
                   icon={Flame}
                   color="text-red-500"
                 />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="evolution" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-primary" />
+                    Évolution sur 8 semaines
+                  </CardTitle>
+                  <CardDescription>Tendances des métriques clés</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                    <AreaChart data={stats?.weeklyHistory || []}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis dataKey="week" className="text-xs" />
+                      <YAxis className="text-xs" />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Legend />
+                      <Area 
+                        type="monotone" 
+                        dataKey="totalUsers" 
+                        name="Total Users"
+                        stroke="hsl(var(--primary))" 
+                        fill="hsl(var(--primary))" 
+                        fillOpacity={0.2}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="activeUsers" 
+                        name="Actifs"
+                        stroke="hsl(142, 76%, 36%)" 
+                        fill="hsl(142, 76%, 36%)" 
+                        fillOpacity={0.2}
+                      />
+                    </AreaChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Plannings générés</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                      <LineChart data={stats?.weeklyHistory || []}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="week" className="text-xs" />
+                        <YAxis className="text-xs" />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Line 
+                          type="monotone" 
+                          dataKey="planningGenerated" 
+                          name="Plannings"
+                          stroke="hsl(45, 93%, 47%)" 
+                          strokeWidth={2}
+                          dot={{ fill: "hsl(45, 93%, 47%)" }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="planningUsers" 
+                          name="Users planning"
+                          stroke="hsl(199, 89%, 48%)" 
+                          strokeWidth={2}
+                          dot={{ fill: "hsl(199, 89%, 48%)" }}
+                        />
+                      </LineChart>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Rétention</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                      <LineChart data={stats?.weeklyHistory || []}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="week" className="text-xs" />
+                        <YAxis className="text-xs" />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Line 
+                          type="monotone" 
+                          dataKey="activeUsersWeek" 
+                          name="Actifs/semaine"
+                          stroke="hsl(199, 89%, 48%)" 
+                          strokeWidth={2}
+                          dot={{ fill: "hsl(199, 89%, 48%)" }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="retention2Plus" 
+                          name="Rétention 2+"
+                          stroke="hsl(280, 67%, 54%)" 
+                          strokeWidth={2}
+                          dot={{ fill: "hsl(280, 67%, 54%)" }}
+                        />
+                      </LineChart>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
           </Tabs>
