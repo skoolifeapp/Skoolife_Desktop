@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO } from 'date-fns';
+import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO, startOfDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ImportCalendarDialog from '@/components/ImportCalendarDialog';
 import EditSessionDialog from '@/components/EditSessionDialog';
@@ -290,8 +290,13 @@ const Dashboard = () => {
         return b.exam_weight - a.exam_weight;
       });
 
+      const today = startOfDay(new Date());
       for (const dayOffset of workDays) {
         const currentDate = addDays(weekStart, dayOffset);
+        
+        // Skip days before today
+        if (currentDate < today) continue;
+        
         const dateStr = format(currentDate, 'yyyy-MM-dd');
 
         // Check blocking events for this day
