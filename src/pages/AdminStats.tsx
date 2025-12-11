@@ -374,6 +374,62 @@ const AdminStats = () => {
     link.click();
   };
 
+  const exportHistoryToCSV = () => {
+    if (!snapshots || snapshots.length === 0) return;
+
+    const headers = [
+      'Date',
+      'Total Users',
+      'Actifs',
+      'Nouveaux ce mois',
+      'Matières',
+      'Sessions',
+      'Sessions terminées',
+      'Conversations',
+      'Conv. ouvertes',
+      'Événements',
+      'Planning 1ère fois',
+      'Planning hebdo',
+      'Users planning hebdo',
+      'Actifs semaine',
+      '≥2 sessions',
+      '≥3 sessions',
+      'Retour organique',
+      'Core Users',
+    ];
+
+    const rows = snapshots
+      .slice()
+      .reverse()
+      .map(s => [
+        s.snapshot_date,
+        s.total_users,
+        s.active_users,
+        s.new_users_this_month,
+        s.total_subjects,
+        s.total_sessions,
+        s.completed_sessions,
+        s.total_conversations,
+        s.open_conversations,
+        s.total_events,
+        s.nb_planning_generated_first_time,
+        s.nb_planning_generated_weekly,
+        s.users_generated_planning_weekly,
+        s.active_users_this_week,
+        s.nb_users_2plus_sessions_weekly,
+        s.nb_users_3plus_sessions_weekly,
+        s.nb_users_returning_without_nudge,
+        s.nb_core_users,
+      ]);
+
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `skoolife-historique-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+  };
+
   const StatCard = ({ title, value, icon: Icon, color, subtitle, pulse, deltaKey }: {
     title: string;
     value: number | string;
@@ -693,14 +749,20 @@ const AdminStats = () => {
 
             <TabsContent value="evolution" className="space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                    Évolution sur 30 jours
-                  </CardTitle>
-                  <CardDescription>
-                    Historique des métriques basé sur {historicalChartData.length} snapshots enregistrés
-                  </CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-primary" />
+                      Évolution sur 30 jours
+                    </CardTitle>
+                    <CardDescription>
+                      Historique des métriques basé sur {historicalChartData.length} snapshots enregistrés
+                    </CardDescription>
+                  </div>
+                  <Button onClick={exportHistoryToCSV} variant="outline" size="sm" className="gap-2">
+                    <Download className="w-4 h-4" />
+                    Exporter historique
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   {historicalChartData.length > 0 ? (
