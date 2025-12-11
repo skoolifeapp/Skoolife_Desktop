@@ -72,7 +72,6 @@ const Progression = () => {
     if (!loading) {
       const hasSeenTutorial = localStorage.getItem('hasSeenProgressionTutorial');
       if (!hasSeenTutorial) {
-        // Petit délai pour s'assurer que le DOM est prêt
         const timer = setTimeout(() => {
           setShowTutorial(true);
         }, 100);
@@ -135,7 +134,6 @@ const Progression = () => {
     if (!user) return;
 
     try {
-      // Fetch subjects
       const { data: subjectsData } = await supabase
         .from('subjects')
         .select('id, name, color')
@@ -143,7 +141,6 @@ const Progression = () => {
 
       setSubjects(subjectsData || []);
 
-      // Fetch all revision sessions (wider range for navigation)
       const tenWeeksAgo = subWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), 10);
       const tenWeeksAhead = addWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), 10);
 
@@ -158,12 +155,10 @@ const Progression = () => {
       const sessions = sessionsData || [];
       setAllSessions(sessions);
 
-      // Current week stats
       const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
       const currentStats = calculateWeekStats(sessions, currentWeekStart);
       setCurrentWeekStats(currentStats);
 
-      // Week history (last 4 weeks including current)
       const history: WeekStats[] = [];
       for (let i = 3; i >= 0; i--) {
         const weekStart = subWeeks(currentWeekStart, i);
@@ -171,7 +166,6 @@ const Progression = () => {
       }
       setWeekHistory(history);
 
-      // Subject stats for current week
       updateSubjectStats(sessions, subjectsData || [], currentWeekStart);
 
     } catch (err) {
@@ -217,7 +211,6 @@ const Progression = () => {
     setSubjectStats(Array.from(subjectStatsMap.values()));
   };
 
-  // Update stats when selected week changes
   useEffect(() => {
     if (allSessions.length > 0 && subjects.length > 0) {
       const stats = calculateWeekStats(allSessions, selectedWeekStart);
@@ -242,16 +235,11 @@ const Progression = () => {
     return `${format(selectedWeekStart, 'd', { locale: fr })} - ${format(weekEnd, 'd MMM', { locale: fr })}`;
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
-  };
-
   const getMotivationalMessage = (rate: number) => {
     if (rate >= 80) return "Excellente semaine ! Continue comme ça 🔥";
     if (rate >= 60) return "Belle progression 👏";
     if (rate >= 40) return "Tu avances bien, garde le rythme !";
-    if (rate > 0) return "Tu peux faire mieux cette semaine, on y va !";
+    if (rate > 0) return "Tu peux faire mieux, on y va !";
     return "C'est le moment de démarrer !";
   };
 
@@ -265,29 +253,30 @@ const Progression = () => {
 
   return (
     <AppSidebar>
-      <div className="flex-1 p-6 md:p-8 space-y-6 overflow-auto">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 overflow-auto">
         {showTutorial && (
           <ProgressionTutorialOverlay onComplete={handleTutorialComplete} />
         )}
         
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-primary" />
+        {/* Page Header - Compact on mobile */}
+        <div className="flex items-center gap-3 mb-4 sm:mb-8">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">Ta progression</h1>
-            <p className="text-muted-foreground">Suis tes efforts et tes résultats</p>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold truncate">Ta progression</h1>
+            <p className="text-sm text-muted-foreground hidden sm:block">Suis tes efforts et tes résultats</p>
           </div>
         </div>
 
         {/* Current week summary */}
         <Card className="border-0 shadow-md" data-progression-week-stats>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
-              {getWeekLabel()}
+          <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-2 sm:pb-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              <span className="truncate">{getWeekLabel()}</span>
             </CardTitle>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <Button variant="ghost" size="icon" onClick={goToPreviousWeek} className="h-8 w-8">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
@@ -296,7 +285,7 @@ const Progression = () => {
                   variant="outline" 
                   size="sm" 
                   onClick={() => setSelectedWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
-                  className="h-8 text-xs"
+                  className="h-8 text-xs px-2 hidden sm:flex"
                 >
                   Aujourd'hui
                 </Button>
@@ -306,43 +295,43 @@ const Progression = () => {
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6 pt-2 sm:pt-4">
             {currentWeekStats && (
               <>
-                {/* Main stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-secondary/50 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
+                {/* Main stats - Horizontal scroll on mobile */}
+                <div className="flex gap-3 overflow-x-auto pb-2 sm:pb-0 sm:grid sm:grid-cols-4 sm:gap-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+                  <div className="flex-shrink-0 w-28 sm:w-auto text-center p-3 sm:p-4 bg-secondary/50 rounded-lg">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
                     </div>
-                    <p className="text-2xl font-bold">{currentWeekStats.plannedHours}h</p>
-                    <p className="text-xs text-muted-foreground">planifiées</p>
+                    <p className="text-xl sm:text-2xl font-bold">{currentWeekStats.plannedHours}h</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">planifiées</p>
                   </div>
-                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  <div className="flex-shrink-0 w-28 sm:w-auto text-center p-3 sm:p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div className="flex items-center justify-center gap-1 mb-1">
+                      <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
                     </div>
-                    <p className="text-2xl font-bold text-green-600">{currentWeekStats.doneHours}h</p>
-                    <p className="text-xs text-muted-foreground">réalisées</p>
+                    <p className="text-xl sm:text-2xl font-bold text-green-600">{currentWeekStats.doneHours}h</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">réalisées</p>
                   </div>
-                  <div className="text-center p-4 bg-primary/10 rounded-lg col-span-2 md:col-span-2">
-                    <p className="text-3xl font-bold text-primary">{currentWeekStats.completionRate}%</p>
-                    <p className="text-xs text-muted-foreground">de ton planning respecté</p>
-                    <Progress value={currentWeekStats.completionRate} className="mt-2 h-2" />
+                  <div className="flex-shrink-0 w-36 sm:w-auto text-center p-3 sm:p-4 bg-primary/10 rounded-lg sm:col-span-2">
+                    <p className="text-2xl sm:text-3xl font-bold text-primary">{currentWeekStats.completionRate}%</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">du planning respecté</p>
+                    <Progress value={currentWeekStats.completionRate} className="mt-2 h-1.5 sm:h-2" />
                   </div>
                 </div>
 
-                {/* Session counts */}
-                <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-                  <span>Sessions : {currentWeekStats.plannedCount} prévues</span>
-                  <span>•</span>
+                {/* Session counts - Wrap on mobile */}
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                  <span>{currentWeekStats.plannedCount} sessions prévues</span>
+                  <span className="hidden sm:inline">•</span>
                   <span className="text-green-600">{currentWeekStats.doneCount} terminées</span>
-                  <span>•</span>
+                  <span className="hidden sm:inline">•</span>
                   <span className="text-red-600">{currentWeekStats.skippedCount} manquées</span>
                 </div>
 
                 {/* Motivational message */}
-                <p className="text-center text-sm font-medium text-primary">
+                <p className="text-center text-xs sm:text-sm font-medium text-primary">
                   {getMotivationalMessage(currentWeekStats.completionRate)}
                 </p>
               </>
@@ -353,29 +342,31 @@ const Progression = () => {
         {/* Subject breakdown */}
         {subjectStats.length > 0 && (
           <Card className="border-0 shadow-md" data-progression-subject-breakdown>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-primary" />
+            <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-2">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 Répartition par matière
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="h-64">
+            <CardContent className="p-4 sm:p-6 pt-2 sm:pt-4">
+              {/* Chart - Shorter on mobile */}
+              <div className="h-40 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={subjectStats} layout="vertical">
-                    <XAxis type="number" unit="h" />
+                    <XAxis type="number" unit="h" tick={{ fontSize: 10 }} />
                     <YAxis 
                       type="category" 
                       dataKey="subjectName" 
-                      width={100}
-                      tick={{ fontSize: 12 }}
+                      width={80}
+                      tick={{ fontSize: 10 }}
                     />
                     <Tooltip 
                       formatter={(value: number) => [`${value}h`, 'Heures terminées']}
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--card))', 
                         border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
+                        borderRadius: '8px',
+                        fontSize: '12px'
                       }}
                     />
                     <Bar dataKey="doneHours" radius={[0, 4, 4, 0]}>
@@ -397,8 +388,8 @@ const Progression = () => {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium truncate">{stat.subjectName}</span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs sm:text-sm font-medium truncate">{stat.subjectName}</span>
+                        <span className="text-[10px] sm:text-xs text-muted-foreground flex-shrink-0 ml-2">
                           {Math.round(stat.doneHours * 10) / 10}h / {Math.round(stat.plannedHours * 10) / 10}h
                         </span>
                       </div>
@@ -417,20 +408,20 @@ const Progression = () => {
           </Card>
         )}
 
-        {/* Week history */}
+        {/* Week history - Card style on mobile */}
         <Card className="border-0 shadow-md" data-progression-history>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              Historique des dernières semaines
+          <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+              Historique
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+          <CardContent className="p-4 sm:p-6 pt-2 sm:pt-4">
+            <div className="space-y-2 sm:space-y-3">
               {weekHistory.map((week, index) => {
                 const weekLabel = index === weekHistory.length - 1 
                   ? 'Cette semaine' 
-                  : `Semaine du ${format(week.weekStart, 'd MMM', { locale: fr })}`;
+                  : `Sem. ${format(week.weekStart, 'd MMM', { locale: fr })}`;
                 
                 return (
                   <div 
@@ -441,14 +432,14 @@ const Progression = () => {
                         : 'bg-secondary/50'
                     }`}
                   >
-                    <div>
-                      <p className="font-medium text-sm">{weekLabel}</p>
-                      <p className="text-xs text-muted-foreground">
+                    <div className="min-w-0">
+                      <p className="font-medium text-xs sm:text-sm truncate">{weekLabel}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">
                         {week.doneHours}h / {week.plannedHours}h
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className={`text-lg font-bold ${
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <p className={`text-base sm:text-lg font-bold ${
                         week.completionRate >= 70 ? 'text-green-600' :
                         week.completionRate >= 40 ? 'text-primary' :
                         'text-muted-foreground'
@@ -463,7 +454,6 @@ const Progression = () => {
           </CardContent>
         </Card>
 
-        {/* Support Button */}
         <SupportButton />
       </div>
     </AppSidebar>

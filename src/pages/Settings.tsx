@@ -197,28 +197,28 @@ const Settings = () => {
 
   return (
     <AppSidebar>
-      <div className="flex-1 p-6 md:p-8 space-y-8 overflow-auto">
+      <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 overflow-auto">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Paramètres</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Paramètres</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Configure tes préférences de révisions
           </p>
         </div>
 
         {/* Section: Revision Preferences */}
         <Card className="border-0 shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
+          <CardHeader className="p-4 sm:p-6 pb-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               Préférences de révisions
             </CardTitle>
-            <CardDescription>
-              Configure quand et comment tu veux réviser. Ces préférences seront prises en compte lors de la prochaine génération de planning.
+            <CardDescription className="text-xs sm:text-sm">
+              Configure quand et comment tu veux réviser.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-5 sm:space-y-6 p-4 sm:p-6 pt-2">
             <div className="space-y-2">
-              <Label>Objectif hebdomadaire : {preferences.weekly_revision_hours}h</Label>
+              <Label className="text-sm">Objectif hebdomadaire : {preferences.weekly_revision_hours}h</Label>
               <Slider
                 value={[preferences.weekly_revision_hours]}
                 onValueChange={(value) => setPreferences({ ...preferences, weekly_revision_hours: value[0] })}
@@ -233,7 +233,7 @@ const Settings = () => {
             </div>
 
             <div className="space-y-3">
-              <Label>Jours de révision préférés</Label>
+              <Label className="text-sm">Jours de révision préférés</Label>
               <div className="flex flex-wrap gap-2">
                 {DAYS_OF_WEEK.map((day) => (
                   <Button
@@ -242,7 +242,7 @@ const Settings = () => {
                     variant={preferences.preferred_days_of_week.includes(day.value) ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => toggleDay(day.value)}
-                    className="min-w-[48px]"
+                    className="min-w-[44px] h-10"
                   >
                     {day.label}
                   </Button>
@@ -250,29 +250,31 @@ const Settings = () => {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div className="space-y-2">
-                <Label htmlFor="start_time">Heure de début</Label>
+                <Label htmlFor="start_time" className="text-sm">Heure de début</Label>
                 <Input
                   id="start_time"
                   type="time"
                   value={preferences.daily_start_time}
                   onChange={(e) => setPreferences({ ...preferences, daily_start_time: e.target.value })}
+                  className="h-11"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="end_time">Heure de fin</Label>
+                <Label htmlFor="end_time" className="text-sm">Heure de fin</Label>
                 <Input
                   id="end_time"
                   type="time"
                   value={preferences.daily_end_time}
                   onChange={(e) => setPreferences({ ...preferences, daily_end_time: e.target.value })}
+                  className="h-11"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Heures max par jour : {preferences.max_hours_per_day}h</Label>
+              <Label className="text-sm">Heures max par jour : {preferences.max_hours_per_day}h</Label>
               <Slider
                 value={[preferences.max_hours_per_day]}
                 onValueChange={(value) => setPreferences({ ...preferences, max_hours_per_day: value[0] })}
@@ -284,12 +286,12 @@ const Settings = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Durée des sessions de révision</Label>
+              <Label className="text-sm">Durée des sessions</Label>
               <Select
                 value={String(preferences.session_duration_minutes)}
                 onValueChange={(value) => setPreferences({ ...preferences, session_duration_minutes: Number(value) })}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder="Choisis la durée" />
                 </SelectTrigger>
                 <SelectContent>
@@ -300,57 +302,57 @@ const Settings = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                Durée de chaque session de révision générée
-              </p>
             </div>
 
-            <div className="space-y-4">
-              <Label>Préférences supplémentaires</Label>
-              <div className="flex items-center space-x-2">
+            <div className="space-y-3 sm:space-y-4">
+              <Label className="text-sm">Préférences supplémentaires</Label>
+              <div className="flex items-center space-x-3 py-1">
                 <Checkbox
                   id="avoid_early"
                   checked={preferences.avoid_early_morning}
                   onCheckedChange={(checked) => 
                     setPreferences({ ...preferences, avoid_early_morning: checked as boolean })
                   }
+                  className="h-5 w-5"
                 />
                 <label
                   htmlFor="avoid_early"
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm leading-none"
                 >
-                  Pas de révisions tôt le matin (avant 9h)
+                  Pas de révisions avant 9h
                 </label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3 py-1">
                 <Checkbox
                   id="avoid_late"
                   checked={preferences.avoid_late_evening}
                   onCheckedChange={(checked) => 
                     setPreferences({ ...preferences, avoid_late_evening: checked as boolean })
                   }
+                  className="h-5 w-5"
                 />
                 <label
                   htmlFor="avoid_late"
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm leading-none"
                 >
-                  Pas de révisions tard le soir (après 21h)
+                  Pas de révisions après 21h
                 </label>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Remarques / contraintes particulières</Label>
+              <Label htmlFor="notes" className="text-sm">Remarques</Label>
               <Textarea
                 id="notes"
                 value={preferences.notes}
                 onChange={(e) => setPreferences({ ...preferences, notes: e.target.value })}
-                placeholder="Ex: Je travaille le mercredi après-midi, je préfère les sessions courtes..."
+                placeholder="Ex: Je travaille le mercredi après-midi..."
                 rows={3}
+                className="resize-none"
               />
             </div>
 
-            <Button onClick={handleSavePreferences} disabled={savingPreferences}>
+            <Button onClick={handleSavePreferences} disabled={savingPreferences} className="w-full sm:w-auto h-11">
               {savingPreferences && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Enregistrer mes préférences
             </Button>
@@ -359,37 +361,37 @@ const Settings = () => {
 
         {/* Section: Advanced Options */}
         <Card className="border-0 shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <SettingsIcon className="w-5 h-5 text-primary" />
+          <CardHeader className="p-4 sm:p-6 pb-2">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <SettingsIcon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               Options avancées
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-2">
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Réinitialise l'onboarding pour reconfigurer ton profil et tes matières depuis le début.
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Réinitialise l'onboarding pour reconfigurer ton profil.
               </p>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline">
+                  <Button variant="outline" className="w-full sm:w-auto h-11">
                     <RotateCcw className="w-4 h-4 mr-2" />
                     Réinitialiser l'onboarding
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="max-w-[90vw] sm:max-w-lg">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Réinitialiser l'onboarding ?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Tu seras redirigé vers l'onboarding pour reconfigurer ton profil et tes matières. 
-                      Tes données actuelles ne seront pas supprimées, mais tu pourras les modifier.
+                    <AlertDialogDescription className="text-sm">
+                      Tu seras redirigé vers l'onboarding pour reconfigurer ton profil.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                    <AlertDialogCancel className="w-full sm:w-auto">Annuler</AlertDialogCancel>
                     <AlertDialogAction 
                       onClick={handleResetOnboarding}
                       disabled={resettingOnboarding}
+                      className="w-full sm:w-auto"
                     >
                       {resettingOnboarding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                       Confirmer
