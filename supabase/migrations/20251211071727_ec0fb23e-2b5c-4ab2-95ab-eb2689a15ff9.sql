@@ -1,0 +1,8 @@
+-- Ensure REPLICA IDENTITY FULL for all stats-related tables
+ALTER TABLE public.profiles REPLICA IDENTITY FULL;
+ALTER TABLE public.subjects REPLICA IDENTITY FULL;
+ALTER TABLE public.revision_sessions REPLICA IDENTITY FULL;
+ALTER TABLE public.conversations REPLICA IDENTITY FULL;
+ALTER TABLE public.calendar_events REPLICA IDENTITY FULL;
+ALTER TABLE public.ai_plans REPLICA IDENTITY FULL;
+ALTER TABLE public.user_activity REPLICA IDENTITY FULL;

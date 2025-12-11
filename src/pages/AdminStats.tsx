@@ -1,20 +1,23 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AdminSidebar from '@/components/AdminSidebar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, BookOpen, Calendar, MessageSquare, TrendingUp, CheckCircle, Radio, Target, Zap, BarChart3, UserCheck, Flame, Download } from 'lucide-react';
+import { Users, BookOpen, Calendar, MessageSquare, TrendingUp, CheckCircle, Radio, Target, Zap, BarChart3, UserCheck, Flame, Download, Wifi } from 'lucide-react';
 import { useLiveUserCount } from '@/hooks/useLiveUserCount';
 import { startOfWeek, subWeeks, endOfWeek, isWithinInterval, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
+import { Badge } from '@/components/ui/badge';
 
 const AdminStats = () => {
   const queryClient = useQueryClient();
   const liveUsersCount = useLiveUserCount();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isConnected, setIsConnected] = useState(true);
 
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
@@ -199,46 +202,27 @@ const AdminStats = () => {
 
   // Real-time subscriptions
   useEffect(() => {
-    const channels = [
-      supabase.channel('stats-profiles')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-        })
-        .subscribe(),
-      supabase.channel('stats-subjects')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'subjects' }, () => {
-          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-        })
-        .subscribe(),
-      supabase.channel('stats-sessions')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'revision_sessions' }, () => {
-          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-        })
-        .subscribe(),
-      supabase.channel('stats-conversations')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, () => {
-          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-        })
-        .subscribe(),
-      supabase.channel('stats-events')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, () => {
-          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-        })
-        .subscribe(),
-      supabase.channel('stats-ai-plans')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_plans' }, () => {
-          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-        })
-        .subscribe(),
-      supabase.channel('stats-activity')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_activity' }, () => {
-          queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-        })
-        .subscribe(),
-    ];
+    const handleUpdate = () => {
+      setLastUpdated(new Date());
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+    };
+
+    const tables = ['profiles', 'subjects', 'revision_sessions', 'conversations', 'calendar_events', 'ai_plans', 'user_activity'];
+    
+    const channel = supabase.channel('admin-stats-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, handleUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subjects' }, handleUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'revision_sessions' }, handleUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, handleUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, handleUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ai_plans' }, handleUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_activity' }, handleUpdate)
+      .subscribe((status) => {
+        setIsConnected(status === 'SUBSCRIBED');
+      });
 
     return () => {
-      channels.forEach(channel => supabase.removeChannel(channel));
+      supabase.removeChannel(channel);
     };
   }, [queryClient]);
 
@@ -343,10 +327,18 @@ const AdminStats = () => {
   return (
     <AdminSidebar>
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Statistiques</h1>
-            <p className="text-muted-foreground">Vue d'ensemble de la plateforme</p>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant={isConnected ? "default" : "destructive"} className="gap-1.5">
+                <Wifi className={`w-3 h-3 ${isConnected ? 'animate-pulse' : ''}`} />
+                {isConnected ? 'Temps réel' : 'Déconnecté'}
+              </Badge>
+              <span className="text-xs text-muted-foreground">
+                Mis à jour : {format(lastUpdated, 'HH:mm:ss', { locale: fr })}
+              </span>
+            </div>
           </div>
           <Button onClick={exportToCSV} variant="outline" className="gap-2">
             <Download className="w-4 h-4" />
