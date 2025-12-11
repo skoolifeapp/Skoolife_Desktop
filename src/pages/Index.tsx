@@ -139,7 +139,7 @@ const Index = () => {
               Prêt à réviser sereinement ?
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Rejoins des milliers d'étudiants qui ont repris le contrôle de leurs révisions.
+              Rejoins Skoolife et reprends le contrôle de tes révisions.
             </p>
             <Link to="/auth">
               <Button variant="hero" size="xl">
@@ -159,7 +159,7 @@ const Index = () => {
             <span className="font-bold">Skoolife</span>
           </Link>
           <p className="text-sm text-muted-foreground">
-            © 2024 Skoolife. Fait avec ❤️ pour les étudiants.
+            © 2025 Skoolife. Fait avec ❤️ pour les étudiants.
           </p>
         </div>
       </footer>
