@@ -165,6 +165,9 @@ const AdminStats = () => {
         const weekActivity = activity.filter(a => 
           a.created_at && isWithinInterval(new Date(a.created_at), { start: weekStart, end: weekEnd })
         );
+        const weekEvents = events.filter(e => 
+          e.created_at && isWithinInterval(new Date(e.created_at), { start: weekStart, end: weekEnd })
+        );
         
         const weekActiveUsers = new Set(weekActivity.map(a => a.user_id)).size;
         const weekPlanningUsers = new Set(weekPlans.map(p => p.user_id)).size;
@@ -183,6 +186,7 @@ const AdminStats = () => {
           activeUsersWeek: weekActiveUsers,
           planningUsers: weekPlanningUsers,
           retention2Plus: week2PlusSessions,
+          eventsCreated: weekEvents.length,
         });
       }
 
@@ -389,6 +393,7 @@ const AdminStats = () => {
     planningGenerated: { label: 'Plannings', color: 'hsl(45, 93%, 47%)' },
     activeUsersWeek: { label: 'Actifs/semaine', color: 'hsl(199, 89%, 48%)' },
     retention2Plus: { label: 'Rétention 2+', color: 'hsl(280, 67%, 54%)' },
+    eventsCreated: { label: 'Évènements', color: 'hsl(263, 70%, 50%)' },
   };
 
   return (
@@ -707,6 +712,29 @@ const AdminStats = () => {
                           stroke="hsl(280, 67%, 54%)" 
                           strokeWidth={2}
                           dot={{ fill: "hsl(280, 67%, 54%)" }}
+                        />
+                      </LineChart>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Évènements calendrier</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                      <LineChart data={stats?.weeklyHistory || []}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis dataKey="week" className="text-xs" />
+                        <YAxis className="text-xs" />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Line 
+                          type="monotone" 
+                          dataKey="eventsCreated" 
+                          name="Évènements créés"
+                          stroke="hsl(263, 70%, 50%)" 
+                          strokeWidth={2}
+                          dot={{ fill: "hsl(263, 70%, 50%)" }}
                         />
                       </LineChart>
                     </ChartContainer>
