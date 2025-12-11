@@ -213,6 +213,22 @@ const Dashboard = () => {
         .gte('date', format(weekStart, 'yyyy-MM-dd'))
         .lte('date', format(weekEnd, 'yyyy-MM-dd'));
 
+      // Fetch ALL sessions (past + future, excluding current week planned ones we just deleted)
+      // to calculate total hours already scheduled per subject
+      const { data: allSessions } = await supabase
+        .from('revision_sessions')
+        .select('*')
+        .eq('user_id', user.id);
+
+      // Calculate hours already scheduled per subject from ALL existing sessions
+      const scheduledHoursPerSubject: Record<string, number> = {};
+      (allSessions || []).forEach(session => {
+        const [startH, startM] = session.start_time.split(':').map(Number);
+        const [endH, endM] = session.end_time.split(':').map(Number);
+        const durationHours = ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
+        scheduledHoursPerSubject[session.subject_id] = (scheduledHoursPerSubject[session.subject_id] || 0) + durationHours;
+      });
+
       // Extract preferences with defaults
       const preferredDays = preferences?.preferred_days_of_week || [1, 2, 3, 4, 5]; // Mon-Fri by default
       const dailyStartTime = preferences?.daily_start_time || '08:00';
@@ -292,10 +308,6 @@ const Dashboard = () => {
 
       const today = startOfDay(new Date());
       const currentTimeStr = format(new Date(), 'HH:mm');
-      
-      // Track scheduled hours per subject to respect target_hours
-      const scheduledHoursPerSubject: Record<string, number> = {};
-      sortedSubjects.forEach(s => { scheduledHoursPerSubject[s.id] = 0; });
       
       for (const dayOffset of workDays) {
         const currentDate = addDays(weekStart, dayOffset);
