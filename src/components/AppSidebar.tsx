@@ -64,7 +64,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
         </nav>
 
         <div className="pt-6 border-t border-border space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-1">
             <ThemeToggle />
             <a
               href="https://chat.whatsapp.com/KZaZ5cmGBoM60V5Qmqned5?mode=hqrc"
