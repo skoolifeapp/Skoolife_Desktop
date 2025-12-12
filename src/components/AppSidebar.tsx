@@ -93,10 +93,11 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
           >
             <Button
               variant="outline"
-              className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
+              size="sm"
+              className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground text-xs"
             >
-              <Video className="w-5 h-5" />
-              Demander une démo
+              <Video className="w-4 h-4 shrink-0" />
+              <span className="truncate">Réserver une démo</span>
             </Button>
           </a>
           <Button
