@@ -318,6 +318,39 @@ export type Database = {
           },
         ]
       }
+      school_leads: {
+        Row: {
+          contact_email: string
+          contact_phone: string | null
+          created_at: string
+          id: string
+          message: string | null
+          school_name: string
+          school_type: string | null
+          student_count: string | null
+        }
+        Insert: {
+          contact_email: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          school_name: string
+          school_type?: string | null
+          student_count?: string | null
+        }
+        Update: {
+          contact_email?: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          school_name?: string
+          school_type?: string | null
+          student_count?: string | null
+        }
+        Relationships: []
+      }
       stats_snapshots: {
         Row: {
           active_users: number
