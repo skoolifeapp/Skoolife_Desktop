@@ -49,6 +49,9 @@ const Index = () => {
             <div className="flex-1 text-center lg:text-left">
               {/* Main heading */}
               <div className="space-y-6 animate-slide-up">
+                <p className="text-sm text-muted-foreground/80 font-medium">
+                  💻 Disponible sur ordinateur uniquement
+                </p>
                 <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-foreground leading-tight">
                   Tes révisions,
                   <br />
@@ -70,14 +73,9 @@ const Index = () => {
                     <ArrowRight className="w-5 h-5" />
                   </Button>
                 </Link>
-                <div className="flex flex-col items-center lg:items-start gap-1 self-center">
-                  <p className="text-sm text-muted-foreground">
-                    Aucune carte bancaire requise
-                  </p>
-                  <p className="text-xs text-muted-foreground/70">
-                    Disponible sur ordinateur uniquement
-                  </p>
-                </div>
+                <p className="text-sm text-muted-foreground self-center">
+                  Aucune carte bancaire requise
+                </p>
               </div>
             </div>
 
