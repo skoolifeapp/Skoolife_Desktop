@@ -40,11 +40,16 @@ const Index = () => {
             <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl shadow-glow" />
             <span className="text-xl font-bold text-foreground">Skoolife</span>
           </Link>
-          <Link to="/auth">
-            <Button variant="default" size="sm">
-              Se connecter
+          <div className="flex items-center gap-2">
+            <Link to="/auth">
+              <Button variant="default" size="sm">
+                Espace étudiants
+              </Button>
+            </Link>
+            <Button variant="outline" size="sm" disabled className="opacity-60 cursor-not-allowed">
+              Espace écoles
             </Button>
-          </Link>
+          </div>
         </nav>
       </header>
 
