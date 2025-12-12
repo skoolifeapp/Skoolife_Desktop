@@ -70,9 +70,14 @@ const Index = () => {
                     <ArrowRight className="w-5 h-5" />
                   </Button>
                 </Link>
-                <p className="text-sm text-muted-foreground self-center">
-                  Aucune carte bancaire requise
-                </p>
+                <div className="flex flex-col items-center lg:items-start gap-1 self-center">
+                  <p className="text-sm text-muted-foreground">
+                    Aucune carte bancaire requise
+                  </p>
+                  <p className="text-xs text-muted-foreground/70">
+                    Disponible sur ordinateur uniquement
+                  </p>
+                </div>
               </div>
             </div>
 
