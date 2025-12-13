@@ -44,7 +44,7 @@ const Index = () => {
         <nav className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl shadow-glow" />
-            <span className="text-xl font-bold text-foreground">Skoolife</span>
+            <span className="text-xl font-bold text-foreground font-heading">Skoolife</span>
           </Link>
           <div className="flex items-center gap-2">
             <Link to="/auth">
@@ -75,10 +75,10 @@ const Index = () => {
             <div className="flex-1 text-center lg:text-left">
               {/* Main heading */}
               <div className="space-y-6 animate-slide-up">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-foreground leading-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground leading-tight font-heading">
                   Tes révisions,
                   <br />
-                  <span className="gradient-text-animated">
+                  <span className="gradient-text-animated font-heading">
                     enfin organisées
                   </span>
                 </h1>
@@ -114,7 +114,7 @@ const Index = () => {
           </div>
 
           {/* Features */}
-          <div className="grid md:grid-cols-3 gap-6 mt-24">
+          <div className="grid md:grid-cols-3 gap-8 mt-24">
             <FeatureCard
               icon={<Calendar className="w-6 h-6" />}
               title="Import calendrier"
@@ -134,7 +134,7 @@ const Index = () => {
 
           {/* How it works */}
           <div className="mt-32 text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-16 font-heading">
               Comment ça marche ?
             </h2>
             <div className="grid md:grid-cols-4 gap-8">
@@ -147,17 +147,18 @@ const Index = () => {
 
           {/* Testimonial */}
           <div className="mt-32 max-w-3xl mx-auto text-center">
-            <div className="p-8 rounded-2xl bg-card border border-border shadow-lg">
-              <p className="text-xl sm:text-2xl font-medium text-foreground mb-6">
+            <div className="p-10 rounded-3xl bg-card border border-border shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <Sparkles className="w-8 h-8 text-primary mx-auto mb-6 opacity-60" />
+              <p className="text-xl sm:text-2xl text-foreground mb-8 leading-relaxed">
                 "Avant Skoolife, je procrastinais tout le temps. Maintenant, j'ai enfin 
                 un planning clair et je sais exactement quoi réviser chaque jour."
               </p>
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                  <span className="font-bold text-primary">L</span>
+              <div className="flex items-center justify-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="font-bold text-primary font-heading text-lg">L</span>
                 </div>
                 <div className="text-left">
-                  <p className="font-medium">Léa M.</p>
+                  <p className="font-semibold font-heading">Léa M.</p>
                   <p className="text-sm text-muted-foreground">Étudiante en L2 Droit</p>
                 </div>
               </div>
@@ -165,15 +166,15 @@ const Index = () => {
           </div>
 
           {/* Final CTA */}
-          <div className="mt-32 text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-6">
+          <div className="mt-32 text-center py-16 px-8 rounded-3xl bg-gradient-to-br from-primary/5 via-transparent to-accent/5">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-6 font-heading">
               Prêt à réviser sereinement ?
             </h2>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-muted-foreground mb-10 max-w-lg mx-auto">
               Rejoins Skoolife et reprends le contrôle de tes révisions.
             </p>
             <Link to="/auth">
-              <Button variant="hero" size="xl">
+              <Button variant="hero" size="xl" className="hover-lift">
                 Créer mon planning
                 <ArrowRight className="w-5 h-5" />
               </Button>
@@ -187,7 +188,7 @@ const Index = () => {
         <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img src={logo} alt="Skoolife" className="w-8 h-8 rounded-lg" />
-            <span className="font-bold">Skoolife</span>
+            <span className="font-bold font-heading">Skoolife</span>
           </Link>
           <p className="text-sm text-muted-foreground">
             © 2025 Skoolife. Fait avec ❤️ pour les étudiants.
@@ -199,22 +200,22 @@ const Index = () => {
 };
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => (
-  <div className="p-6 rounded-2xl bg-card border border-border shadow-md hover:shadow-lg transition-shadow">
-    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+  <div className="group p-8 rounded-2xl bg-card border border-border shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-5 group-hover:bg-primary/20 transition-colors duration-300">
       {icon}
     </div>
-    <h3 className="text-lg font-semibold mb-2">{title}</h3>
-    <p className="text-muted-foreground">{description}</p>
+    <h3 className="text-xl font-semibold mb-3 font-heading">{title}</h3>
+    <p className="text-muted-foreground leading-relaxed">{description}</p>
   </div>
 );
 
 const Step = ({ number, title, description }: { number: number; title: string; description: string }) => (
-  <div className="flex flex-col items-center">
-    <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mb-4 shadow-glow">
+  <div className="flex flex-col items-center group">
+    <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mb-5 shadow-glow group-hover:scale-110 transition-transform duration-300 font-heading">
       {number}
     </div>
-    <h3 className="font-semibold mb-1">{title}</h3>
-    <p className="text-sm text-muted-foreground">{description}</p>
+    <h3 className="font-semibold mb-2 font-heading text-lg">{title}</h3>
+    <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
   </div>
 );
 
