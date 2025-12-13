@@ -289,8 +289,8 @@ const Dashboard = () => {
       const totalMinutes = (profile?.weekly_revision_hours || 10) * 60;
       const sessionsCount = Math.floor(totalMinutes / sessionDuration);
 
-      // Convert preferred days to day offsets for Monday-based week (1=Mon→0, 2=Tue→1, ..., 7=Sun→6)
-      const workDays = preferredDays.map(d => (d === 7 ? 6 : d - 1)).sort((a, b) => a - b);
+      // Convert preferred days to day offsets for Monday-based week (1=Mon→0, ..., 6=Sam→5, 0=Dim→6)
+      const workDays = preferredDays.map(d => (d === 0 ? 6 : d - 1)).sort((a, b) => a - b);
       
       const newSessions: { user_id: string; subject_id: string; date: string; start_time: string; end_time: string; status: string; notes: string | null }[] = [];
       let sessionIndex = 0;
@@ -546,8 +546,8 @@ const Dashboard = () => {
         return eventDateStr >= weekStartStr && eventDateStr <= weekEndStr && e.is_blocking;
       });
 
-      // Convert preferred days to day offsets
-      const workDays = preferredDays.map(d => (d === 7 ? 6 : d - 1)).sort((a, b) => a - b);
+      // Convert preferred days (1=Mon..6=Sat, 0=Sun) to day offsets for Monday-based week
+      const workDays = preferredDays.map(d => (d === 0 ? 6 : d - 1)).sort((a, b) => a - b);
       
       // Find available slots for each day
       const newSessions: { user_id: string; subject_id: string; date: string; start_time: string; end_time: string; status: string; notes: string | null }[] = [];
