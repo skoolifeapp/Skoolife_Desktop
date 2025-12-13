@@ -203,15 +203,18 @@ const Dashboard = () => {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      // Delete existing planned sessions for this week
-      const weekEnd = addDays(weekStart, 6);
+      // Delete existing planned sessions for this week (Monday to Sunday inclusive)
+      const weekEndDate = addDays(weekStart, 6); // Sunday
+      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+      const weekEndStr = format(weekEndDate, 'yyyy-MM-dd');
+      
       await supabase
         .from('revision_sessions')
         .delete()
         .eq('user_id', user.id)
         .eq('status', 'planned')
-        .gte('date', format(weekStart, 'yyyy-MM-dd'))
-        .lte('date', format(weekEnd, 'yyyy-MM-dd'));
+        .gte('date', weekStartStr)
+        .lte('date', weekEndStr);
 
       // Fetch ALL sessions (past + future, excluding current week planned ones we just deleted)
       // to calculate total hours already scheduled per subject
@@ -509,8 +512,10 @@ const Dashboard = () => {
         return;
       }
 
-      // Get current week bounds
-      const weekEnd = addDays(weekStart, 6);
+      // Get current week bounds (Monday to Sunday inclusive)
+      const weekEndDate = addDays(weekStart, 6); // Sunday
+      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
+      const weekEndStr = format(weekEndDate, 'yyyy-MM-dd');
       
       // Extract preferences with defaults
       const preferredDays = preferences?.preferred_days_of_week || [1, 2, 3, 4, 5];
@@ -531,15 +536,14 @@ const Dashboard = () => {
       if (avoidEarlyMorning && effectiveStartHour < 9) effectiveStartHour = 9;
       if (avoidLateEvening && effectiveEndHour > 21) effectiveEndHour = 21;
 
-      // Get existing sessions and events for the week
+      // Get existing sessions and events for THIS week only (using string comparison for accuracy)
       const weekSessions = sessions.filter(s => {
-        const sessionDate = parseISO(s.date);
-        return sessionDate >= weekStart && sessionDate <= weekEnd;
+        return s.date >= weekStartStr && s.date <= weekEndStr;
       });
 
       const weekEvents = calendarEvents.filter(e => {
-        const eventDate = parseISO(e.start_datetime);
-        return eventDate >= weekStart && eventDate <= weekEnd && e.is_blocking;
+        const eventDateStr = format(parseISO(e.start_datetime), 'yyyy-MM-dd');
+        return eventDateStr >= weekStartStr && eventDateStr <= weekEndStr && e.is_blocking;
       });
 
       // Convert preferred days to day offsets
