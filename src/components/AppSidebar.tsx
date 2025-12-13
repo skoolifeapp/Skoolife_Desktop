@@ -2,13 +2,13 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Calendar, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video } from 'lucide-react';
+import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { path: '/app', label: 'Planning', icon: Calendar },
+  { path: '/app', label: 'Dashboard', icon: Home },
   { path: '/progression', label: 'Progression', icon: TrendingUp },
   { path: '/subjects', label: 'Matières', icon: GraduationCap },
   { path: '/settings', label: 'Paramètres', icon: Settings },
