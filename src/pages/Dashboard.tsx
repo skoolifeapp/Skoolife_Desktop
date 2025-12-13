@@ -285,9 +285,8 @@ const Dashboard = () => {
       // Planning algorithm
       const totalMinutes = (profile?.weekly_revision_hours || 10) * 60;
       const sessionsCount = Math.floor(totalMinutes / sessionDuration);
-      const maxSessionsPerDay = Math.floor((maxHoursPerDay * 60) / sessionDuration);
 
-      // Convert preferred days to day offsets (1=Mon becomes 0, 7=Sun becomes 6)
+      // Convert preferred days to day offsets for Monday-based week (1=Mon→0, 2=Tue→1, ..., 7=Sun→6)
       const workDays = preferredDays.map(d => (d === 7 ? 6 : d - 1)).sort((a, b) => a - b);
       
       const newSessions: { user_id: string; subject_id: string; date: string; start_time: string; end_time: string; status: string; notes: string | null }[] = [];
@@ -309,6 +308,9 @@ const Dashboard = () => {
       const today = startOfDay(new Date());
       const currentTimeStr = format(new Date(), 'HH:mm');
       
+      // Track hours scheduled per day to respect maxHoursPerDay
+      const hoursScheduledPerDay: Record<string, number> = {};
+      
       for (const dayOffset of workDays) {
         const currentDate = addDays(weekStart, dayOffset);
         
@@ -327,10 +329,21 @@ const Dashboard = () => {
         // Get existing revision sessions for this day (done/skipped ones that weren't deleted)
         const dayExistingSessions = sessions.filter(s => s.date === dateStr);
 
-        let slotsUsedToday = 0;
+        // Calculate hours already scheduled for this day (from existing sessions)
+        const existingHoursToday = dayExistingSessions.reduce((acc, s) => {
+          const [sh, sm] = s.start_time.split(':').map(Number);
+          const [eh, em] = s.end_time.split(':').map(Number);
+          return acc + ((eh * 60 + em) - (sh * 60 + sm)) / 60;
+        }, 0);
+        
+        hoursScheduledPerDay[dateStr] = existingHoursToday;
+
         for (const slot of timeSlots) {
           if (sessionIndex >= sessionsCount) break;
-          if (slotsUsedToday >= maxSessionsPerDay) break;
+          
+          // Check if adding this session would exceed maxHoursPerDay
+          const sessionHoursToAdd = sessionDuration / 60;
+          if ((hoursScheduledPerDay[dateStr] || 0) + sessionHoursToAdd > maxHoursPerDay) break;
           
           // Skip slots before current time if it's today
           if (isToday && slot.start < currentTimeStr) continue;
@@ -385,11 +398,11 @@ const Dashboard = () => {
               notes: null
             });
 
-            // Track scheduled hours
-            scheduledHoursPerSubject[subject.id] += sessionDuration / 60;
+            // Track scheduled hours per day and per subject
+            hoursScheduledPerDay[dateStr] = (hoursScheduledPerDay[dateStr] || 0) + sessionHoursToAdd;
+            scheduledHoursPerSubject[subject.id] += sessionHoursToAdd;
 
             sessionIndex++;
-            slotsUsedToday++;
           }
         }
       }
