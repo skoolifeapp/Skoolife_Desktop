@@ -426,6 +426,7 @@ export type Database = {
           created_at: string | null
           difficulty_level: string | null
           exam_date: string | null
+          exam_type: string | null
           exam_weight: number | null
           id: string
           name: string
@@ -439,6 +440,7 @@ export type Database = {
           created_at?: string | null
           difficulty_level?: string | null
           exam_date?: string | null
+          exam_type?: string | null
           exam_weight?: number | null
           id?: string
           name: string
@@ -452,6 +454,7 @@ export type Database = {
           created_at?: string | null
           difficulty_level?: string | null
           exam_date?: string | null
+          exam_type?: string | null
           exam_weight?: number | null
           id?: string
           name?: string

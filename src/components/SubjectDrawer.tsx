@@ -45,6 +45,7 @@ interface SubjectDrawerProps {
 const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: SubjectDrawerProps) => {
   const [name, setName] = useState('');
   const [examDate, setExamDate] = useState('');
+  const [examType, setExamType] = useState<string>('');
   const [targetHours, setTargetHours] = useState<string>('');
   const [priority, setPriority] = useState(3);
   const [color, setColor] = useState(SUBJECT_COLORS[0]);
@@ -54,6 +55,13 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
   const [deleting, setDeleting] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  const EXAM_TYPES = [
+    { value: 'partiel', label: 'Partiel' },
+    { value: 'controle_continu', label: 'Contrôle continu' },
+    { value: 'oral', label: 'Oral' },
+    { value: 'projet', label: 'Projet' },
+  ];
+
   const { user } = useAuth();
   const isEditing = !!subject;
 
@@ -61,6 +69,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
     if (subject) {
       setName(subject.name);
       setExamDate(subject.exam_date || '');
+      setExamType((subject as any).exam_type || '');
       setTargetHours(subject.target_hours?.toString() || '');
       setPriority(subject.exam_weight);
       setColor(subject.color);
@@ -70,6 +79,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
       // Reset form for new subject
       setName('');
       setExamDate('');
+      setExamType('');
       setTargetHours('');
       setPriority(3);
       setColor(SUBJECT_COLORS[Math.floor(Math.random() * SUBJECT_COLORS.length)]);
@@ -91,6 +101,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
       const subjectData = {
         name: name.trim(),
         exam_date: examDate || null,
+        exam_type: examType || null,
         target_hours: targetHours ? parseInt(targetHours) : null,
         exam_weight: priority,
         color,
@@ -193,6 +204,27 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
               <p className="text-xs text-muted-foreground">
                 Laisse vide si la date n'est pas encore connue
               </p>
+            </div>
+
+            {/* Exam Type */}
+            <div className="space-y-2">
+              <Label>Type d'examen</Label>
+              <div className="flex flex-wrap gap-2">
+                {EXAM_TYPES.map((type) => (
+                  <button
+                    key={type.value}
+                    type="button"
+                    className={`px-3 py-1.5 text-sm rounded-full border transition-all ${
+                      examType === type.value
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-background border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setExamType(examType === type.value ? '' : type.value)}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Target Hours */}
