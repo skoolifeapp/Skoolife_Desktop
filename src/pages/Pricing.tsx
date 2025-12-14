@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Check, Sparkles, Crown, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,9 +59,17 @@ const PLANS = {
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(true);
   const [loading, setLoading] = useState<string | null>(null);
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const handleSubscribe = async (planKey: string) => {
+    // Vérifier si l'utilisateur est connecté
+    if (!user) {
+      // Rediriger vers la page d'auth avec le plan sélectionné en paramètre
+      navigate(`/auth?redirect=pricing&plan=${planKey}&billing=${isYearly ? 'yearly' : 'monthly'}`);
+      return;
+    }
+
     const plan = PLANS[planKey as keyof typeof PLANS];
     const priceId = isYearly ? plan.yearly.priceId : plan.monthly.priceId;
 
