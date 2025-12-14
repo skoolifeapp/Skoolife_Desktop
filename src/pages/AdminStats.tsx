@@ -198,7 +198,7 @@ const AdminStats = () => {
         completedSessions: sessions.filter(s => s.status === 'done').length,
         totalConversations: conversations.length,
         openConversations: conversations.filter(c => c.status === 'open').length,
-        totalEvents: totalEventsCount,
+        totalEvents: totalEventsCount + sessions.length,
         nbPlanningGeneratedFirstTime,
         firstWeekActivationRate,
         nbPlanningGeneratedWeekly,
