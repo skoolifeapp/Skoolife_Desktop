@@ -1,18 +1,21 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
+import { useAuth, SubscriptionTier } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock } from 'lucide-react';
+import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, UserPlus } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
+// Define which tiers can access each feature
+// 'free_invite' = only dashboard (view invited sessions)
+// 'student' = dashboard, matières, paramètres (no progression, no invite)
+// 'major' = everything
 const NAV_ITEMS = [
-  { path: '/app', label: 'Dashboard', icon: Home, requiresSubscription: false },
-  { path: '/progression', label: 'Progression', icon: TrendingUp, requiresSubscription: true },
-  { path: '/subjects', label: 'Matières', icon: GraduationCap, requiresSubscription: true },
-  { path: '/settings', label: 'Paramètres', icon: Settings, requiresSubscription: true },
+  { path: '/app', label: 'Dashboard', icon: Home, minTier: 'free_invite' as SubscriptionTier },
+  { path: '/progression', label: 'Progression', icon: TrendingUp, minTier: 'major' as SubscriptionTier },
+  { path: '/subjects', label: 'Matières', icon: GraduationCap, minTier: 'student' as SubscriptionTier },
+  { path: '/settings', label: 'Paramètres', icon: Settings, minTier: 'student' as SubscriptionTier },
 ];
 
 interface AppSidebarProps {
@@ -23,8 +26,18 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const { isInviteFreeUser } = useInviteFreeUser();
+  const { signOut, subscriptionTier } = useAuth();
+
+  // Tier hierarchy for access control
+  const tierHierarchy: Record<SubscriptionTier, number> = {
+    'free_invite': 0,
+    'student': 1,
+    'major': 2,
+  };
+
+  const canAccessFeature = (minTier: SubscriptionTier): boolean => {
+    return tierHierarchy[subscriptionTier] >= tierHierarchy[minTier];
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -39,7 +52,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   };
 
   const renderNavItem = (item: typeof NAV_ITEMS[0], isMobile: boolean = false) => {
-    const isLocked = isInviteFreeUser && item.requiresSubscription;
+    const isLocked = !canAccessFeature(item.minTier);
     
     if (isLocked) {
       return (

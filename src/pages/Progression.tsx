@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -58,16 +57,15 @@ const Progression = () => {
   
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [allSessions, setAllSessions] = useState<RevisionSession[]>([]);
-  const { user, signOut } = useAuth();
-  const { isInviteFreeUser, loading: inviteGateLoading } = useInviteFreeUser();
+  const { user, signOut, subscriptionTier, subscriptionLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect uniquement les comptes créés via lien d'invitation (comptes gratuits)
+  // Redirect: only 'major' tier can access Progression
   useEffect(() => {
-    if (!inviteGateLoading && isInviteFreeUser) {
+    if (!subscriptionLoading && subscriptionTier !== 'major') {
       navigate('/app');
     }
-  }, [inviteGateLoading, isInviteFreeUser, navigate]);
+  }, [subscriptionLoading, subscriptionTier, navigate]);
 
   useEffect(() => {
     if (!user) {
