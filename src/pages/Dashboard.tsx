@@ -240,7 +240,8 @@ const Dashboard = () => {
         .from('session_invites')
         .select(`
           session_id, 
-          accepted_by, 
+          accepted_by,
+          confirmed,
           meeting_format, 
           meeting_address,
           meeting_link,
@@ -253,7 +254,7 @@ const Dashboard = () => {
 
       // Create a map of session_id -> invite details with multiple invitees
       const invitesMap: Record<string, { 
-        invitees: Array<{ accepted_by: string | null; first_name: string | null; last_name: string | null }>;
+        invitees: Array<{ accepted_by: string | null; first_name: string | null; last_name: string | null; confirmed: boolean }>;
         meeting_format: string | null;
         meeting_address: string | null;
         meeting_link: string | null;
@@ -270,7 +271,8 @@ const Dashboard = () => {
         invitesMap[invite.session_id].invitees.push({
           accepted_by: invite.accepted_by,
           first_name: invite.profile?.first_name || null,
-          last_name: invite.profile?.last_name || null
+          last_name: invite.profile?.last_name || null,
+          confirmed: invite.confirmed || false
         });
       });
       setSessionInvites(invitesMap);

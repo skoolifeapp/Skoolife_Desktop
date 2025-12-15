@@ -11,7 +11,7 @@ import { fr } from 'date-fns/locale';
 import type { RevisionSession } from '@/types/planning';
 
 export interface InviteInfo {
-  invitees: Array<{ accepted_by: string | null; first_name: string | null; last_name: string | null }>;
+  invitees: Array<{ accepted_by: string | null; first_name: string | null; last_name: string | null; confirmed?: boolean }>;
   meeting_format: string | null;
   meeting_address: string | null;
   meeting_link: string | null;
@@ -75,16 +75,31 @@ export function SessionStatusDialog({
           {inviteInfo && (
             <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 space-y-2">
               {inviteInfo.invitees.filter(i => i.accepted_by && i.first_name).length > 0 && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Users className="w-4 h-4 text-primary" />
-                  <span className="font-medium">
-                    Avec {inviteInfo.invitees.filter(i => i.accepted_by && i.first_name).map(i => `${i.first_name} ${i.last_name || ''}`).join(', ')}
-                  </span>
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Users className="w-4 h-4 text-primary" />
+                    <span>Camarades invités</span>
+                  </div>
+                  {inviteInfo.invitees.filter(i => i.accepted_by && i.first_name).map((invitee, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-sm ml-6">
+                      {invitee.confirmed ? (
+                        <Check className="w-3.5 h-3.5 text-green-500" />
+                      ) : (
+                        <span className="text-amber-500 text-xs">⏳</span>
+                      )}
+                      <span className={invitee.confirmed ? 'text-foreground' : 'text-muted-foreground'}>
+                        {invitee.first_name} {invitee.last_name || ''}
+                      </span>
+                      <span className={`text-xs ${invitee.confirmed ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                        {invitee.confirmed ? 'Confirmé' : 'En attente'}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               )}
               {inviteInfo.invitees.length > inviteInfo.invitees.filter(i => i.accepted_by).length && (
                 <div className="text-xs text-muted-foreground">
-                  {inviteInfo.invitees.length - inviteInfo.invitees.filter(i => i.accepted_by).length} invitation{inviteInfo.invitees.length - inviteInfo.invitees.filter(i => i.accepted_by).length > 1 ? 's' : ''} en attente
+                  {inviteInfo.invitees.length - inviteInfo.invitees.filter(i => i.accepted_by).length} invitation{inviteInfo.invitees.length - inviteInfo.invitees.filter(i => i.accepted_by).length > 1 ? 's' : ''} en attente de réponse
                 </div>
               )}
               {inviteInfo.meeting_format && (

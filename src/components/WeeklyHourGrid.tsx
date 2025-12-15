@@ -9,6 +9,7 @@ export interface SessionInvitee {
   accepted_by: string | null;
   first_name: string | null;
   last_name: string | null;
+  confirmed?: boolean;
 }
 
 export interface SessionInviteInfo {
