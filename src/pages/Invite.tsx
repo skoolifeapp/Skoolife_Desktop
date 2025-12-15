@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, User, BookOpen, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Calendar, Clock, User, BookOpen, CheckCircle, XCircle, Loader2, MapPin, Video } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import logo from '@/assets/logo.png';
@@ -28,6 +28,8 @@ interface InviteData {
   };
   expires_at: string;
   already_accepted: boolean;
+  meeting_format: 'presentiel' | 'visio' | null;
+  meeting_address: string | null;
 }
 
 export default function Invite() {
@@ -224,6 +226,25 @@ export default function Invite() {
                 <Clock className="w-4 h-4" />
                 <span>{timeRange}</span>
               </div>
+              
+              {/* Meeting format display */}
+              {inviteData.meeting_format && (
+                <div className="flex items-center gap-2 pt-2 border-t border-border/50 mt-2">
+                  {inviteData.meeting_format === 'visio' ? (
+                    <>
+                      <Video className="w-4 h-4 text-blue-500" />
+                      <span className="text-blue-600 dark:text-blue-400">Visio (lien à venir)</span>
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="w-4 h-4 text-green-500" />
+                      <span className="text-green-600 dark:text-green-400">
+                        {inviteData.meeting_address || 'Présentiel'}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
