@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth, SubscriptionTier } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, UserPlus } from 'lucide-react';
+import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -100,6 +100,17 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
 
         <nav className="flex-1 space-y-1">
           {NAV_ITEMS.map((item) => renderNavItem(item))}
+          
+          {/* Upgrade CTA for free_invite users */}
+          {subscriptionTier === 'free_invite' && (
+            <Link
+              to="/pricing"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors mt-4"
+            >
+              <Crown className="w-5 h-5" />
+              <span className="font-medium">Passer à Premium</span>
+            </Link>
+          )}
         </nav>
 
         <div className="pt-6 border-t border-border space-y-3">
