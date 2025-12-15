@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,10 @@ const Auth = () => {
   const [checkingRedirect, setCheckingRedirect] = useState(false);
   const { signIn, signUp, user, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Get redirect URL from query params (e.g., from invite link)
+  const redirectUrl = searchParams.get('redirect');
 
   useEffect(() => {
     const handleRedirect = async () => {
@@ -28,6 +32,13 @@ const Auth = () => {
         // Admin check by email - simple redirect
         if (user.email === 'skoolife.co@gmail.com') {
           navigate('/admin');
+          setCheckingRedirect(false);
+          return;
+        }
+        
+        // If there's a redirect URL (e.g., invite page), go there first
+        if (redirectUrl) {
+          navigate(redirectUrl);
           setCheckingRedirect(false);
           return;
         }
@@ -49,7 +60,7 @@ const Auth = () => {
       }
     };
     handleRedirect();
-  }, [user, navigate]);
+  }, [user, navigate, redirectUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,10 +155,12 @@ const Auth = () => {
                   const baseUrl = window.location.hostname.includes('skoolife.fr') 
                     ? 'https://app.skoolife.fr' 
                     : window.location.origin;
+                  // Include redirect URL if present
+                  const finalRedirect = redirectUrl ? `${baseUrl}${redirectUrl}` : `${baseUrl}/app`;
                   const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                      redirectTo: `${baseUrl}/app`,
+                      redirectTo: finalRedirect,
                     },
                   });
                   if (error) {
