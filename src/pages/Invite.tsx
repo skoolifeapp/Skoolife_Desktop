@@ -128,7 +128,7 @@ export default function Invite() {
       
       // Redirect to dashboard after a short delay
       setTimeout(() => {
-        navigate('/app/planning');
+        navigate('/app');
       }, 2000);
     } catch (err) {
       console.error('Error accepting invite:', err);
