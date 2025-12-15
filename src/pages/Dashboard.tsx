@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useActivityTracker } from '@/hooks/useActivityTracker';
 import { supabase } from '@/integrations/supabase/client';
@@ -69,6 +69,7 @@ const Dashboard = () => {
   
   const { user, signOut, isSubscribed, subscriptionLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const isSigningOut = useRef(false);
   
   // Check if user is free (only has access to invited sessions)
@@ -76,6 +77,18 @@ const Dashboard = () => {
   
   // Track user activity for analytics
   useActivityTracker();
+
+  // If redirected from an invite, jump directly to the week that contains the invited session
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const week = params.get('week');
+    if (!week) return;
+
+    const parsed = parseISO(week);
+    if (Number.isNaN(parsed.getTime())) return;
+
+    setWeekStart(startOfWeek(parsed, { weekStartsOn: 1 }));
+  }, [location.search]);
 
   useEffect(() => {
     if (isSigningOut.current) return;

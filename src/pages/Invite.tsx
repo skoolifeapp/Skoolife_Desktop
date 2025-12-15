@@ -126,9 +126,9 @@ export default function Invite() {
       
       setAccepted(true);
       
-      // Redirect to dashboard after a short delay
+      // Redirect to dashboard on the week of this session
       setTimeout(() => {
-        navigate('/app');
+        navigate(`/app?week=${inviteData.session.date}`);
       }, 2000);
     } catch (err) {
       console.error('Error accepting invite:', err);
