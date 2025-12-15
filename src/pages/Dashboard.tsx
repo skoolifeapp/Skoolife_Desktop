@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, Sparkles, GraduationCap
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, Sparkles, GraduationCap, Lock, Crown
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -67,9 +67,12 @@ const Dashboard = () => {
     meeting_link: string | null;
   }>>({});
   
-  const { user, signOut } = useAuth();
+  const { user, signOut, isSubscribed, subscriptionLoading } = useAuth();
   const navigate = useNavigate();
   const isSigningOut = useRef(false);
+  
+  // Check if user is free (only has access to invited sessions)
+  const isFreeUser = !subscriptionLoading && !isSubscribed;
   
   // Track user activity for analytics
   useActivityTracker();
@@ -1118,40 +1121,76 @@ const Dashboard = () => {
                   Bonjour {profile?.first_name} 👋
                 </h2>
                 <p className="text-muted-foreground text-sm">
-                  Prêt pour une session productive ?
+                  {isFreeUser ? 'Tes sessions de révision partagées' : 'Prêt pour une session productive ?'}
                 </p>
               </CardContent>
             </Card>
 
-            {/* Stats */}
-            <Card className="border-0 shadow-md">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Cette semaine</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-primary" />
+            {/* Free user banner */}
+            {isFreeUser && (
+              <Card className="border-2 border-primary/30 shadow-md bg-gradient-to-br from-primary/5 to-primary/10">
+                <CardContent className="pt-5 pb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Crown className="w-5 h-5 text-primary" />
+                    <h3 className="font-bold text-sm">Compte Gratuit</h3>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold">{totalPlannedHours}h</p>
-                    <p className="text-xs text-muted-foreground">planifiées</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-subject-green/10 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-subject-green" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{completedSessions}</p>
-                    <p className="text-xs text-muted-foreground">sessions terminées</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Tu peux voir les sessions auxquelles tu es invité(e). Pour créer ton propre planning de révisions, passe à Skoolife Premium.
+                  </p>
+                  <Button 
+                    size="sm" 
+                    className="w-full"
+                    onClick={async () => {
+                      try {
+                        const { data, error } = await supabase.functions.invoke('create-checkout', {
+                          body: { priceId: 'price_1QlYourPriceIdHere' }
+                        });
+                        if (error) throw error;
+                        if (data?.url) window.open(data.url, '_blank');
+                      } catch (err) {
+                        console.error(err);
+                        toast.error('Erreur lors de la redirection vers le paiement');
+                      }
+                    }}
+                  >
+                    <Crown className="w-4 h-4 mr-2" />
+                    Passer à Premium
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Upcoming exams */}
-            {upcomingExams.length > 0 && (
+            {/* Stats - only for subscribed users */}
+            {!isFreeUser && (
+              <Card className="border-0 shadow-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Cette semaine</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{totalPlannedHours}h</p>
+                      <p className="text-xs text-muted-foreground">planifiées</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-subject-green/10 flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-subject-green" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{completedSessions}</p>
+                      <p className="text-xs text-muted-foreground">sessions terminées</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Upcoming exams - only for subscribed users */}
+            {!isFreeUser && upcomingExams.length > 0 && (
               <Card className="border-0 shadow-md">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -1190,60 +1229,62 @@ const Dashboard = () => {
               </Card>
             )}
 
-            {/* Actions */}
-            <div className="space-y-3">
-              <Button 
-                id="generate-planning-btn"
-                variant="hero" 
-                size="lg" 
-                className="w-full"
-                onClick={generatePlanning}
-                disabled={generating || adjusting || isPastWeek}
-              >
-                {generating ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-4 h-4" />
-                )}
-                {generating ? 'Génération...' : 'Générer mon planning'}
-              </Button>
-              <Button 
-                variant="secondary" 
-                size="lg" 
-                className="w-full"
-                onClick={adjustWeek}
-                disabled={adjusting || generating || isPastWeek}
-              >
-                {adjusting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Sparkles className="w-4 h-4" />
-                )}
-                {adjusting ? 'Ajustement...' : 'Ajuster ma semaine'}
-              </Button>
-              <Button 
-                id="import-calendar-btn"
-                variant="outline" 
-                size="lg" 
-                className="w-full"
-                onClick={() => setImportDialogOpen(true)}
-              >
-                <Upload className="w-4 h-4" />
-                Importer calendrier (.ics)
-              </Button>
-              <Button 
-                id="manage-subjects-btn"
-                variant="outline" 
-                size="lg" 
-                className="w-full"
-                asChild
-              >
-                <Link to="/subjects">
-                  <GraduationCap className="w-4 h-4" />
-                  Gérer mes matières
-                </Link>
-              </Button>
-            </div>
+            {/* Actions - only for subscribed users */}
+            {!isFreeUser && (
+              <div className="space-y-3">
+                <Button 
+                  id="generate-planning-btn"
+                  variant="hero" 
+                  size="lg" 
+                  className="w-full"
+                  onClick={generatePlanning}
+                  disabled={generating || adjusting || isPastWeek}
+                >
+                  {generating ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                  {generating ? 'Génération...' : 'Générer mon planning'}
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  size="lg" 
+                  className="w-full"
+                  onClick={adjustWeek}
+                  disabled={adjusting || generating || isPastWeek}
+                >
+                  {adjusting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4" />
+                  )}
+                  {adjusting ? 'Ajustement...' : 'Ajuster ma semaine'}
+                </Button>
+                <Button 
+                  id="import-calendar-btn"
+                  variant="outline" 
+                  size="lg" 
+                  className="w-full"
+                  onClick={() => setImportDialogOpen(true)}
+                >
+                  <Upload className="w-4 h-4" />
+                  Importer calendrier (.ics)
+                </Button>
+                <Button 
+                  id="manage-subjects-btn"
+                  variant="outline" 
+                  size="lg" 
+                  className="w-full"
+                  asChild
+                >
+                  <Link to="/subjects">
+                    <GraduationCap className="w-4 h-4" />
+                    Gérer mes matières
+                  </Link>
+                </Button>
+              </div>
+            )}
           </aside>
 
           {/* Calendar */}
@@ -1254,51 +1295,55 @@ const Dashboard = () => {
                 Semaine du {format(weekStart, 'dd MMM', { locale: fr })}
               </h2>
               <div className="flex items-center gap-2">
-                <Button 
-                  id="add-event-btn"
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setAddEventDialogOpen(true)}
-                >
-                  <Plus className="w-4 h-4" />
-                  Ajouter un évènement
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
+                {!isFreeUser && (
+                  <>
                     <Button 
+                      id="add-event-btn"
                       variant="outline" 
-                      size="icon"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
-                      disabled={calendarEvents.length === 0}
+                      size="sm"
+                      onClick={() => setAddEventDialogOpen(true)}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Plus className="w-4 h-4" />
+                      Ajouter un évènement
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Supprimer tous les événements ?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Cette action supprimera définitivement tous les {calendarEvents.length} événements de ton calendrier. 
-                        Cette action est irréversible.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Annuler</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handleDeleteAllEvents}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        disabled={deletingEvents}
-                      >
-                        {deletingEvents ? (
-                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        ) : (
-                          <Trash2 className="w-4 h-4 mr-2" />
-                        )}
-                        Supprimer tout
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
+                          disabled={calendarEvents.length === 0}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer tous les événements ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Cette action supprimera définitivement tous les {calendarEvents.length} événements de ton calendrier. 
+                            Cette action est irréversible.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={handleDeleteAllEvents}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            disabled={deletingEvents}
+                          >
+                            {deletingEvents ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                              <Trash2 className="w-4 h-4 mr-2" />
+                            )}
+                            Supprimer tout
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
+                )}
                 <Button 
                   variant="outline" 
                   size="icon"
@@ -1326,9 +1371,9 @@ const Dashboard = () => {
             {/* Week grid */}
             <WeeklyHourGrid
               weekDays={weekDays}
-              sessions={sessions}
-              calendarEvents={calendarEvents}
-              exams={subjects
+              sessions={isFreeUser ? sessions.filter(s => s.isInvitedSession) : sessions}
+              calendarEvents={isFreeUser ? [] : calendarEvents}
+              exams={isFreeUser ? [] : subjects
                 .filter(s => s.exam_date && s.status !== 'archived')
                 .map(s => ({
                   id: s.id,
@@ -1340,12 +1385,12 @@ const Dashboard = () => {
               sessionInvites={sessionInvites}
               isPastWeek={isPastWeek}
               onSessionClick={handleSessionClick}
-              onEventClick={setSelectedEvent}
-              onGridClick={handleGridClick}
-              onSessionMove={handleSessionMove}
-              onEventMove={handleEventMove}
-              onSessionResize={handleSessionResize}
-              onEventResize={handleEventResize}
+              onEventClick={isFreeUser ? undefined : setSelectedEvent}
+              onGridClick={isFreeUser ? undefined : handleGridClick}
+              onSessionMove={isFreeUser ? undefined : handleSessionMove}
+              onEventMove={isFreeUser ? undefined : handleEventMove}
+              onSessionResize={isFreeUser ? undefined : handleSessionResize}
+              onEventResize={isFreeUser ? undefined : handleEventResize}
             />
 
           </div>

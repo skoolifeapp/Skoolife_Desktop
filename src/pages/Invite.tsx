@@ -277,13 +277,19 @@ export default function Invite() {
               Rejoindre cette session
             </Button>
           ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-center text-muted-foreground">
-                Crée un compte pour rejoindre cette session de révision
-              </p>
+            <div className="space-y-4">
+              <div className="p-4 bg-primary/10 rounded-xl border border-primary/20">
+                <p className="text-sm text-center font-medium mb-2">
+                  Rejoins cette session gratuitement
+                </p>
+                <p className="text-xs text-center text-muted-foreground">
+                  Crée un compte gratuit pour rejoindre les sessions de révision de tes camarades. 
+                  Tu pourras voir toutes les sessions auxquelles tu es invité(e).
+                </p>
+              </div>
               <Link to={`/auth?redirect=/invite/${token}`}>
                 <Button className="w-full" size="lg">
-                  Créer un compte gratuitement
+                  Créer mon compte gratuit
                 </Button>
               </Link>
               <p className="text-xs text-center text-muted-foreground">

@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -7,10 +7,13 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  isSubscribed: boolean;
+  subscriptionLoading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   checkIsAdmin: () => Promise<boolean>;
+  checkSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +23,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
   const checkIsAdmin = async (): Promise<boolean> => {
     const currentUser = user || (await supabase.auth.getUser()).data.user;
@@ -37,6 +42,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return adminStatus;
   };
 
+  const checkSubscription = useCallback(async () => {
+    const currentSession = session || (await supabase.auth.getSession()).data.session;
+    if (!currentSession) {
+      setIsSubscribed(false);
+      setSubscriptionLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription', {
+        headers: {
+          Authorization: `Bearer ${currentSession.access_token}`
+        }
+      });
+
+      if (error) {
+        console.error('Error checking subscription:', error);
+        setIsSubscribed(false);
+      } else {
+        setIsSubscribed(data?.subscribed || false);
+      }
+    } catch (err) {
+      console.error('Error checking subscription:', err);
+      setIsSubscribed(false);
+    } finally {
+      setSubscriptionLoading(false);
+    }
+  }, [session]);
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -49,9 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setTimeout(() => {
             checkIsAdmin();
+            checkSubscription();
           }, 0);
         } else {
           setIsAdmin(false);
+          setIsSubscribed(false);
+          setSubscriptionLoading(false);
         }
       }
     );
@@ -64,6 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (session?.user) {
         checkIsAdmin();
+        checkSubscription();
+      } else {
+        setSubscriptionLoading(false);
       }
     });
 
@@ -94,10 +134,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setIsAdmin(false);
+    setIsSubscribed(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, isAdmin, signUp, signIn, signOut, checkIsAdmin }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      loading, 
+      isAdmin, 
+      isSubscribed,
+      subscriptionLoading,
+      signUp, 
+      signIn, 
+      signOut, 
+      checkIsAdmin,
+      checkSubscription
+    }}>
       {children}
     </AuthContext.Provider>
   );
