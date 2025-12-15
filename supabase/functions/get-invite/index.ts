@@ -92,10 +92,11 @@ Deno.serve(async (req) => {
         session: invite.session,
         inviter: invite.inviter,
         expires_at: invite.expires_at,
+        accepted_by: invite.accepted_by,
         already_accepted: alreadyAccepted,
         meeting_format: invite.meeting_format,
         meeting_address: invite.meeting_address,
-        meeting_link: invite.meeting_link
+        meeting_link: invite.meeting_link,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

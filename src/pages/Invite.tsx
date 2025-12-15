@@ -27,6 +27,7 @@ interface InviteData {
     last_name: string;
   };
   expires_at: string;
+  accepted_by: string | null;
   already_accepted: boolean;
   meeting_format: 'presentiel' | 'visio' | null;
   meeting_address: string | null;
@@ -44,6 +45,7 @@ export default function Invite() {
   const [expired, setExpired] = useState(false);
   const [accepting, setAccepting] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [alreadyUsed, setAlreadyUsed] = useState(false);
 
   useEffect(() => {
     fetchInviteData();
@@ -52,28 +54,42 @@ export default function Invite() {
   // Auto-accept invite when user is logged in and arrives on this page
   useEffect(() => {
     const autoAcceptIfPending = async () => {
-      if (user && inviteData && !accepted && !inviteData.already_accepted) {
+      if (user && inviteData && !accepted && !alreadyUsed && !inviteData.already_accepted) {
         // Check if this was a pending invite from localStorage
         const pendingToken = localStorage.getItem('pending_invite_token');
         if (pendingToken === token) {
           // Auto-accept the invite
-          localStorage.removeItem('pending_invite_token');
-          handleAcceptInvite();
+          await handleAcceptInvite();
         }
       }
     };
     autoAcceptIfPending();
-  }, [user, inviteData, accepted, token]);
+  }, [user, inviteData, accepted, alreadyUsed, token]);
+
+  // Determine acceptance state (accepted by me vs already used by someone else)
+  useEffect(() => {
+    if (!inviteData) return;
+
+    if (!inviteData.accepted_by) {
+      setAccepted(false);
+      setAlreadyUsed(false);
+      return;
+    }
+
+    if (user && inviteData.accepted_by === user.id) {
+      setAccepted(true);
+      setAlreadyUsed(false);
+      return;
+    }
+
+    setAccepted(false);
+    setAlreadyUsed(true);
+  }, [user, inviteData]);
 
   const fetchInviteData = async () => {
     if (!token) return;
 
     try {
-      const response = await supabase.functions.invoke('get-invite', {
-        body: null,
-        headers: {},
-      });
-
       // Use fetch directly since we need query params
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const res = await fetch(
@@ -97,7 +113,6 @@ export default function Invite() {
       }
 
       setInviteData(data);
-      setAccepted(data.already_accepted);
     } catch (err) {
       console.error('Error fetching invite:', err);
       setError('Erreur lors du chargement de l\'invitation');
@@ -109,29 +124,45 @@ export default function Invite() {
   const handleAcceptInvite = async () => {
     if (!user || !inviteData) return;
 
+    // If someone else already used this invite, stop here.
+    if (inviteData.accepted_by && inviteData.accepted_by !== user.id) {
+      setAlreadyUsed(true);
+      return;
+    }
+
     setAccepting(true);
+    setError(null);
     try {
-      const { error } = await supabase
+      const { data, error: updateError } = await supabase
         .from('session_invites')
         .update({
           accepted_by: user.id,
-          accepted_at: new Date().toISOString()
+          accepted_at: new Date().toISOString(),
         })
-        .eq('id', inviteData.id);
+        .eq('id', inviteData.id)
+        .is('accepted_by', null)
+        .select('accepted_by')
+        .maybeSingle();
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      // Clear any pending invite token
+      // If no row was updated, it means the invite was taken in the meantime
+      if (!data?.accepted_by) {
+        setAlreadyUsed(true);
+        return;
+      }
+
       localStorage.removeItem('pending_invite_token');
-      
+      setInviteData(prev => (prev ? { ...prev, accepted_by: user.id, already_accepted: true } : prev));
       setAccepted(true);
-      
+
       // Redirect to dashboard on the week of this session
       setTimeout(() => {
         navigate(`/app?week=${inviteData.session.date}`);
-      }, 2000);
+      }, 800);
     } catch (err) {
       console.error('Error accepting invite:', err);
+      setError("Impossible d'accepter l'invitation. Réessaie.");
     } finally {
       setAccepting(false);
     }
@@ -164,6 +195,25 @@ export default function Invite() {
     );
   }
 
+  if (alreadyUsed) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-6 text-center">
+            <XCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2">Invitation déjà utilisée</h2>
+            <p className="text-muted-foreground mb-6">
+              Ce lien a déjà été accepté par quelqu'un d'autre.
+            </p>
+            <Link to="/">
+              <Button>Retour à l'accueil</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (error || !inviteData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -172,7 +222,7 @@ export default function Invite() {
             <XCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">Invitation introuvable</h2>
             <p className="text-muted-foreground mb-6">
-              {error || 'Cette invitation n\'existe pas ou a été supprimée.'}
+              {error || "Cette invitation n'existe pas ou a été supprimée."}
             </p>
             <Link to="/">
               <Button>Retour à l'accueil</Button>
@@ -194,7 +244,7 @@ export default function Invite() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">C'est noté ! 🎉</h2>
+            <h2 className="text-xl font-bold mb-2">C'est noté !</h2>
             <p className="text-muted-foreground mb-6">
               Tu as rejoint la session de révision. Redirection vers ton planning...
             </p>
