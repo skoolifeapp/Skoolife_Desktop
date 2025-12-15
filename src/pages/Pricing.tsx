@@ -61,32 +61,27 @@ const Pricing = () => {
   const navigate = useNavigate();
 
   const handleSubscribe = async (priceId: string, planId: string) => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
     setLoadingPlan(planId);
 
     try {
+      // Get session if user is logged in (optional)
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error('Session expirée, veuillez vous reconnecter');
-        navigate('/auth');
-        return;
+      
+      const headers: Record<string, string> = {};
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
       }
 
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
+        headers
       });
 
       if (error) throw error;
 
       if (data?.url) {
-        window.open(data.url, '_blank');
+        // Redirect to Stripe checkout in same tab for better UX
+        window.location.href = data.url;
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
