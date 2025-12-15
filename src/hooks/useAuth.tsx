@@ -5,6 +5,18 @@ import { supabase } from '@/integrations/supabase/client';
 // Subscription tiers
 export type SubscriptionTier = 'free_invite' | 'student' | 'major';
 
+// Stripe product IDs mapping
+export const STRIPE_PRODUCTS = {
+  student: {
+    product_id: 'prod_Tbz5HgJWHbElHU',
+    price_id: 'price_1Sel7HCG6ZnJ9jFuMwPpQ6uS',
+  },
+  major: {
+    product_id: 'prod_Tbz59WmKmYF5Jk',
+    price_id: 'price_1Sel7UCG6ZnJ9jFuyilMrJzF',
+  }
+} as const;
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -80,15 +92,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSubscriptionTier(signedUpViaInvite ? 'free_invite' : 'major');
       } else {
         const subscribed = data?.subscribed || false;
+        const productId = data?.product_id || null;
         setIsSubscribed(subscribed);
         
-        if (subscribed) {
-          // Determine tier based on product_id from Stripe
-          // For now, treat all subscribed users as 'major'
-          // TODO: Map product_id to 'student' or 'major' when products are created
-          setSubscriptionTier('major');
+        if (subscribed && productId) {
+          // Map Stripe product_id to tier
+          if (productId === STRIPE_PRODUCTS.major.product_id) {
+            setSubscriptionTier('major');
+          } else if (productId === STRIPE_PRODUCTS.student.product_id) {
+            setSubscriptionTier('student');
+          } else {
+            // Unknown product, default to major for safety
+            setSubscriptionTier('major');
+          }
         } else if (signedUpViaInvite) {
-          // Free invite account
+          // Free invite account (no subscription)
           setSubscriptionTier('free_invite');
         } else {
           // Existing users without subscription = major (grandfathered)
