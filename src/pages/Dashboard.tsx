@@ -63,6 +63,7 @@ const Dashboard = () => {
     last_name: string | null;
     meeting_format: string | null;
     meeting_address: string | null;
+    meeting_link: string | null;
   }>>({});
   
   const { user, signOut } = useAuth();
@@ -184,6 +185,7 @@ const Dashboard = () => {
           accepted_by, 
           meeting_format, 
           meeting_address,
+          meeting_link,
           profile:profiles!session_invites_accepted_by_fkey (
             first_name,
             last_name
@@ -198,6 +200,7 @@ const Dashboard = () => {
         last_name: string | null;
         meeting_format: string | null;
         meeting_address: string | null;
+        meeting_link: string | null;
       }> = {};
       (invitesData || []).forEach((invite: any) => {
         invitesMap[invite.session_id] = {
@@ -205,7 +208,8 @@ const Dashboard = () => {
           first_name: invite.profile?.first_name || null,
           last_name: invite.profile?.last_name || null,
           meeting_format: invite.meeting_format,
-          meeting_address: invite.meeting_address
+          meeting_address: invite.meeting_address,
+          meeting_link: invite.meeting_link
         };
       });
       setSessionInvites(invitesMap);
