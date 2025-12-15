@@ -232,6 +232,7 @@ export type Database = {
           is_onboarding_complete: boolean | null
           last_name: string | null
           level: string | null
+          liaison_code: string | null
           main_exam_period: string | null
           school: string | null
           updated_at: string | null
@@ -246,6 +247,7 @@ export type Database = {
           is_onboarding_complete?: boolean | null
           last_name?: string | null
           level?: string | null
+          liaison_code?: string | null
           main_exam_period?: string | null
           school?: string | null
           updated_at?: string | null
@@ -260,6 +262,7 @@ export type Database = {
           is_onboarding_complete?: boolean | null
           last_name?: string | null
           level?: string | null
+          liaison_code?: string | null
           main_exam_period?: string | null
           school?: string | null
           updated_at?: string | null
@@ -682,6 +685,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_liaison_code: {
+        Args: { p_email: string; p_first_name: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

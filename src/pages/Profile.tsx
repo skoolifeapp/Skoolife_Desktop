@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
 import {
   Select,
   SelectContent,
@@ -12,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, User } from 'lucide-react';
+import { Loader2, User, Copy, Check } from 'lucide-react';
 import { AppSidebar } from '@/components/AppSidebar';
 
 const LEVELS = [
@@ -53,11 +54,13 @@ interface ProfileData {
   school: string;
   level: string;
   main_exam_period: string;
+  liaison_code: string;
 }
 
 const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   const [profile, setProfile] = useState<ProfileData>({
     first_name: '',
     last_name: '',
@@ -65,6 +68,7 @@ const Profile = () => {
     school: '',
     level: '',
     main_exam_period: '',
+    liaison_code: '',
   });
 
   const { user } = useAuth();
@@ -94,6 +98,7 @@ const Profile = () => {
           school: profileData.school || '',
           level: profileData.level || '',
           main_exam_period: profileData.main_exam_period || '',
+          liaison_code: profileData.liaison_code || '',
         });
       }
     } catch (err) {
@@ -129,6 +134,15 @@ const Profile = () => {
     const first = profile.first_name?.charAt(0) || '';
     const last = profile.last_name?.charAt(0) || '';
     return (first + last).toUpperCase() || '';
+  };
+
+  const copyLiaisonCode = () => {
+    if (profile.liaison_code) {
+      navigator.clipboard.writeText(profile.liaison_code);
+      setCodeCopied(true);
+      toast.success('Code copié !');
+      setTimeout(() => setCodeCopied(false), 2000);
+    }
   };
 
   return (
@@ -198,6 +212,34 @@ const Profile = () => {
                 />
                 <p className="text-xs text-muted-foreground">
                   L'email ne peut pas être modifié
+                </p>
+              </div>
+
+              {/* Code de liaison */}
+              <div className="space-y-2">
+                <Label>Code de liaison</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={profile.liaison_code}
+                    disabled
+                    className="bg-muted font-mono text-lg tracking-wider"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={copyLiaisonCode}
+                    className="shrink-0"
+                  >
+                    {codeCopied ? (
+                      <Check className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Partage ce code avec tes camarades pour qu'ils puissent t'inviter à réviser
                 </p>
               </div>
 
