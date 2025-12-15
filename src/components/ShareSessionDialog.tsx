@@ -4,13 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, Check, MessageCircle, Share2, Link, Users, Loader2 } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Copy, Check, MessageCircle, Share2, Link, Users, Loader2, MapPin, Video } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { RevisionSession, Subject } from '@/types/planning';
 import { format, parseISO, subHours } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+
+type MeetingFormat = 'presentiel' | 'visio';
 
 interface ShareSessionDialogProps {
   session: RevisionSession | null;
@@ -23,6 +26,10 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  
+  // Meeting format state
+  const [meetingFormat, setMeetingFormat] = useState<MeetingFormat>('presentiel');
+  const [meetingAddress, setMeetingAddress] = useState('');
   
   // Code invitation state
   const [liaisonCode, setLiaisonCode] = useState('');
@@ -71,9 +78,10 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
     
     const sessionDate = format(parseISO(session.date), 'EEEE d MMMM', { locale: fr });
     const timeRange = `${session.start_time.slice(0, 5)} - ${session.end_time.slice(0, 5)}`;
+    const meetingInfo = getMeetingInfo();
     
     const message = encodeURIComponent(
-      `Hey ! Je révise ${subject.name} le ${sessionDate} de ${timeRange}. Tu veux réviser avec moi ? 📚\n\n${shareLink}`
+      `Hey ! Je révise ${subject.name} le ${sessionDate} de ${timeRange}. Tu veux réviser avec moi ? 📚${meetingInfo ? `\n\n${meetingInfo}` : ''}\n\n${shareLink}`
     );
     
     window.open(`https://wa.me/?text=${message}`, '_blank');
@@ -153,6 +161,8 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
     setCopied(false);
     setLiaisonCode('');
     setInvitedUser(null);
+    setMeetingFormat('presentiel');
+    setMeetingAddress('');
     onClose();
   };
 
@@ -160,6 +170,13 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
 
   const sessionDate = format(parseISO(session.date), 'EEEE d MMMM', { locale: fr });
   const timeRange = `${session.start_time.slice(0, 5)} - ${session.end_time.slice(0, 5)}`;
+
+  const getMeetingInfo = () => {
+    if (meetingFormat === 'visio') {
+      return '📹 Visio (lien à venir)';
+    }
+    return meetingAddress ? `📍 ${meetingAddress}` : '';
+  };
 
   return (
     <Dialog open={!!session} onOpenChange={handleClose}>
@@ -183,6 +200,49 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
             <p className="font-semibold text-lg">{subject.name}</p>
             <p className="text-muted-foreground capitalize">{sessionDate}</p>
             <p className="text-muted-foreground">{timeRange}</p>
+          </div>
+
+          {/* Meeting format selection */}
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Format de la session</Label>
+            <RadioGroup 
+              value={meetingFormat} 
+              onValueChange={(v) => setMeetingFormat(v as MeetingFormat)}
+              className="flex gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="presentiel" id="presentiel" />
+                <Label htmlFor="presentiel" className="flex items-center gap-1.5 cursor-pointer">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  Présentiel
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="visio" id="visio" />
+                <Label htmlFor="visio" className="flex items-center gap-1.5 cursor-pointer">
+                  <Video className="w-4 h-4 text-muted-foreground" />
+                  Visio
+                </Label>
+              </div>
+            </RadioGroup>
+
+            {meetingFormat === 'presentiel' && (
+              <Input
+                value={meetingAddress}
+                onChange={(e) => setMeetingAddress(e.target.value)}
+                placeholder="Ex: BU Sciences, Salle 204..."
+                className="mt-2"
+              />
+            )}
+
+            {meetingFormat === 'visio' && (
+              <div className="p-3 rounded-lg bg-muted/50 border border-dashed">
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Video className="w-4 h-4" />
+                  Lien de visio à venir
+                </p>
+              </div>
+            )}
           </div>
 
           <Tabs defaultValue="link" className="w-full">
