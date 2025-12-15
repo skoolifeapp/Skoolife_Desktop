@@ -1054,9 +1054,8 @@ const Dashboard = () => {
 
       if (error) throw error;
       
-      // Remove the session from local state
-      setSessions(prev => prev.filter(s => !(s.id === sessionId && s.isInvitedSession)));
       toast.success('Invitation refusée');
+      fetchData(); // Refresh to update UI
     } catch (err) {
       console.error(err);
       toast.error('Erreur lors du refus de l\'invitation');
@@ -1415,6 +1414,7 @@ const Dashboard = () => {
         onClose={() => {
           setShareSessionDialogOpen(false);
         }}
+        onInviteSuccess={fetchData}
       />
 
       {/* Invited session dialog */}
