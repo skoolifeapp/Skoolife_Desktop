@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock } from 'lucide-react';
@@ -22,9 +23,8 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, isSubscribed, subscriptionLoading } = useAuth();
-
-  const isFreeUser = !subscriptionLoading && !isSubscribed;
+  const { signOut } = useAuth();
+  const { isInviteFreeUser } = useInviteFreeUser();
 
   const handleSignOut = async () => {
     await signOut();
@@ -39,7 +39,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   };
 
   const renderNavItem = (item: typeof NAV_ITEMS[0], isMobile: boolean = false) => {
-    const isLocked = isFreeUser && item.requiresSubscription;
+    const isLocked = isInviteFreeUser && item.requiresSubscription;
     
     if (isLocked) {
       return (

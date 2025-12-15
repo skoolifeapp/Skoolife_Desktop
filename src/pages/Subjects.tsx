@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -31,15 +31,16 @@ const Subjects = () => {
     { value: 'projet', label: 'Projet' },
   ];
 
-  const { user, signOut, isSubscribed, subscriptionLoading } = useAuth();
+  const { user, signOut } = useAuth();
+  const { isInviteFreeUser, loading: inviteGateLoading } = useInviteFreeUser();
   const navigate = useNavigate();
 
-  // Redirect free users
+  // Redirect uniquement les comptes créés via lien d'invitation (comptes gratuits)
   useEffect(() => {
-    if (!subscriptionLoading && !isSubscribed) {
+    if (!inviteGateLoading && isInviteFreeUser) {
       navigate('/app');
     }
-  }, [isSubscribed, subscriptionLoading, navigate]);
+  }, [inviteGateLoading, isInviteFreeUser, navigate]);
 
   useEffect(() => {
     if (!user) {
