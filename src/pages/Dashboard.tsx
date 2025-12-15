@@ -486,7 +486,8 @@ const Dashboard = () => {
               // Check target_hours constraint
               if (s.target_hours && s.target_hours > 0) {
                 const sessionHours = sessionDuration / 60;
-                if (scheduledHoursPerSubject[s.id] + sessionHours > s.target_hours) return false;
+                const alreadyScheduled = scheduledHoursPerSubject[s.id] || 0;
+                if (alreadyScheduled + sessionHours > s.target_hours) return false;
               }
               return true;
             });
@@ -509,7 +510,7 @@ const Dashboard = () => {
 
             // Track scheduled hours per day and per subject
             hoursScheduledPerDay[dateStr] = (hoursScheduledPerDay[dateStr] || 0) + sessionHoursToAdd;
-            scheduledHoursPerSubject[subject.id] += sessionHoursToAdd;
+            scheduledHoursPerSubject[subject.id] = (scheduledHoursPerSubject[subject.id] || 0) + sessionHoursToAdd;
 
             sessionIndex++;
           }
