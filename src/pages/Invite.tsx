@@ -152,6 +152,17 @@ export default function Invite() {
         return;
       }
 
+      // Mark this user as having signed up via invite (for free user logic)
+      // This only matters if the user was a new signup - existing users won't be affected
+      const pendingToken = localStorage.getItem('pending_invite_token');
+      if (pendingToken === token) {
+        // User just signed up via this invite link - mark them as invite signup
+        await supabase
+          .from('profiles')
+          .update({ signed_up_via_invite: true })
+          .eq('id', user.id);
+      }
+
       localStorage.removeItem('pending_invite_token');
       setInviteData(prev => (prev ? { ...prev, accepted_by: user.id, already_accepted: true } : prev));
       setAccepted(true);

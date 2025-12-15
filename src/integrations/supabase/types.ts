@@ -235,6 +235,7 @@ export type Database = {
           liaison_code: string | null
           main_exam_period: string | null
           school: string | null
+          signed_up_via_invite: boolean | null
           study_domain: string | null
           study_subcategory: string | null
           updated_at: string | null
@@ -252,6 +253,7 @@ export type Database = {
           liaison_code?: string | null
           main_exam_period?: string | null
           school?: string | null
+          signed_up_via_invite?: boolean | null
           study_domain?: string | null
           study_subcategory?: string | null
           updated_at?: string | null
@@ -269,6 +271,7 @@ export type Database = {
           liaison_code?: string | null
           main_exam_period?: string | null
           school?: string | null
+          signed_up_via_invite?: boolean | null
           study_domain?: string | null
           study_subcategory?: string | null
           updated_at?: string | null

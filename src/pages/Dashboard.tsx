@@ -39,6 +39,7 @@ import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/p
 
 const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [signedUpViaInvite, setSignedUpViaInvite] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [sessions, setSessions] = useState<RevisionSession[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
@@ -72,8 +73,9 @@ const Dashboard = () => {
   const location = useLocation();
   const isSigningOut = useRef(false);
   
-  // Check if user is free (only has access to invited sessions)
-  const isFreeUser = !subscriptionLoading && !isSubscribed;
+  // Check if user is free (only applies to users who signed up via invite link)
+  // Regular users (signed up normally) are NOT affected even if they don't have a subscription
+  const isFreeUser = signedUpViaInvite && !subscriptionLoading && !isSubscribed;
   
   // Track user activity for analytics
   useActivityTracker();
@@ -120,7 +122,7 @@ const Dashboard = () => {
       // Fetch profile
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('first_name, weekly_revision_hours, is_onboarding_complete')
+        .select('first_name, weekly_revision_hours, is_onboarding_complete, signed_up_via_invite')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -130,6 +132,7 @@ const Dashboard = () => {
       }
 
       setProfile(profileData);
+      setSignedUpViaInvite(profileData?.signed_up_via_invite || false);
 
       // Check if tutorial should be shown (first visit after onboarding)
       const tutorialSeen = localStorage.getItem(`tutorial_seen_${user.id}`);
