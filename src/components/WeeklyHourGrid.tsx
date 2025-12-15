@@ -719,14 +719,16 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                     const style = getItemStyle(session.start_time, session.end_time, false);
                     const isDone = session.status === 'done';
                     const isSkipped = session.status === 'skipped';
-                    const isDraggable = !!onSessionMove;
-                    const inviteInfo = sessionInvites[session.id];
+                    const isInvited = session.isInvitedSession;
+                    const isDraggable = !!onSessionMove && !isInvited; // Can't drag invited sessions
+                    const inviteInfo = sessionInvites?.[session.id];
                     const hasInvite = !!inviteInfo;
                     
-                    // Determine border color based on status
+                    // Determine border color based on status and if invited
                     let borderColor = session.subject?.color || '#FFC107';
                     if (isDone) borderColor = '#22c55e'; // green-500
                     if (isSkipped) borderColor = '#ef4444'; // red-500
+                    if (isInvited) borderColor = '#8b5cf6'; // violet-500 for invited sessions
                     
                     return (
                       <div
@@ -738,21 +740,29 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         className={cn(
                           "absolute rounded-md px-1 py-1 overflow-hidden flex flex-col items-start justify-start text-left transition-all hover:shadow-md z-20 group",
                           isSkipped && "opacity-50",
-                          isDraggable && !resizingItem && "cursor-grab active:cursor-grabbing"
+                          isDraggable && !resizingItem && "cursor-grab active:cursor-grabbing",
+                          isInvited && "border-2 border-dashed"
                         )}
                         style={{
                           ...style,
                           left: `calc(${leftPercent}% + ${gap}px)`,
                           width: `calc(${widthPercent}% - ${gap * 2}px)`,
-                          backgroundColor: isDone ? 'rgba(34, 197, 94, 0.15)' : isSkipped ? 'rgba(239, 68, 68, 0.1)' : `${session.subject?.color}25`,
-                          borderLeft: `3px solid ${borderColor}`,
+                          backgroundColor: isInvited 
+                            ? 'rgba(139, 92, 246, 0.15)' // violet background for invited
+                            : isDone 
+                              ? 'rgba(34, 197, 94, 0.15)' 
+                              : isSkipped 
+                                ? 'rgba(239, 68, 68, 0.1)' 
+                                : `${session.subject?.color}25`,
+                          borderLeft: isInvited ? undefined : `3px solid ${borderColor}`,
+                          borderColor: isInvited ? borderColor : undefined,
                           top: resizePreview?.id === session.id && resizePreview.top !== undefined ? `${resizePreview.top}px` : style.top,
                           height: resizePreview?.id === session.id ? `${resizePreview.height}px` : style.height,
                         }}
-                        title={`${session.subject?.name}\n${formatTimeRange(session.start_time, session.end_time)}${isDone ? ' ✓' : isSkipped ? ' ✗' : ''}${hasInvite && inviteInfo.accepted_by ? `\nAvec ${inviteInfo.first_name || ''}` : ''}`}
+                        title={`${session.subject?.name}\n${formatTimeRange(session.start_time, session.end_time)}${isDone ? ' ✓' : isSkipped ? ' ✗' : ''}${isInvited && session.inviterName ? `\nInvité par ${session.inviterName}` : ''}${hasInvite && inviteInfo.accepted_by ? `\nAvec ${inviteInfo.first_name || ''}` : ''}`}
                       >
-                        {/* Top resize handle - only visible when hovering near top */}
-                        {onSessionResize && (
+                        {/* Top resize handle - only for own sessions */}
+                        {onSessionResize && !isInvited && (
                           <div
                             className="absolute top-0 left-0 right-0 h-1.5 cursor-ns-resize rounded-t-md transition-colors hover:opacity-100 opacity-0"
                             style={{ backgroundColor: `${borderColor}50` }}
@@ -762,7 +772,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         <div className="flex items-center gap-1 w-full pt-1">
                           <p 
                             className={`text-xs font-semibold truncate flex-1 ${isDone ? 'line-through' : ''}`}
-                            style={{ color: isDone ? '#22c55e' : isSkipped ? '#ef4444' : session.subject?.color }}
+                            style={{ color: isInvited ? '#8b5cf6' : isDone ? '#22c55e' : isSkipped ? '#ef4444' : session.subject?.color }}
                           >
                             {session.subject?.name}
                           </p>
@@ -774,8 +784,35 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                             ? `${resizePreview.newStartTime || session.start_time.slice(0, 5)} - ${resizePreview.newEndTime || session.end_time.slice(0, 5)}`
                             : formatTimeRange(session.start_time, session.end_time)}
                         </p>
-                        {/* Show invite info if exists */}
-                        {hasInvite && (
+                        {/* Show invited session info */}
+                        {isInvited && (
+                          <div className="flex items-center gap-1 mt-0.5 w-full">
+                            <span className="text-[9px] text-violet-500 flex items-center gap-0.5 truncate">
+                              <Users className="w-2.5 h-2.5 flex-shrink-0" />
+                              {session.inviterName || 'Invité'}
+                            </span>
+                            {session.inviteMeetingFormat === 'visio' && session.inviteMeetingLink && (
+                              <a
+                                href={session.inviteMeetingLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-[9px] text-blue-500 hover:text-blue-600 flex items-center gap-0.5 hover:underline"
+                                title="Rejoindre la visio"
+                              >
+                                <Video className="w-2.5 h-2.5 flex-shrink-0" />
+                                <ExternalLink className="w-2 h-2 flex-shrink-0" />
+                              </a>
+                            )}
+                            {session.inviteMeetingFormat === 'presentiel' && session.inviteMeetingAddress && (
+                              <span className="text-[9px] text-green-500 flex items-center gap-0.5">
+                                <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {/* Show invite info for own sessions */}
+                        {!isInvited && hasInvite && (
                           <div className="flex items-center gap-1 mt-0.5 w-full">
                             {inviteInfo.accepted_by && inviteInfo.first_name ? (
                               <span className="text-[9px] text-primary flex items-center gap-0.5 truncate">
@@ -806,8 +843,8 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                             )}
                           </div>
                         )}
-                        {/* Bottom resize handle - only visible when hovering near bottom */}
-                        {onSessionResize && (
+                        {/* Bottom resize handle - only for own sessions */}
+                        {onSessionResize && !isInvited && (
                           <div
                             className="absolute bottom-0 left-0 right-0 h-1.5 cursor-ns-resize rounded-b-md transition-colors hover:opacity-100 opacity-0"
                             style={{ backgroundColor: `${borderColor}50` }}

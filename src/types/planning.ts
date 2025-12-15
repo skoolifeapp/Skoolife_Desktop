@@ -18,6 +18,12 @@ export interface RevisionSession {
   status: string;
   notes: string | null;
   subject?: Subject;
+  // Properties for invited sessions
+  isInvitedSession?: boolean;
+  inviterName?: string | null;
+  inviteMeetingFormat?: string | null;
+  inviteMeetingAddress?: string | null;
+  inviteMeetingLink?: string | null;
 }
 
 export interface CalendarEvent {

@@ -154,20 +154,75 @@ const Dashboard = () => {
         setSubjects(subjectsData || []);
       }
 
-      // Fetch revision sessions
+      // Fetch revision sessions (user's own sessions)
       const { data: sessionsData } = await supabase
         .from('revision_sessions')
         .select('*')
         .eq('user_id', user.id)
         .order('date', { ascending: true });
 
-      // Map subjects to sessions
-      const sessionsWithSubjects = (sessionsData || []).map(session => ({
+      // Fetch sessions where user is invited (accepted_by = current user)
+      const { data: invitedSessionsData } = await supabase
+        .from('session_invites')
+        .select(`
+          session_id,
+          meeting_format,
+          meeting_address,
+          meeting_link,
+          invited_by,
+          inviter:profiles!session_invites_invited_by_fkey (
+            first_name,
+            last_name
+          ),
+          session:revision_sessions (
+            id,
+            date,
+            start_time,
+            end_time,
+            status,
+            notes,
+            subject_id,
+            user_id,
+            subject:subjects (
+              id,
+              name,
+              color,
+              exam_date,
+              exam_weight,
+              exam_type,
+              status,
+              target_hours,
+              difficulty_level,
+              notes,
+              user_id
+            )
+          )
+        `)
+        .eq('accepted_by', user.id);
+
+      // Map subjects to user's own sessions
+      const ownSessionsWithSubjects = (sessionsData || []).map(session => ({
         ...session,
-        subject: subjectsData?.find(s => s.id === session.subject_id)
+        subject: subjectsData?.find(s => s.id === session.subject_id),
+        isInvitedSession: false as const
       }));
 
-      setSessions(sessionsWithSubjects);
+      // Map invited sessions with special flag
+      const invitedSessionsWithSubjects = (invitedSessionsData || [])
+        .filter((invite: any) => invite.session)
+        .map((invite: any) => ({
+          ...invite.session,
+          subject: invite.session.subject,
+          isInvitedSession: true as const,
+          inviterName: invite.inviter ? `${invite.inviter.first_name || ''} ${invite.inviter.last_name || ''}`.trim() : null,
+          inviteMeetingFormat: invite.meeting_format,
+          inviteMeetingAddress: invite.meeting_address,
+          inviteMeetingLink: invite.meeting_link
+        }));
+
+      // Combine own sessions and invited sessions
+      const allSessions = [...ownSessionsWithSubjects, ...invitedSessionsWithSubjects];
+      setSessions(allSessions);
 
       // Fetch calendar events
       const { data: eventsData } = await supabase
@@ -177,7 +232,7 @@ const Dashboard = () => {
 
       setCalendarEvents(eventsData || []);
 
-      // Fetch session invites with accepted users and meeting info
+      // Fetch session invites with accepted users and meeting info (for sessions user created)
       const { data: invitesData } = await supabase
         .from('session_invites')
         .select(`
