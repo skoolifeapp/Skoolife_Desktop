@@ -351,6 +351,61 @@ export type Database = {
         }
         Relationships: []
       }
+      session_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          invited_by: string
+          session_id: string
+          unique_token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          invited_by: string
+          session_id: string
+          unique_token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          session_id?: string
+          unique_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_invites_accepted_by_fkey"
+            columns: ["accepted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_invites_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_invites_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "revision_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stats_snapshots: {
         Row: {
           active_users: number

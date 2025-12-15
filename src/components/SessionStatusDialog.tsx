@@ -1,4 +1,4 @@
-import { Check, X, Pencil } from 'lucide-react';
+import { Check, X, Pencil, Share2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,6 +17,8 @@ interface SessionStatusDialogProps {
   onMarkDone: () => void;
   onMarkSkipped: () => void;
   onEdit: () => void;
+  onShare?: () => void;
+  hasAcceptedInvite?: boolean;
 }
 
 export function SessionStatusDialog({
@@ -26,6 +28,8 @@ export function SessionStatusDialog({
   onMarkDone,
   onMarkSkipped,
   onEdit,
+  onShare,
+  hasAcceptedInvite = false,
 }: SessionStatusDialogProps) {
   if (!session) return null;
 
@@ -42,6 +46,12 @@ export function SessionStatusDialog({
               style={{ backgroundColor: session.subject?.color }}
             />
             {session.subject?.name}
+            {hasAcceptedInvite && (
+              <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                Avec un camarade
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
         
@@ -90,6 +100,20 @@ export function SessionStatusDialog({
               >
                 <X className="w-4 h-4 mr-2" />
                 Marquer comme manquée
+              </Button>
+            )}
+
+            {onShare && session.status === 'planned' && (
+              <Button
+                variant="outline"
+                className="w-full justify-start text-primary hover:text-primary hover:bg-primary/10"
+                onClick={() => {
+                  onShare();
+                  onOpenChange(false);
+                }}
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                Réviser avec un camarade
               </Button>
             )}
 

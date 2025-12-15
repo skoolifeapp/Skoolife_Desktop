@@ -27,6 +27,7 @@ import ImportCalendarDialog from '@/components/ImportCalendarDialog';
 import EditSessionDialog from '@/components/EditSessionDialog';
 import EditEventDialog from '@/components/EditEventDialog';
 import AddEventDialog from '@/components/AddEventDialog';
+import { ShareSessionDialog } from '@/components/ShareSessionDialog';
 import WeeklyHourGrid, { type GridClickData } from '@/components/WeeklyHourGrid';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
@@ -55,6 +56,8 @@ const Dashboard = () => {
   const [showEventTutorial, setShowEventTutorial] = useState(false);
   const [sessionPopoverOpen, setSessionPopoverOpen] = useState<string | null>(null);
   const [editSessionDialogOpen, setEditSessionDialogOpen] = useState(false);
+  const [shareSessionDialogOpen, setShareSessionDialogOpen] = useState(false);
+  const [sessionInvites, setSessionInvites] = useState<Record<string, boolean>>({});
   
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -166,6 +169,20 @@ const Dashboard = () => {
         .eq('user_id', user.id);
 
       setCalendarEvents(eventsData || []);
+
+      // Fetch session invites with accepted users
+      const { data: invitesData } = await supabase
+        .from('session_invites')
+        .select('session_id, accepted_by')
+        .eq('invited_by', user.id)
+        .not('accepted_by', 'is', null);
+
+      // Create a map of session_id -> hasAcceptedInvite
+      const invitesMap: Record<string, boolean> = {};
+      (invitesData || []).forEach(invite => {
+        invitesMap[invite.session_id] = true;
+      });
+      setSessionInvites(invitesMap);
 
       // Check if event tutorial should be shown
       const eventTutorialSeen = localStorage.getItem(`event_tutorial_seen_${user.id}`);
@@ -1175,6 +1192,20 @@ const Dashboard = () => {
         onEdit={() => {
           setSessionPopoverOpen(null);
           setEditSessionDialogOpen(true);
+        }}
+        onShare={() => {
+          setSessionPopoverOpen(null);
+          setShareSessionDialogOpen(true);
+        }}
+        hasAcceptedInvite={selectedSession ? sessionInvites[selectedSession.id] || false : false}
+      />
+
+      {/* Share session dialog */}
+      <ShareSessionDialog
+        session={shareSessionDialogOpen ? selectedSession : null}
+        subject={selectedSession ? subjects.find(s => s.id === selectedSession.subject_id) : undefined}
+        onClose={() => {
+          setShareSessionDialogOpen(false);
         }}
       />
 
