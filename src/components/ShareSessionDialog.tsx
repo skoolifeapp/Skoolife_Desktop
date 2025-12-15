@@ -5,15 +5,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Copy, Check, MessageCircle, Share2, Link, Users, Loader2, MapPin, Video } from 'lucide-react';
+import { Copy, Check, MessageCircle, Share2, Link, Users, Loader2, MapPin, Video, X, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { RevisionSession, Subject } from '@/types/planning';
 import { format, parseISO, subHours } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 
 type MeetingFormat = 'presentiel' | 'visio';
+
+interface InvitedPerson {
+  id: string;
+  first_name: string;
+  last_name: string;
+  liaison_code: string;
+}
 
 interface ShareSessionDialogProps {
   session: RevisionSession | null;
@@ -31,10 +39,10 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
   const [meetingFormat, setMeetingFormat] = useState<MeetingFormat>('presentiel');
   const [meetingAddress, setMeetingAddress] = useState('');
   
-  // Code invitation state
+  // Code invitation state - now supports multiple invites
   const [liaisonCode, setLiaisonCode] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
-  const [invitedUser, setInvitedUser] = useState<{ first_name: string; last_name: string } | null>(null);
+  const [invitedUsers, setInvitedUsers] = useState<InvitedPerson[]>([]);
 
   const generateShareLink = async () => {
     if (!session || !user || !subject) return;
@@ -126,6 +134,12 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
       return;
     }
 
+    // Check if already invited
+    if (invitedUsers.some(u => u.liaison_code === cleanCode)) {
+      toast.error('Ce camarade est déjà invité');
+      return;
+    }
+
     setInviteLoading(true);
     try {
       // Find user by liaison code
@@ -154,8 +168,8 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
 
       let meetingLink: string | null = null;
 
-      // Create Daily.co room if visio format selected
-      if (meetingFormat === 'visio' && subject) {
+      // Create Daily.co room if visio format selected (only for first invite)
+      if (meetingFormat === 'visio' && subject && invitedUsers.length === 0) {
         try {
           const { data: roomData, error: roomError } = await supabase.functions.invoke('create-daily-room', {
             body: {
@@ -196,12 +210,15 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
         return;
       }
 
-      setInvitedUser({
+      // Add to invited list
+      setInvitedUsers(prev => [...prev, {
+        id: targetProfile.id,
         first_name: targetProfile.first_name || '',
-        last_name: targetProfile.last_name || ''
-      });
+        last_name: targetProfile.last_name || '',
+        liaison_code: targetProfile.liaison_code || cleanCode
+      }]);
       
-      toast.success(`${targetProfile.first_name || 'L\'utilisateur'} a été invité(e) !`);
+      toast.success(`${targetProfile.first_name || 'Camarade'} invité(e) !`);
       setLiaisonCode('');
     } catch (error) {
       console.error('Error inviting by code:', error);
@@ -211,11 +228,25 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
     }
   };
 
+  const removeInvitedUser = async (userId: string) => {
+    if (!session) return;
+    
+    // Remove from database
+    await supabase
+      .from('session_invites')
+      .delete()
+      .eq('session_id', session.id)
+      .eq('accepted_by', userId);
+    
+    // Remove from local state
+    setInvitedUsers(prev => prev.filter(u => u.id !== userId));
+  };
+
   const handleClose = () => {
     setShareLink(null);
     setCopied(false);
     setLiaisonCode('');
-    setInvitedUser(null);
+    setInvitedUsers([]);
     setMeetingFormat('presentiel');
     setMeetingAddress('');
     onClose();
@@ -239,7 +270,7 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="w-5 h-5 text-primary" />
-            Réviser avec un camarade
+            Réviser avec des camarades
           </DialogTitle>
         </DialogHeader>
 
@@ -294,23 +325,96 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
               <div className="p-3 rounded-lg bg-muted/50 border border-dashed">
                 <p className="text-sm text-muted-foreground flex items-center gap-2">
                   <Video className="w-4 h-4" />
-                  Lien de visio à venir
+                  Lien de visio généré automatiquement
                 </p>
               </div>
             )}
           </div>
 
-          <Tabs defaultValue="link" className="w-full">
+          <Tabs defaultValue="code" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="link" className="flex items-center gap-2">
-                <Link className="w-4 h-4" />
-                Lien
-              </TabsTrigger>
               <TabsTrigger value="code" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 Code
               </TabsTrigger>
+              <TabsTrigger value="link" className="flex items-center gap-2">
+                <Link className="w-4 h-4" />
+                Lien
+              </TabsTrigger>
             </TabsList>
+
+            <TabsContent value="code" className="space-y-3 mt-4">
+              {/* Invited users list */}
+              {invitedUsers.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Users className="w-4 h-4 text-green-500" />
+                    Camarades invités ({invitedUsers.length})
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {invitedUsers.map((invitedUser) => (
+                      <Badge 
+                        key={invitedUser.id} 
+                        variant="secondary"
+                        className="flex items-center gap-1 pr-1"
+                      >
+                        <span>{invitedUser.first_name} {invitedUser.last_name}</span>
+                        <button
+                          onClick={() => removeInvitedUser(invitedUser.id)}
+                          className="ml-1 p-0.5 rounded-full hover:bg-destructive/20 transition-colors"
+                        >
+                          <X className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Add more classmates */}
+              <div className="space-y-2">
+                <Label htmlFor="liaison-code">
+                  {invitedUsers.length > 0 ? 'Ajouter un autre camarade' : 'Code de liaison du camarade'}
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="liaison-code"
+                    value={liaisonCode}
+                    onChange={(e) => setLiaisonCode(e.target.value.toUpperCase())}
+                    placeholder="Ex: MARIE-7X2K"
+                    className="font-mono text-lg tracking-wider uppercase flex-1"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && liaisonCode.trim()) {
+                        inviteByCode();
+                      }
+                    }}
+                  />
+                  <Button 
+                    onClick={inviteByCode} 
+                    disabled={inviteLoading || !liaisonCode.trim()}
+                    size="icon"
+                  >
+                    {inviteLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <UserPlus className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Demande son code à ton camarade (visible dans son profil)
+                </p>
+              </div>
+
+              {invitedUsers.length > 0 && (
+                <div className="pt-2 border-t">
+                  <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
+                    <Check className="w-4 h-4" />
+                    {invitedUsers.length} camarade{invitedUsers.length > 1 ? 's' : ''} invité{invitedUsers.length > 1 ? 's' : ''}
+                  </p>
+                </div>
+              )}
+            </TabsContent>
 
             <TabsContent value="link" className="space-y-3 mt-4">
               {!shareLink ? (
@@ -354,63 +458,6 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
                     Ce lien expire 24h avant le créneau
                   </p>
                 </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="code" className="space-y-3 mt-4">
-              {invitedUser ? (
-                <div className="text-center py-4 space-y-2">
-                  <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
-                    <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <p className="font-medium">
-                    {invitedUser.first_name} {invitedUser.last_name} invité(e) !
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Votre camarade apparaîtra sur votre session
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setInvitedUser(null)}
-                    className="mt-2"
-                  >
-                    Inviter quelqu'un d'autre
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="liaison-code">Code de liaison du camarade</Label>
-                    <Input
-                      id="liaison-code"
-                      value={liaisonCode}
-                      onChange={(e) => setLiaisonCode(e.target.value.toUpperCase())}
-                      placeholder="Ex: MARIE-7X2K"
-                      className="font-mono text-lg tracking-wider uppercase"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Demande son code à ton camarade (visible dans son profil)
-                    </p>
-                  </div>
-
-                  <Button 
-                    onClick={inviteByCode} 
-                    disabled={inviteLoading || !liaisonCode.trim()}
-                    className="w-full"
-                  >
-                    {inviteLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Invitation...
-                      </>
-                    ) : (
-                      <>
-                        <Users className="w-4 h-4 mr-2" />
-                        Inviter ce camarade
-                      </>
-                    )}
-                  </Button>
-                </>
               )}
             </TabsContent>
           </Tabs>
