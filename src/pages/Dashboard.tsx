@@ -314,17 +314,40 @@ const Dashboard = () => {
         .maybeSingle();
 
       // Delete existing planned sessions for this week (Monday to Sunday inclusive)
+      // BUT preserve sessions that have invites (either sent or received)
       const weekEndDate = addDays(weekStart, 6); // Sunday
       const weekStartStr = format(weekStart, 'yyyy-MM-dd');
       const weekEndStr = format(weekEndDate, 'yyyy-MM-dd');
       
-      await supabase
+      // First, get sessions that have invites (to preserve them)
+      const { data: sessionsWithInvites } = await supabase
+        .from('session_invites')
+        .select('session_id')
+        .eq('invited_by', user.id);
+      
+      const sessionIdsWithInvites = new Set((sessionsWithInvites || []).map(i => i.session_id));
+      
+      // Get all planned sessions for this week
+      const { data: weekPlannedSessions } = await supabase
         .from('revision_sessions')
-        .delete()
+        .select('id')
         .eq('user_id', user.id)
         .eq('status', 'planned')
         .gte('date', weekStartStr)
         .lte('date', weekEndStr);
+      
+      // Filter out sessions that have invites
+      const sessionsToDelete = (weekPlannedSessions || [])
+        .filter(s => !sessionIdsWithInvites.has(s.id))
+        .map(s => s.id);
+      
+      // Delete only sessions without invites
+      if (sessionsToDelete.length > 0) {
+        await supabase
+          .from('revision_sessions')
+          .delete()
+          .in('id', sessionsToDelete);
+      }
 
       // Fetch ALL sessions (past + future, excluding current week planned ones we just deleted)
       // to calculate total hours already scheduled per subject
