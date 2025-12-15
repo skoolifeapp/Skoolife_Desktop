@@ -49,6 +49,22 @@ export default function Invite() {
     fetchInviteData();
   }, [token]);
 
+  // Auto-accept invite when user is logged in and arrives on this page
+  useEffect(() => {
+    const autoAcceptIfPending = async () => {
+      if (user && inviteData && !accepted && !inviteData.already_accepted) {
+        // Check if this was a pending invite from localStorage
+        const pendingToken = localStorage.getItem('pending_invite_token');
+        if (pendingToken === token) {
+          // Auto-accept the invite
+          localStorage.removeItem('pending_invite_token');
+          handleAcceptInvite();
+        }
+      }
+    };
+    autoAcceptIfPending();
+  }, [user, inviteData, accepted, token]);
+
   const fetchInviteData = async () => {
     if (!token) return;
 
@@ -105,6 +121,9 @@ export default function Invite() {
 
       if (error) throw error;
 
+      // Clear any pending invite token
+      localStorage.removeItem('pending_invite_token');
+      
       setAccepted(true);
       
       // Redirect to dashboard after a short delay
@@ -287,14 +306,26 @@ export default function Invite() {
                   Tu pourras voir toutes les sessions auxquelles tu es invité(e).
                 </p>
               </div>
-              <Link to={`/auth?redirect=/invite/${token}`}>
+              <Link 
+                to={`/auth?redirect=/invite/${token}`}
+                onClick={() => {
+                  // Store invite token in localStorage so we can auto-accept after signup
+                  localStorage.setItem('pending_invite_token', token || '');
+                }}
+              >
                 <Button className="w-full" size="lg">
                   Créer mon compte gratuit
                 </Button>
               </Link>
               <p className="text-xs text-center text-muted-foreground">
                 Tu as déjà un compte ?{' '}
-                <Link to={`/auth?redirect=/invite/${token}`} className="text-primary hover:underline">
+                <Link 
+                  to={`/auth?redirect=/invite/${token}`}
+                  onClick={() => {
+                    localStorage.setItem('pending_invite_token', token || '');
+                  }}
+                  className="text-primary hover:underline"
+                >
                   Connecte-toi
                 </Link>
               </p>
