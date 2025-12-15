@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Copy, Check, MessageCircle, Share2 } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Copy, Check, MessageCircle, Share2, Link, Users, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { RevisionSession, Subject } from '@/types/planning';
 import { format, parseISO, subHours } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 interface ShareSessionDialogProps {
   session: RevisionSession | null;
@@ -20,13 +23,17 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  
+  // Code invitation state
+  const [liaisonCode, setLiaisonCode] = useState('');
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [invitedUser, setInvitedUser] = useState<{ first_name: string; last_name: string } | null>(null);
 
   const generateShareLink = async () => {
     if (!session || !user) return;
 
     setLoading(true);
     try {
-      // Calculate expiration: 24h before the session starts
       const sessionDateTime = parseISO(`${session.date}T${session.start_time}`);
       const expiresAt = subHours(sessionDateTime, 24);
 
@@ -72,9 +79,80 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
     window.open(`https://wa.me/?text=${message}`, '_blank');
   };
 
+  const inviteByCode = async () => {
+    if (!session || !user || !liaisonCode.trim()) return;
+
+    const cleanCode = liaisonCode.trim().toUpperCase();
+    
+    // Basic validation
+    if (!/^[A-Z0-9]+-[A-Z0-9]+$/.test(cleanCode)) {
+      toast.error('Format de code invalide');
+      return;
+    }
+
+    setInviteLoading(true);
+    try {
+      // Find user by liaison code
+      const { data: targetProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, liaison_code')
+        .eq('liaison_code', cleanCode)
+        .single();
+
+      if (profileError || !targetProfile) {
+        toast.error('Aucun utilisateur trouvé avec ce code');
+        setInviteLoading(false);
+        return;
+      }
+
+      // Can't invite yourself
+      if (targetProfile.id === user.id) {
+        toast.error('Tu ne peux pas t\'inviter toi-même !');
+        setInviteLoading(false);
+        return;
+      }
+
+      // Create invite with the target user already set as accepted
+      const sessionDateTime = parseISO(`${session.date}T${session.start_time}`);
+      const expiresAt = subHours(sessionDateTime, 24);
+
+      const { error: inviteError } = await supabase
+        .from('session_invites')
+        .insert({
+          session_id: session.id,
+          invited_by: user.id,
+          expires_at: expiresAt.toISOString(),
+          accepted_by: targetProfile.id,
+          accepted_at: new Date().toISOString()
+        });
+
+      if (inviteError) {
+        console.error('Error creating invite:', inviteError);
+        toast.error('Erreur lors de l\'invitation');
+        setInviteLoading(false);
+        return;
+      }
+
+      setInvitedUser({
+        first_name: targetProfile.first_name || '',
+        last_name: targetProfile.last_name || ''
+      });
+      
+      toast.success(`${targetProfile.first_name || 'L\'utilisateur'} a été invité(e) !`);
+      setLiaisonCode('');
+    } catch (error) {
+      console.error('Error inviting by code:', error);
+      toast.error('Une erreur est survenue');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
   const handleClose = () => {
     setShareLink(null);
     setCopied(false);
+    setLiaisonCode('');
+    setInvitedUser(null);
     onClose();
   };
 
@@ -107,50 +185,120 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
             <p className="text-muted-foreground">{timeRange}</p>
           </div>
 
-          {!shareLink ? (
-            <Button 
-              onClick={generateShareLink} 
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? 'Génération...' : 'Générer un lien de partage'}
-            </Button>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <Input 
-                  value={shareLink} 
-                  readOnly 
-                  className="text-sm"
-                />
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={copyToClipboard}
-                >
-                  {copied ? (
-                    <Check className="w-4 h-4 text-green-500" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </Button>
-              </div>
+          <Tabs defaultValue="link" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="link" className="flex items-center gap-2">
+                <Link className="w-4 h-4" />
+                Lien
+              </TabsTrigger>
+              <TabsTrigger value="code" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Code
+              </TabsTrigger>
+            </TabsList>
 
-              <div className="flex gap-2">
+            <TabsContent value="link" className="space-y-3 mt-4">
+              {!shareLink ? (
                 <Button 
-                  onClick={shareViaWhatsApp}
-                  className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white"
+                  onClick={generateShareLink} 
+                  disabled={loading}
+                  className="w-full"
                 >
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  Partager via WhatsApp
+                  {loading ? 'Génération...' : 'Générer un lien de partage'}
                 </Button>
-              </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Input 
+                      value={shareLink} 
+                      readOnly 
+                      className="text-sm"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={copyToClipboard}
+                    >
+                      {copied ? (
+                        <Check className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
 
-              <p className="text-xs text-muted-foreground text-center">
-                Ce lien expire 24h avant le créneau
-              </p>
-            </div>
-          )}
+                  <Button 
+                    onClick={shareViaWhatsApp}
+                    className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Partager via WhatsApp
+                  </Button>
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    Ce lien expire 24h avant le créneau
+                  </p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="code" className="space-y-3 mt-4">
+              {invitedUser ? (
+                <div className="text-center py-4 space-y-2">
+                  <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto">
+                    <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <p className="font-medium">
+                    {invitedUser.first_name} {invitedUser.last_name} invité(e) !
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Votre camarade apparaîtra sur votre session
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setInvitedUser(null)}
+                    className="mt-2"
+                  >
+                    Inviter quelqu'un d'autre
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="liaison-code">Code de liaison du camarade</Label>
+                    <Input
+                      id="liaison-code"
+                      value={liaisonCode}
+                      onChange={(e) => setLiaisonCode(e.target.value.toUpperCase())}
+                      placeholder="Ex: MARIE-7X2K"
+                      className="font-mono text-lg tracking-wider uppercase"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Demande son code à ton camarade (visible dans son profil)
+                    </p>
+                  </div>
+
+                  <Button 
+                    onClick={inviteByCode} 
+                    disabled={inviteLoading || !liaisonCode.trim()}
+                    className="w-full"
+                  >
+                    {inviteLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Invitation...
+                      </>
+                    ) : (
+                      <>
+                        <Users className="w-4 h-4 mr-2" />
+                        Inviter ce camarade
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </DialogContent>
     </Dialog>
