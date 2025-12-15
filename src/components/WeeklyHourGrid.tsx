@@ -5,10 +5,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar, Users, MapPin, Video, ExternalLink } from 'lucide-react';
 import type { RevisionSession, CalendarEvent, Subject } from '@/types/planning';
 
-export interface SessionInviteInfo {
+export interface SessionInvitee {
   accepted_by: string | null;
   first_name: string | null;
   last_name: string | null;
+}
+
+export interface SessionInviteInfo {
+  invitees: SessionInvitee[];
   meeting_format: string | null;
   meeting_address: string | null;
   meeting_link: string | null;
@@ -759,7 +763,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                           top: resizePreview?.id === session.id && resizePreview.top !== undefined ? `${resizePreview.top}px` : style.top,
                           height: resizePreview?.id === session.id ? `${resizePreview.height}px` : style.height,
                         }}
-                        title={`${session.subject?.name}\n${formatTimeRange(session.start_time, session.end_time)}${isDone ? ' ✓' : isSkipped ? ' ✗' : ''}${isInvited && session.inviterName ? `\nInvité par ${session.inviterName}` : ''}${hasInvite && inviteInfo.accepted_by ? `\nAvec ${inviteInfo.first_name || ''}` : ''}`}
+                        title={`${session.subject?.name}\n${formatTimeRange(session.start_time, session.end_time)}${isDone ? ' ✓' : isSkipped ? ' ✗' : ''}${isInvited && session.inviterName ? `\nInvité par ${session.inviterName}` : ''}${hasInvite && inviteInfo.invitees?.some(i => i.accepted_by) ? `\nAvec ${inviteInfo.invitees.filter(i => i.accepted_by && i.first_name).map(i => i.first_name).join(', ')}` : ''}`}
                       >
                         {/* Top resize handle - only for own sessions */}
                         {onSessionResize && !isInvited && (
@@ -814,10 +818,15 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         {/* Show invite info for own sessions */}
                         {!isInvited && hasInvite && (
                           <div className="flex items-center gap-1 mt-0.5 w-full">
-                            {inviteInfo.accepted_by && inviteInfo.first_name ? (
+                            {inviteInfo.invitees?.some(i => i.accepted_by && i.first_name) ? (
                               <span className="text-[9px] text-primary flex items-center gap-0.5 truncate">
                                 <Users className="w-2.5 h-2.5 flex-shrink-0" />
-                                {inviteInfo.first_name}
+                                {inviteInfo.invitees.filter(i => i.accepted_by && i.first_name).length}
+                              </span>
+                            ) : inviteInfo.invitees?.length ? (
+                              <span className="text-[9px] text-muted-foreground flex items-center gap-0.5 truncate">
+                                <Users className="w-2.5 h-2.5 flex-shrink-0" />
+                                {inviteInfo.invitees.length}
                               </span>
                             ) : null}
                             {inviteInfo.meeting_format === 'visio' && inviteInfo.meeting_link ? (
@@ -832,7 +841,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                                 <Video className="w-2.5 h-2.5 flex-shrink-0" />
                                 <ExternalLink className="w-2 h-2 flex-shrink-0" />
                               </a>
-                            ) : inviteInfo.meeting_format && !inviteInfo.accepted_by && (
+                            ) : inviteInfo.meeting_format && !inviteInfo.invitees?.some(i => i.accepted_by) && (
                               <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
                                 {inviteInfo.meeting_format === 'visio' ? (
                                   <Video className="w-2.5 h-2.5 text-blue-500" />

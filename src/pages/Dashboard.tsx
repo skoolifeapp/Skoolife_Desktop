@@ -61,9 +61,7 @@ const Dashboard = () => {
   const [invitedSessionDialogOpen, setInvitedSessionDialogOpen] = useState(false);
   const [selectedInvitedSession, setSelectedInvitedSession] = useState<RevisionSession | null>(null);
   const [sessionInvites, setSessionInvites] = useState<Record<string, { 
-    accepted_by: string | null; 
-    first_name: string | null;
-    last_name: string | null;
+    invitees: Array<{ accepted_by: string | null; first_name: string | null; last_name: string | null }>;
     meeting_format: string | null;
     meeting_address: string | null;
     meeting_link: string | null;
@@ -251,24 +249,27 @@ const Dashboard = () => {
         `)
         .eq('invited_by', user.id);
 
-      // Create a map of session_id -> invite details
+      // Create a map of session_id -> invite details with multiple invitees
       const invitesMap: Record<string, { 
-        accepted_by: string | null; 
-        first_name: string | null;
-        last_name: string | null;
+        invitees: Array<{ accepted_by: string | null; first_name: string | null; last_name: string | null }>;
         meeting_format: string | null;
         meeting_address: string | null;
         meeting_link: string | null;
       }> = {};
       (invitesData || []).forEach((invite: any) => {
-        invitesMap[invite.session_id] = {
+        if (!invitesMap[invite.session_id]) {
+          invitesMap[invite.session_id] = {
+            invitees: [],
+            meeting_format: invite.meeting_format,
+            meeting_address: invite.meeting_address,
+            meeting_link: invite.meeting_link
+          };
+        }
+        invitesMap[invite.session_id].invitees.push({
           accepted_by: invite.accepted_by,
           first_name: invite.profile?.first_name || null,
-          last_name: invite.profile?.last_name || null,
-          meeting_format: invite.meeting_format,
-          meeting_address: invite.meeting_address,
-          meeting_link: invite.meeting_link
-        };
+          last_name: invite.profile?.last_name || null
+        });
       });
       setSessionInvites(invitesMap);
 
@@ -1324,7 +1325,7 @@ const Dashboard = () => {
           setSessionPopoverOpen(null);
           setShareSessionDialogOpen(true);
         }}
-        hasAcceptedInvite={selectedSession ? !!sessionInvites[selectedSession.id]?.accepted_by : false}
+        hasAcceptedInvite={selectedSession ? (sessionInvites[selectedSession.id]?.invitees?.some(i => i.accepted_by) ?? false) : false}
         inviteInfo={selectedSession ? sessionInvites[selectedSession.id] : undefined}
       />
 

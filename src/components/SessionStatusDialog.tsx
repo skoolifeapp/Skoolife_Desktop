@@ -11,9 +11,7 @@ import { fr } from 'date-fns/locale';
 import type { RevisionSession } from '@/types/planning';
 
 export interface InviteInfo {
-  accepted_by: string | null;
-  first_name: string | null;
-  last_name: string | null;
+  invitees: Array<{ accepted_by: string | null; first_name: string | null; last_name: string | null }>;
   meeting_format: string | null;
   meeting_address: string | null;
   meeting_link: string | null;
@@ -57,10 +55,10 @@ export function SessionStatusDialog({
               style={{ backgroundColor: session.subject?.color }}
             />
             {session.subject?.name}
-            {hasAcceptedInvite && (
+            {hasAcceptedInvite && inviteInfo && (
               <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full flex items-center gap-1">
                 <Users className="w-3 h-3" />
-                Avec un camarade
+                {inviteInfo.invitees.filter(i => i.accepted_by).length} camarade{inviteInfo.invitees.filter(i => i.accepted_by).length > 1 ? 's' : ''}
               </span>
             )}
           </DialogTitle>
@@ -76,12 +74,17 @@ export function SessionStatusDialog({
           {/* Invite info */}
           {inviteInfo && (
             <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 space-y-2">
-              {inviteInfo.accepted_by && inviteInfo.first_name && (
+              {inviteInfo.invitees.filter(i => i.accepted_by && i.first_name).length > 0 && (
                 <div className="flex items-center gap-2 text-sm">
                   <Users className="w-4 h-4 text-primary" />
                   <span className="font-medium">
-                    Avec {inviteInfo.first_name} {inviteInfo.last_name || ''}
+                    Avec {inviteInfo.invitees.filter(i => i.accepted_by && i.first_name).map(i => `${i.first_name} ${i.last_name || ''}`).join(', ')}
                   </span>
+                </div>
+              )}
+              {inviteInfo.invitees.length > inviteInfo.invitees.filter(i => i.accepted_by).length && (
+                <div className="text-xs text-muted-foreground">
+                  {inviteInfo.invitees.length - inviteInfo.invitees.filter(i => i.accepted_by).length} invitation{inviteInfo.invitees.length - inviteInfo.invitees.filter(i => i.accepted_by).length > 1 ? 's' : ''} en attente
                 </div>
               )}
               {inviteInfo.meeting_format && (
