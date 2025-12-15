@@ -121,11 +121,22 @@ export function InvitedSessionDialog({
 
         {/* Show confirmation status or action buttons */}
         {session.inviteConfirmed ? (
-          <div className="flex items-center justify-center gap-2 py-4 px-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-            <Check className="w-5 h-5 text-green-500" />
-            <span className="text-green-700 dark:text-green-400 font-medium">
-              Participation confirmée
-            </span>
+          <div className="space-y-3">
+            <div className="flex items-center justify-center gap-2 py-3 px-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+              <Check className="w-5 h-5 text-green-500" />
+              <span className="text-green-700 dark:text-green-400 font-medium">
+                Participation confirmée
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              className="w-full text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950"
+              onClick={handleDecline}
+              disabled={isLoading}
+            >
+              <X className="w-4 h-4 mr-2" />
+              Annuler ma participation
+            </Button>
           </div>
         ) : (
           <div className="flex gap-3 pt-2">
