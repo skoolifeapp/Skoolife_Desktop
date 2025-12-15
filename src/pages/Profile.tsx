@@ -47,12 +47,91 @@ const EXAM_PERIODS = [
   'Décembre',
 ];
 
+const STUDY_DOMAINS: Record<string, string[]> = {
+  'Sciences & Technologie': [
+    'Mathématiques',
+    'Physique',
+    'Chimie',
+    'Biologie',
+    'Informatique / Science des données',
+    'Génie / Ingénierie'
+  ],
+  'Médecine & Santé': [
+    'Médecine générale',
+    'Pharmacie',
+    'Psychologie / Santé mentale',
+    'Soins infirmiers / Kinésithérapie',
+    'Nutrition / Diététique'
+  ],
+  'Sciences Sociales & Humaines': [
+    'Histoire',
+    'Géographie',
+    'Sociologie',
+    'Philosophie',
+    'Éducation / Pédagogie',
+    'Communication / Médias'
+  ],
+  'Économie & Gestion': [
+    'Économie',
+    'Finance',
+    'Marketing',
+    'Gestion / Management',
+    'Commerce international',
+    'Entrepreneuriat / Innovation'
+  ],
+  'Arts & Lettres': [
+    'Littérature / Langues',
+    'Musique',
+    'Arts visuels / Design',
+    'Théâtre / Arts de la scène',
+    'Cinéma / Audiovisuel',
+    'Histoire de l\'art'
+  ],
+  'Droit & Sciences Politiques': [
+    'Droit civil / pénal / international',
+    'Droit des affaires / du travail',
+    'Criminologie',
+    'Administration publique',
+    'Relations internationales'
+  ],
+  'Environnement & Agriculture': [
+    'Écologie / Sciences environnementales',
+    'Agronomie / Horticulture',
+    'Gestion forestière',
+    'Sciences marines',
+    'Agroalimentaire'
+  ],
+  'Informatique & Technologies émergentes': [
+    'Cybersécurité',
+    'Intelligence artificielle / Machine Learning',
+    'Réalité virtuelle / augmentée',
+    'Blockchain / Cryptomonnaies',
+    'Internet des objets (IoT)'
+  ],
+  'Design & Architecture': [
+    'Design graphique',
+    'Architecture',
+    'Design industriel',
+    'Design d\'intérieur',
+    'Audiovisuel / Multimédia'
+  ],
+  'Sport & Bien-être': [
+    'Sport / Éducation physique',
+    'Santé et remise en forme',
+    'Kinésithérapie / Physiothérapie',
+    'Nutrition sportive',
+    'Psychologie du sport'
+  ]
+};
+
 interface ProfileData {
   first_name: string;
   last_name: string;
   email: string;
   school: string;
   level: string;
+  study_domain: string;
+  study_subcategory: string;
   main_exam_period: string;
   liaison_code: string;
 }
@@ -67,6 +146,8 @@ const Profile = () => {
     email: '',
     school: '',
     level: '',
+    study_domain: '',
+    study_subcategory: '',
     main_exam_period: '',
     liaison_code: '',
   });
@@ -97,6 +178,8 @@ const Profile = () => {
           email: profileData.email || user.email || '',
           school: profileData.school || '',
           level: profileData.level || '',
+          study_domain: profileData.study_domain || '',
+          study_subcategory: profileData.study_subcategory || '',
           main_exam_period: profileData.main_exam_period || '',
           liaison_code: profileData.liaison_code || '',
         });
@@ -120,6 +203,8 @@ const Profile = () => {
           last_name: profile.last_name,
           school: profile.school,
           level: profile.level,
+          study_domain: profile.study_domain,
+          study_subcategory: profile.study_subcategory,
           main_exam_period: profile.main_exam_period,
         })
         .eq('id', user.id);
@@ -291,6 +376,50 @@ const Profile = () => {
                   </Select>
                 </div>
               </div>
+
+              <div className="space-y-2">
+                <Label>Domaine d'études</Label>
+                <Select
+                  value={profile.study_domain}
+                  onValueChange={(value) => setProfile({ 
+                    ...profile, 
+                    study_domain: value,
+                    study_subcategory: ''
+                  })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionne ton domaine" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.keys(STUDY_DOMAINS).map((domain) => (
+                      <SelectItem key={domain} value={domain}>
+                        {domain}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {profile.study_domain && (
+                <div className="space-y-2">
+                  <Label>Spécialité</Label>
+                  <Select
+                    value={profile.study_subcategory}
+                    onValueChange={(value) => setProfile({ ...profile, study_subcategory: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionne ta spécialité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STUDY_DOMAINS[profile.study_domain]?.map((sub) => (
+                        <SelectItem key={sub} value={sub}>
+                          {sub}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
 
               <Button onClick={handleSave} disabled={saving} className="w-full">
