@@ -27,9 +27,10 @@ interface ShareSessionDialogProps {
   session: RevisionSession | null;
   subject: Subject | undefined;
   onClose: () => void;
+  onInviteSuccess?: () => void;
 }
 
-export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDialogProps) {
+export function ShareSessionDialog({ session, subject, onClose, onInviteSuccess }: ShareSessionDialogProps) {
   const { user } = useAuth();
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -220,6 +221,9 @@ export function ShareSessionDialog({ session, subject, onClose }: ShareSessionDi
       
       toast.success(`${targetProfile.first_name || 'Camarade'} invité(e) !`);
       setLiaisonCode('');
+      
+      // Trigger refresh
+      onInviteSuccess?.();
     } catch (error) {
       console.error('Error inviting by code:', error);
       toast.error('Une erreur est survenue');
