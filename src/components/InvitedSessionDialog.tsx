@@ -119,25 +119,35 @@ export function InvitedSessionDialog({
           )}
         </div>
 
-        <div className="flex gap-3 pt-2">
-          <Button
-            variant="outline"
-            className="flex-1 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-            onClick={handleDecline}
-            disabled={isLoading}
-          >
-            <X className="w-4 h-4 mr-2" />
-            Refuser
-          </Button>
-          <Button
-            className="flex-1 bg-green-500 hover:bg-green-600 text-white"
-            onClick={handleConfirm}
-            disabled={isLoading}
-          >
-            <Check className="w-4 h-4 mr-2" />
-            Confirmer
-          </Button>
-        </div>
+        {/* Show confirmation status or action buttons */}
+        {session.inviteConfirmed ? (
+          <div className="flex items-center justify-center gap-2 py-4 px-4 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
+            <Check className="w-5 h-5 text-green-500" />
+            <span className="text-green-700 dark:text-green-400 font-medium">
+              Participation confirmée
+            </span>
+          </div>
+        ) : (
+          <div className="flex gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="flex-1 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+              onClick={handleDecline}
+              disabled={isLoading}
+            >
+              <X className="w-4 h-4 mr-2" />
+              Refuser
+            </Button>
+            <Button
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white"
+              onClick={handleConfirm}
+              disabled={isLoading}
+            >
+              <Check className="w-4 h-4 mr-2" />
+              Confirmer
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
