@@ -990,9 +990,24 @@ const Dashboard = () => {
   };
 
   const handleInviteConfirm = async (sessionId: string) => {
-    // Nothing to do for confirm - the user is already accepted
-    // Just close the dialog and show a message
-    toast.success('Participation confirmée !');
+    if (!user) return;
+    
+    try {
+      // Mark the invite as explicitly confirmed
+      const { error } = await supabase
+        .from('session_invites')
+        .update({ confirmed: true })
+        .eq('session_id', sessionId)
+        .eq('accepted_by', user.id);
+
+      if (error) throw error;
+      
+      toast.success('Participation confirmée !');
+      fetchData(); // Refresh to update UI
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la confirmation');
+    }
   };
 
   const handleInviteDecline = async (sessionId: string) => {
@@ -1004,7 +1019,8 @@ const Dashboard = () => {
         .from('session_invites')
         .update({ 
           accepted_by: null, 
-          accepted_at: null 
+          accepted_at: null,
+          confirmed: false
         })
         .eq('session_id', sessionId)
         .eq('accepted_by', user.id);
