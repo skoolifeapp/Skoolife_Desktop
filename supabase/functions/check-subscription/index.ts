@@ -57,33 +57,48 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
+    // Include trialing subscriptions for the 7-day free trial
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 1,
+      status: "all",
+      limit: 10,
     });
-    const hasActiveSub = subscriptions.data.length > 0;
+
+    const eligible = subscriptions.data.find((s) => s.status === "active" || s.status === "trialing");
+    const isEligible = Boolean(eligible);
+
     let productId = null;
     let subscriptionEnd = null;
+    let subscriptionStatus = null;
 
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
-      productId = subscription.items.data[0].price.product;
+    if (eligible) {
+      subscriptionStatus = eligible.status;
+      subscriptionEnd = new Date(eligible.current_period_end * 1000).toISOString();
+      logStep("Eligible subscription found", {
+        subscriptionId: eligible.id,
+        status: subscriptionStatus,
+        endDate: subscriptionEnd,
+      });
+      productId = eligible.items.data[0]?.price?.product ?? null;
       logStep("Determined subscription product", { productId });
     } else {
-      logStep("No active subscription found");
+      logStep("No active or trialing subscription found", {
+        statuses: subscriptions.data.map((s) => s.status),
+      });
     }
 
-    return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
-      product_id: productId,
-      subscription_end: subscriptionEnd
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({
+        subscribed: isEligible,
+        product_id: productId,
+        subscription_end: subscriptionEnd,
+        subscription_status: subscriptionStatus,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in check-subscription", { message: errorMessage });
