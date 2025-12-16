@@ -46,19 +46,27 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
 
   // Student tier has limited access - only Major gets full access
   const isStudentTier = subscriptionTier === 'student';
+  
+  // Check if user has no active subscription (expired or trial ended)
+  const hasNoSubscription = !subscriptionLoading && !isSubscribed;
 
   const renderNavItem = (item: typeof NAV_ITEMS[0], isMobile: boolean = false) => {
-    // Lock for free users OR for Student tier when requiresMajor is true
+    // Lock for:
+    // 1. Free invite users when requiresSubscription is true
+    // 2. Student tier when requiresMajor is true
+    // 3. No subscription at all (expired/trial ended) when requiresSubscription is true
     const isLockedForFree = isInviteFreeUser && item.requiresSubscription;
     const isLockedForStudent = isStudentTier && item.requiresMajor;
-    const isLocked = isLockedForFree || isLockedForStudent;
+    const isLockedForExpired = hasNoSubscription && item.requiresSubscription;
+    const isLocked = isLockedForFree || isLockedForStudent || isLockedForExpired;
     
     if (isLocked) {
       return (
         <div
           key={item.path}
+          onClick={() => navigate('/subscription')}
           className={cn(
-            "flex items-center gap-3 px-4 rounded-xl cursor-not-allowed opacity-50",
+            "flex items-center gap-3 px-4 rounded-xl cursor-pointer opacity-50 hover:opacity-70 transition-opacity",
             isMobile ? "py-4" : "py-3"
           )}
         >
@@ -116,6 +124,23 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
       );
     }
     
+    // No subscription - show expired badge
+    if (!isSubscribed) {
+      return (
+        <Badge 
+          variant="outline" 
+          className={cn(
+            "gap-1 text-muted-foreground border-destructive/50 cursor-pointer hover:bg-destructive/10",
+            isMobile ? "text-xs" : "text-[10px]"
+          )}
+          onClick={() => navigate('/subscription')}
+        >
+          <Lock className="w-3 h-3" />
+          Expiré
+        </Badge>
+      );
+    }
+    
     return null;
   };
 
@@ -128,7 +153,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
             <img src={logo} alt="Skoolife" className="h-9 w-auto rounded-xl" />
             <span className="font-bold text-xl text-foreground">Skoolife</span>
           </Link>
-          {subscriptionTier && (
+          {!subscriptionLoading && (
             <div className="mt-2 ml-12">
               {renderSubscriptionBadge()}
             </div>
@@ -176,17 +201,18 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
               <span className="truncate">Réserver une démo</span>
             </Button>
           </a>
-          {isSubscribed && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground text-xs"
-              onClick={handleManageSubscription}
-            >
-              <CreditCard className="w-4 h-4 shrink-0" />
-              <span className="truncate">Gérer mon abonnement</span>
-            </Button>
-          )}
+          <Button
+            variant={isSubscribed ? "outline" : "default"}
+            size="sm"
+            className={cn(
+              "w-full justify-start gap-2 text-xs",
+              isSubscribed ? "text-muted-foreground hover:text-foreground" : ""
+            )}
+            onClick={handleManageSubscription}
+          >
+            <CreditCard className="w-4 h-4 shrink-0" />
+            <span className="truncate">{isSubscribed ? "Gérer mon abonnement" : "Se réabonner"}</span>
+          </Button>
           <Button
             variant="ghost"
             className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
@@ -205,7 +231,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
             <img src={logo} alt="Skoolife" className="h-8 w-auto rounded-lg" />
             <span className="font-bold text-lg text-foreground">Skoolife</span>
           </Link>
-          {subscriptionTier && renderSubscriptionBadge(true)}
+          {!subscriptionLoading && renderSubscriptionBadge(true)}
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -242,19 +268,20 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
         <div className="lg:hidden fixed inset-0 z-40 bg-background/95 backdrop-blur-sm pt-16">
           <nav className="p-4 space-y-2">
             {NAV_ITEMS.map((item) => renderNavItem(item, true))}
-            {isSubscribed && (
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3 px-4 py-4 text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleManageSubscription();
-                }}
-              >
-                <CreditCard className="w-5 h-5" />
-                <span className="text-lg">Gérer mon abonnement</span>
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start gap-3 px-4 py-4",
+                isSubscribed ? "text-muted-foreground hover:text-foreground" : "text-primary hover:text-primary/80"
+              )}
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleManageSubscription();
+              }}
+            >
+              <CreditCard className="w-5 h-5" />
+              <span className="text-lg">{isSubscribed ? "Gérer mon abonnement" : "Se réabonner"}</span>
+            </Button>
             <Button
               variant="ghost"
               className="w-full justify-start gap-3 px-4 py-4 text-muted-foreground hover:text-foreground"
