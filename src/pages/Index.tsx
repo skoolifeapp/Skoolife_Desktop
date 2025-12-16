@@ -1,6 +1,4 @@
-import { useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, Target, ArrowRight, Sparkles, Monitor } from 'lucide-react';
 import logo from '@/assets/logo.png';
@@ -8,15 +6,7 @@ import HeroMiniDashboard3D from '@/components/HeroMiniDashboard3D';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
-
-  useEffect(() => {
-    if (!loading && user) {
-      navigate('/app');
-    }
-  }, [user, loading, navigate]);
 
   // Mobile-only fullscreen page
   if (isMobile) {
