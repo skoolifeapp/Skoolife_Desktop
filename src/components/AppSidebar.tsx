@@ -5,6 +5,7 @@ import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { UpgradeDialog } from '@/components/UpgradeDialog';
 import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState } from 'react';
@@ -23,6 +24,8 @@ interface AppSidebarProps {
 
 export const AppSidebar = ({ children }: AppSidebarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+  const [lockedFeatureName, setLockedFeatureName] = useState<string>('');
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, subscriptionTier, subscriptionLoading, isSubscribed } = useAuth();
@@ -64,7 +67,10 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
       return (
         <div
           key={item.path}
-          onClick={() => navigate('/subscription')}
+          onClick={() => {
+            setLockedFeatureName(item.label);
+            setUpgradeDialogOpen(true);
+          }}
           className={cn(
             "flex items-center gap-3 px-4 rounded-xl cursor-pointer opacity-60 hover:opacity-80 transition-opacity",
             isMobile ? "py-4 text-muted-foreground" : "py-3 text-sidebar-foreground"
@@ -294,6 +300,13 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
       <main className="lg:ml-56 min-h-screen">
         {children}
       </main>
+
+      {/* Upgrade Dialog */}
+      <UpgradeDialog 
+        open={upgradeDialogOpen} 
+        onOpenChange={setUpgradeDialogOpen}
+        featureName={lockedFeatureName}
+      />
     </div>
   );
 };
