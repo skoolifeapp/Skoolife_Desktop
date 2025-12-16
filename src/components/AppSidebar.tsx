@@ -28,7 +28,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   const [lockedFeatureName, setLockedFeatureName] = useState<string>('');
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, subscriptionTier, subscriptionLoading, isSubscribed } = useAuth();
+  const { signOut, subscriptionTier, subscriptionLoading, isSubscribed, refreshSubscription } = useAuth();
   const { isInviteFreeUser } = useInviteFreeUser();
 
   const handleManageSubscription = () => {
@@ -306,6 +306,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
         open={upgradeDialogOpen} 
         onOpenChange={setUpgradeDialogOpen}
         featureName={lockedFeatureName}
+        onUpgradeSuccess={refreshSubscription}
       />
     </div>
   );

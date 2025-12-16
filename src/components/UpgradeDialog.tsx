@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,21 +7,38 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Crown, TrendingUp, Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Crown, TrendingUp, Sparkles, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface UpgradeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   featureName?: string;
+  onUpgradeSuccess?: () => void;
 }
 
-export const UpgradeDialog = ({ open, onOpenChange, featureName }: UpgradeDialogProps) => {
-  const navigate = useNavigate();
+export const UpgradeDialog = ({ open, onOpenChange, featureName, onUpgradeSuccess }: UpgradeDialogProps) => {
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleUpgrade = () => {
-    onOpenChange(false);
-    navigate('/subscription');
+  const handleUpgrade = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('switch-subscription', {
+        body: { targetTier: 'major' },
+      });
+
+      if (error) throw error;
+
+      toast.success('Félicitations ! Tu es maintenant Major 🎉');
+      onOpenChange(false);
+      onUpgradeSuccess?.();
+    } catch (error: any) {
+      console.error('Upgrade error:', error);
+      toast.error(error.message || 'Erreur lors de la mise à niveau');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -54,11 +72,15 @@ export const UpgradeDialog = ({ open, onOpenChange, featureName }: UpgradeDialog
         </div>
 
         <div className="flex flex-col gap-2 pt-2">
-          <Button onClick={handleUpgrade} className="w-full gap-2">
-            <Crown className="w-4 h-4" />
-            Passer à Major
+          <Button onClick={handleUpgrade} disabled={isLoading} className="w-full gap-2">
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Crown className="w-4 h-4" />
+            )}
+            {isLoading ? 'Mise à niveau...' : 'Passer à Major'}
           </Button>
-          <Button variant="ghost" onClick={() => onOpenChange(false)} className="w-full">
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isLoading} className="w-full">
             Plus tard
           </Button>
         </div>

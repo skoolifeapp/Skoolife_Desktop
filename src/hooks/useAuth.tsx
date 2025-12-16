@@ -31,6 +31,7 @@ interface AuthContextType {
       }
     | null
   >;
+  refreshSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -214,6 +215,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSubscriptionTier(null);
   }, []);
 
+  const refreshSubscription = useCallback(async () => {
+    // Clear cache to force fresh data
+    if (session?.user?.id) {
+      subscriptionCache.delete(session.user.id);
+    }
+    subscriptionCheckInProgress.current = false;
+    await checkSubscription();
+  }, [session, checkSubscription]);
+
   // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({ 
     user, 
@@ -227,8 +237,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn, 
     signOut, 
     checkIsAdmin,
-    checkSubscription
-  }), [user, session, loading, isAdmin, isSubscribed, subscriptionTier, subscriptionLoading, signUp, signIn, signOut, checkIsAdmin, checkSubscription]);
+    checkSubscription,
+    refreshSubscription
+  }), [user, session, loading, isAdmin, isSubscribed, subscriptionTier, subscriptionLoading, signUp, signIn, signOut, checkIsAdmin, checkSubscription, refreshSubscription]);
 
   return (
     <AuthContext.Provider value={contextValue}>
