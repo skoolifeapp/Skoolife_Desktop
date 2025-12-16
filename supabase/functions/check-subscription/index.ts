@@ -73,12 +73,24 @@ serve(async (req) => {
 
     if (eligible) {
       subscriptionStatus = eligible.status;
-      subscriptionEnd = new Date(eligible.current_period_end * 1000).toISOString();
+
+      const endSeconds =
+        typeof eligible.current_period_end === "number" &&
+        Number.isFinite(eligible.current_period_end)
+          ? eligible.current_period_end
+          : typeof eligible.trial_end === "number" && Number.isFinite(eligible.trial_end)
+            ? eligible.trial_end
+            : null;
+
+      subscriptionEnd = endSeconds ? new Date(endSeconds * 1000).toISOString() : null;
+
       logStep("Eligible subscription found", {
         subscriptionId: eligible.id,
         status: subscriptionStatus,
+        endSeconds,
         endDate: subscriptionEnd,
       });
+
       productId = eligible.items.data[0]?.price?.product ?? null;
       logStep("Determined subscription product", { productId });
     } else {
