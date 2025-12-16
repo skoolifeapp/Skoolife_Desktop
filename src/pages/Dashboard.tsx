@@ -1061,7 +1061,7 @@ const Dashboard = () => {
                     }}
                   >
                     <Crown className="w-4 h-4 mr-2" />
-                    Passer à Premium
+                    Passer à Student
                   </Button>
                 </CardContent>
               </Card>
