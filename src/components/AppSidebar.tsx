@@ -299,7 +299,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
       )}
 
       {/* Main content */}
-      <main className="lg:ml-56 min-h-screen lg:bg-background lg:rounded-tl-3xl lg:shadow-[-8px_0_30px_-10px_rgba(0,0,0,0.1)]">
+      <main className="lg:ml-56 min-h-screen">
         {children}
       </main>
     </div>
