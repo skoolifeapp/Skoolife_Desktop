@@ -73,9 +73,11 @@ const Dashboard = () => {
   const location = useLocation();
   const isSigningOut = useRef(false);
   
-  // Check if user is free (only applies to users who signed up via invite link)
+  // Check if user is free (only applies to users who signed up via invite link AND have no subscription)
   // Regular users (signed up normally) are NOT affected even if they don't have a subscription
-  const isFreeUser = signedUpViaInvite && !subscriptionLoading && !isSubscribed;
+  // Student and Major subscribers ALWAYS have full access regardless of how they signed up
+  const hasActiveSubscription = !subscriptionLoading && isSubscribed;
+  const isFreeUser = signedUpViaInvite && !subscriptionLoading && !isSubscribed && !hasActiveSubscription;
   
   // Track user activity for analytics
   useActivityTracker();
