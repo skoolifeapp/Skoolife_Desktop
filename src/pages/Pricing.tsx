@@ -95,7 +95,8 @@ const Pricing = () => {
   };
 
   const isCurrentPlan = (planId: string): boolean => {
-    return !!user && subscriptionTier === planId;
+    // Only show "Actif" if user has a paid subscription matching this plan
+    return !!user && (subscriptionTier === 'student' || subscriptionTier === 'major') && subscriptionTier === planId;
   };
 
   const FAQ = [
