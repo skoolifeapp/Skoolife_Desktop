@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Crown, Sparkles, Calendar, CreditCard, ArrowDownCircle, XCircle, Loader2 } from "lucide-react";
+import { Crown, Sparkles, Calendar, CreditCard, ArrowDownCircle, ArrowUpCircle, XCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { SubscriptionSkeleton } from "@/components/PageSkeletons";
@@ -170,6 +170,22 @@ const Subscription = () => {
           <CardTitle className="text-lg">Gérer mon abonnement</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          {/* Upgrade button - only for Student tier */}
+          {subscriptionTier === "student" && !isCanceled && (
+            <Button
+              className="w-full justify-start bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white"
+              onClick={handleOpenPortal}
+              disabled={portalLoading}
+            >
+              {portalLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <ArrowUpCircle className="w-4 h-4 mr-2" />
+              )}
+              Passer à Major (4,99€/mois)
+            </Button>
+          )}
+
           {/* Downgrade button - only for Major tier */}
           {subscriptionTier === "major" && !isCanceled && (
             <Button
