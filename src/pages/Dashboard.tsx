@@ -1142,9 +1142,15 @@ const Dashboard = () => {
     });
   };
 
-  // Calculate actual planned hours based on session durations
+  // Calculate actual planned hours for the SELECTED WEEK only
+  const weekEnd = addDays(weekStart, 6);
   const totalPlannedHours = sessions
-    .filter(s => s.status === 'planned')
+    .filter(s => {
+      const sessionDate = parseISO(s.date);
+      return s.status === 'planned' && 
+             sessionDate >= weekStart && 
+             sessionDate <= weekEnd;
+    })
     .reduce((total, session) => {
       const [startH, startM] = session.start_time.split(':').map(Number);
       const [endH, endM] = session.end_time.split(':').map(Number);
@@ -1152,7 +1158,12 @@ const Dashboard = () => {
       return total + durationMinutes / 60;
     }, 0);
 
-  const completedSessions = sessions.filter(s => s.status === 'done').length;
+  const completedSessions = sessions.filter(s => {
+    const sessionDate = parseISO(s.date);
+    return s.status === 'done' && 
+           sessionDate >= weekStart && 
+           sessionDate <= weekEnd;
+  }).length;
 
   const upcomingExams = subjects
     .filter(s => s.exam_date && s.status !== 'archived')
