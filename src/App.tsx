@@ -24,6 +24,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const AdminStats = lazy(() => import("./pages/AdminStats"));
 const Invite = lazy(() => import("./pages/Invite"));
+const InviteAccept = lazy(() => import("./pages/InviteAccept"));
 const CancelSubscription = lazy(() => import("./pages/CancelSubscription"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -77,6 +78,7 @@ const App = () => (
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/admin/stats" element={<AdminStats />} />
                   <Route path="/invite/:token" element={<Invite />} />
+                  <Route path="/invite-accept/:token" element={<InviteAccept />} />
                   <Route path="/cancel" element={<CancelSubscription />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

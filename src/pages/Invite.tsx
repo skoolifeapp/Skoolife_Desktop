@@ -359,14 +359,13 @@ export default function Invite() {
                   Rejoins cette session gratuitement
                 </p>
                 <p className="text-xs text-center text-muted-foreground">
-                  Crée un compte gratuit pour rejoindre les sessions de révision de tes camarades. 
-                  Tu pourras voir toutes les sessions auxquelles tu es invité(e).
+                  Crée un compte gratuit pour rejoindre les sessions de révision de tes camarades.
                 </p>
               </div>
               <Link 
-                to={`/auth?redirect=/invite/${token}`}
+                to={`/auth?mode=signup&redirect=/invite-accept/${token}`}
                 onClick={() => {
-                  // Store invite token in localStorage so we can auto-accept after signup
+                  // Store invite token in localStorage as backup
                   localStorage.setItem('pending_invite_token', token || '');
                 }}
               >
@@ -377,7 +376,7 @@ export default function Invite() {
               <p className="text-xs text-center text-muted-foreground">
                 Tu as déjà un compte ?{' '}
                 <Link 
-                  to={`/auth?redirect=/invite/${token}`}
+                  to={`/auth?redirect=/invite-accept/${token}`}
                   onClick={() => {
                     localStorage.setItem('pending_invite_token', token || '');
                   }}
