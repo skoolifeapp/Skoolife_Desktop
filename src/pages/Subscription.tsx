@@ -54,34 +54,45 @@ const Subscription = () => {
     targetTier: null,
   });
 
+  const fetchSubscriptionDetails = async () => {
+    if (!session) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke("check-subscription", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!error && data) {
+        setSubscriptionData(data);
+      }
+    } catch (err) {
+      console.error("Error fetching subscription:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchSubscriptionDetails = async () => {
-      if (!session) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase.functions.invoke("check-subscription", {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-
-        if (!error && data) {
-          setSubscriptionData(data);
-        }
-      } catch (err) {
-        console.error("Error fetching subscription:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (!subscriptionLoading) {
       fetchSubscriptionDetails();
     }
   }, [session, subscriptionLoading]);
+
+  // Auto-refresh when returning from Stripe portal
+  useEffect(() => {
+    const handleFocus = async () => {
+      await checkSubscription();
+      await fetchSubscriptionDetails();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [session]);
 
   const handleOpenPortal = async () => {
     setPortalLoading(true);
@@ -98,36 +109,21 @@ const Subscription = () => {
     }
   };
 
-  const handleSwitchPlan = async (targetTier: "student" | "major") => {
+  const handleSwitchPlan = async () => {
     setSwitchLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("switch-subscription", {
-        body: { targetTier },
-      });
-
+      const { data, error } = await supabase.functions.invoke("customer-portal");
       if (error) throw error;
-
-      if (data?.success) {
-        toast.success(`Abonnement modifié avec succès !`, {
-          description: `Tu es maintenant sur le plan ${targetTier === "major" ? "Major" : "Student"}.`,
+      
+      if (data?.url) {
+        window.open(data.url, "_blank");
+        toast.info("Modifie ton abonnement sur Stripe", {
+          description: "Ton abonnement sera mis à jour automatiquement à ton retour.",
         });
-        
-        // Refresh subscription data
-        await checkSubscription();
-        
-        // Refetch subscription details
-        const { data: newData } = await supabase.functions.invoke("check-subscription", {
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-        });
-        if (newData) {
-          setSubscriptionData(newData);
-        }
       }
     } catch (err: any) {
-      console.error("Error switching plan:", err);
-      toast.error("Erreur lors du changement de plan", {
+      console.error("Error opening portal:", err);
+      toast.error("Erreur lors de l'ouverture du portail", {
         description: err.message || "Veuillez réessayer plus tard.",
       });
     } finally {
@@ -342,11 +338,11 @@ const Subscription = () => {
             <AlertDialogDescription>
               {confirmDialog.targetTier === "major" ? (
                 <>
-                  Tu vas passer au plan <strong>Major à 4,99€/mois</strong>. Le changement sera effectif immédiatement et le prorata sera calculé automatiquement.
+                  Tu vas être redirigé vers Stripe pour passer au plan <strong>Major à 4,99€/mois</strong>. Le prorata sera calculé automatiquement.
                 </>
               ) : (
                 <>
-                  Tu vas passer au plan <strong>Student à 2,99€/mois</strong>. Certaines fonctionnalités premium (invitations camarades, analytics) seront désactivées.
+                  Tu vas être redirigé vers Stripe pour passer au plan <strong>Student à 2,99€/mois</strong>. Certaines fonctionnalités premium seront désactivées.
                 </>
               )}
             </AlertDialogDescription>
@@ -354,11 +350,7 @@ const Subscription = () => {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={switchLoading}>Annuler</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                if (confirmDialog.targetTier) {
-                  handleSwitchPlan(confirmDialog.targetTier);
-                }
-              }}
+              onClick={handleSwitchPlan}
               disabled={switchLoading}
               className={confirmDialog.targetTier === "major" 
                 ? "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600" 
@@ -368,7 +360,7 @@ const Subscription = () => {
               {switchLoading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : null}
-              Confirmer
+              Continuer vers Stripe
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
