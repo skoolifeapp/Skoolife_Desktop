@@ -444,14 +444,12 @@ const Dashboard = () => {
       }
 
       // Planning algorithm
-      const totalMinutes = (profile?.weekly_revision_hours || 10) * 60;
-      const sessionsCount = Math.floor(totalMinutes / sessionDuration);
+      const weeklyGoalHours = profile?.weekly_revision_hours || 10;
 
       // Convert preferred days to day offsets for Monday-based week (1=Mon→0, ..., 6=Sam→5, 0=Dim→6)
       const workDays = preferredDays.map(d => (d === 0 ? 6 : d - 1)).sort((a, b) => a - b);
       
       const newSessions: { user_id: string; subject_id: string; date: string; start_time: string; end_time: string; status: string; notes: string | null }[] = [];
-      let sessionIndex = 0;
 
       // Sort subjects by exam proximity and weight, excluding terminated subjects
       const activeSubjects = subjects.filter(s => (s.status || 'active') === 'active');
@@ -471,8 +469,14 @@ const Dashboard = () => {
       
       // Track hours scheduled per day to respect maxHoursPerDay
       const hoursScheduledPerDay: Record<string, number> = {};
+      // Track total hours added this week (CRITICAL: never exceed weeklyGoalHours)
+      let totalHoursAddedThisWeek = 0;
+      const sessionHoursToAdd = sessionDuration / 60;
       
       for (const dayOffset of workDays) {
+        // CRITICAL: Stop if weekly goal is reached
+        if (totalHoursAddedThisWeek >= weeklyGoalHours) break;
+        
         const currentDate = addDays(weekStart, dayOffset);
         
         // Skip days before today
@@ -500,11 +504,14 @@ const Dashboard = () => {
         hoursScheduledPerDay[dateStr] = existingHoursToday;
 
         for (const slot of timeSlots) {
-          if (sessionIndex >= sessionsCount) break;
+          // CRITICAL: Stop if weekly goal is reached
+          if (totalHoursAddedThisWeek >= weeklyGoalHours) break;
           
           // Check if adding this session would exceed maxHoursPerDay
-          const sessionHoursToAdd = sessionDuration / 60;
           if ((hoursScheduledPerDay[dateStr] || 0) + sessionHoursToAdd > maxHoursPerDay) break;
+          
+          // Check if adding this session would exceed weekly goal
+          if (totalHoursAddedThisWeek + sessionHoursToAdd > weeklyGoalHours) break;
           
           // Skip slots before current time if it's today
           if (isToday && slot.start < currentTimeStr) continue;
@@ -535,11 +542,10 @@ const Dashboard = () => {
                 const examDate = parseISO(s.exam_date);
                 if (currentDate >= examDate) return false;
               }
-              // Check target_hours constraint
+              // Check target_hours constraint (ABSOLUTE PRIORITY)
               if (s.target_hours && s.target_hours > 0) {
-                const sessionHours = sessionDuration / 60;
                 const alreadyScheduled = scheduledHoursPerSubject[s.id] || 0;
-                if (alreadyScheduled + sessionHours > s.target_hours) return false;
+                if (alreadyScheduled + sessionHoursToAdd > s.target_hours) return false;
               }
               return true;
             });
@@ -547,7 +553,7 @@ const Dashboard = () => {
             if (eligibleSubjects.length === 0) continue; // No subject to assign for this day
             
             // Select subject based on weighted distribution
-            const subjectIndex = sessionIndex % eligibleSubjects.length;
+            const subjectIndex = newSessions.length % eligibleSubjects.length;
             const subject = eligibleSubjects[subjectIndex];
 
             newSessions.push({
@@ -560,11 +566,10 @@ const Dashboard = () => {
               notes: null
             });
 
-            // Track scheduled hours per day and per subject
+            // Track scheduled hours per day, per subject, and total weekly
             hoursScheduledPerDay[dateStr] = (hoursScheduledPerDay[dateStr] || 0) + sessionHoursToAdd;
             scheduledHoursPerSubject[subject.id] = (scheduledHoursPerSubject[subject.id] || 0) + sessionHoursToAdd;
-
-            sessionIndex++;
+            totalHoursAddedThisWeek += sessionHoursToAdd;
           }
         }
       }
@@ -719,11 +724,27 @@ const Dashboard = () => {
       // Convert preferred days (1=Mon..6=Sat, 0=Sun) to day offsets for Monday-based week
       const workDays = preferredDays.map(d => (d === 0 ? 6 : d - 1)).sort((a, b) => a - b);
       
+      // Weekly goal from profile (CRITICAL: never exceed this)
+      const weeklyGoalHours = profile?.weekly_revision_hours || 10;
+      
+      // Calculate hours already scheduled this week (from existing sessions)
+      const existingWeeklyHours = weekSessions.reduce((acc, s) => {
+        const [sh, sm] = s.start_time.split(':').map(Number);
+        const [eh, em] = s.end_time.split(':').map(Number);
+        return acc + ((eh * 60 + em) - (sh * 60 + sm)) / 60;
+      }, 0);
+      
       // Find available slots for each day
       const newSessions: { user_id: string; subject_id: string; date: string; start_time: string; end_time: string; status: string; notes: string | null }[] = [];
       let subjectIndex = 0;
+      // Track total hours added this week (CRITICAL: never exceed weeklyGoalHours)
+      let totalHoursAddedThisWeek = existingWeeklyHours;
+      const sessionHoursToAdd = sessionDuration / 60;
 
       for (const dayOffset of workDays) {
+        // CRITICAL: Stop if weekly goal is reached
+        if (totalHoursAddedThisWeek >= weeklyGoalHours) break;
+        
         const currentDate = addDays(weekStart, dayOffset);
         
         // Skip past days
@@ -796,8 +817,13 @@ const Dashboard = () => {
         const maxToAddToday = maxHoursPerDay - hoursScheduledToday;
 
         for (const slot of freeSlots) {
+          // CRITICAL: Stop if weekly goal is reached
+          if (totalHoursAddedThisWeek >= weeklyGoalHours) break;
           if (hoursAddedToday >= maxToAddToday) break;
           if (subjectsNeedingHours.length === 0) break;
+          
+          // Check if adding this session would exceed weekly goal
+          if (totalHoursAddedThisWeek + sessionHoursToAdd > weeklyGoalHours) break;
 
           const slotDuration = slot.end - slot.start;
           if (slotDuration < sessionDuration) continue;
@@ -812,8 +838,7 @@ const Dashboard = () => {
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
           };
 
-          // Filter subjects whose exam is after this date AND still have remaining hours to schedule
-          const sessionHoursToAdd = sessionDuration / 60;
+          // Filter subjects whose exam is after this date AND still have remaining hours to schedule (ABSOLUTE PRIORITY)
           const eligibleSubjects = subjectsNeedingHours.filter(s => {
             if (!s.exam_date) return s.remaining > 0;
             const examDate = parseISO(s.exam_date);
@@ -839,6 +864,7 @@ const Dashboard = () => {
           });
 
           hoursAddedToday += sessionHoursToAdd;
+          totalHoursAddedThisWeek += sessionHoursToAdd;
           // Track hours added per subject to respect target_hours
           hoursPerSubject[subject.id] = (hoursPerSubject[subject.id] || 0) + sessionHoursToAdd;
           subjectIndex++;
