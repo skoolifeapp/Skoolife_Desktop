@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, Loader2, ArrowRight, Crown, GraduationCap, X, Star, Zap, Shield, Clock, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { PublicHeader } from '@/components/PublicHeader';
 import logo from '@/assets/logo.png';
 
 const PLANS = [
@@ -107,20 +108,16 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Minimal Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50">
-        <nav className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src={logo} alt="Skoolife" className="w-9 h-9 rounded-xl" />
-            <span className="text-lg font-bold font-heading">Skoolife</span>
-          </Link>
+      <PublicHeader 
+        showBack 
+        rightContent={
           <Link to="/auth">
             <Button variant="ghost" size="sm">
               J'ai déjà un compte
             </Button>
           </Link>
-        </nav>
-      </header>
+        }
+      />
 
       <main className="max-w-5xl mx-auto px-4 py-12 md:py-20">
         {/* Hero Section */}

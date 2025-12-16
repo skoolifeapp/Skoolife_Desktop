@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Clock, User, BookOpen, CheckCircle, XCircle, Loader2, MapPin, Video, ExternalLink } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import logo from '@/assets/logo.png';
+import { PublicHeader } from '@/components/PublicHeader';
 
 interface InviteData {
   id: string;
@@ -266,10 +266,11 @@ export default function Invite() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background">
+      <PublicHeader showBack />
+      <div className="flex items-center justify-center p-4 pt-8">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center pb-2">
-          <img src={logo} alt="Skoolife" className="h-10 mx-auto mb-4" />
           <CardTitle className="text-2xl">Invitation à réviser</CardTitle>
         </CardHeader>
         
@@ -394,6 +395,7 @@ export default function Invite() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

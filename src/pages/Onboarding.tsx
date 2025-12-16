@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { User, Loader2, CheckCircle2 } from 'lucide-react';
-import logo from '@/assets/logo.png';
+import { PublicHeader } from '@/components/PublicHeader';
 
 const LEVELS = [
   'Lycée - Seconde',
@@ -210,13 +210,7 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="p-6">
-        <Link to="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
-          <span className="text-xl font-bold text-foreground">Skoolife</span>
-        </Link>
-      </header>
+      <PublicHeader showBack />
 
       <main className="max-w-2xl mx-auto px-4 pb-20">
         {/* About you */}
