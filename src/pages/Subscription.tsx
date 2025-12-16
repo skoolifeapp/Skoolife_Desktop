@@ -48,6 +48,7 @@ const Subscription = () => {
     cancel_at_period_end?: boolean;
   } | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [reactivateLoading, setReactivateLoading] = useState(false);
   const [switchLoading, setSwitchLoading] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; targetTier: "student" | "major" | null }>({
     open: false,
@@ -106,6 +107,21 @@ const Subscription = () => {
       console.error("Error opening customer portal:", err);
     } finally {
       setPortalLoading(false);
+    }
+  };
+
+  const handleReactivate = async () => {
+    setReactivateLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal");
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (err) {
+      console.error("Error opening customer portal:", err);
+    } finally {
+      setReactivateLoading(false);
     }
   };
 
@@ -315,8 +331,8 @@ const Subscription = () => {
 
             {/* Reactivate button if canceled */}
             {isCanceled && (
-              <Button className="w-full" onClick={handleOpenPortal} disabled={portalLoading}>
-                {portalLoading ? (
+              <Button className="w-full" onClick={handleReactivate} disabled={reactivateLoading}>
+                {reactivateLoading ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <Check className="w-4 h-4 mr-2" />
