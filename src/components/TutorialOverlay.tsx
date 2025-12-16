@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Upload, Plus, GraduationCap, Sparkles } from "lucide-react";
+import { ArrowRight, Upload, GraduationCap, Sparkles } from "lucide-react";
 
 interface TutorialStep {
   title: string;
@@ -18,15 +18,9 @@ const tutorialSteps: TutorialStep[] = [
     icon: <Upload className="w-6 h-6 text-primary" />,
   },
   {
-    title: "Ajouter vos évènements",
-    description: "Ajoutez vos activités personnelles, travail ou autres engagements pour que le planning les prenne en compte.",
-    targetId: "add-event-btn",
-    icon: <Plus className="w-6 h-6 text-primary" />,
-  },
-  {
     title: "Configurer vos matières",
     description: "Ajoutez vos matières avec leurs dates d'examen et leur importance pour prioriser vos révisions.",
-    targetId: "manage-subjects-btn",
+    targetId: "sidebar-matieres-link",
     icon: <GraduationCap className="w-6 h-6 text-primary" />,
   },
   {

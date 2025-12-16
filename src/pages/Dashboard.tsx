@@ -1281,28 +1281,6 @@ const Dashboard = () => {
                   )}
                   {adjusting ? 'Ajustement...' : 'Ajuster ma semaine'}
                 </Button>
-                <Button 
-                  id="import-calendar-btn"
-                  variant="outline" 
-                  size="lg" 
-                  className="w-full"
-                  onClick={() => setImportDialogOpen(true)}
-                >
-                  <Upload className="w-4 h-4" />
-                  Importer calendrier (.ics)
-                </Button>
-                <Button 
-                  id="manage-subjects-btn"
-                  variant="outline" 
-                  size="lg" 
-                  className="w-full"
-                  asChild
-                >
-                  <Link to="/subjects">
-                    <GraduationCap className="w-4 h-4" />
-                    Gérer mes matières
-                  </Link>
-                </Button>
               </div>
             )}
           </aside>
@@ -1325,6 +1303,16 @@ const Dashboard = () => {
                     >
                       <Plus className="w-4 h-4" />
                       Ajouter un évènement
+                    </Button>
+                    <Button 
+                      id="import-calendar-btn"
+                      variant="outline" 
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => setImportDialogOpen(true)}
+                      title="Importer calendrier (.ics)"
+                    >
+                      <Upload className="w-4 h-4" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
