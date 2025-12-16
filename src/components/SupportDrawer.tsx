@@ -236,10 +236,6 @@ const SupportDrawer = ({ open, onOpenChange, onShowTutorial }: SupportDrawerProp
       question: 'Comment modifier ou déplacer un événement ?',
       answer: "Clique sur n'importe quel événement ou session dans la grille pour ouvrir ses options. Tu peux aussi glisser-déposer pour changer l'horaire, ou utiliser les poignées en haut/bas pour redimensionner.",
     },
-    {
-      question: "Que fait le bouton 'Générer mon planning' ?",
-      answer: "'Générer mon planning' supprime les sessions de révision existantes de la semaine et en crée de nouvelles en fonction de tes matières, préférences et créneaux disponibles.",
-    },
   ];
 
   // Render conversation view
