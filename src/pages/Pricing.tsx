@@ -4,7 +4,7 @@ import { useAuth, STRIPE_PRODUCTS } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Loader2, ArrowRight, Crown, GraduationCap, Sparkles, Shield, Zap, Users } from 'lucide-react';
+import { Check, Loader2, ArrowRight, Crown, GraduationCap, X, Star, Zap, Shield, Clock, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import logo from '@/assets/logo.png';
 
@@ -14,15 +14,14 @@ const PLANS = [
     name: 'Student',
     price: '2,99',
     period: '/mois',
-    tagline: 'Pour bien démarrer',
-    description: 'Toutes les bases pour organiser tes révisions efficacement.',
+    yearlyPrice: '29,90',
     icon: GraduationCap,
     features: [
-      { text: 'Planning de révisions IA', highlight: true },
-      { text: 'Import calendrier .ics', highlight: false },
-      { text: 'Gestion des matières', highlight: false },
-      { text: 'Préférences personnalisées', highlight: false },
-      { text: 'Ajustement intelligent', highlight: false },
+      'Planning de révisions intelligent',
+      'Import calendrier .ics',
+      'Gestion des matières & examens',
+      'Préférences personnalisées',
+      'Ajustement automatique',
     ],
     notIncluded: [
       'Suivi de progression',
@@ -31,37 +30,40 @@ const PLANS = [
     ],
     priceId: STRIPE_PRODUCTS.student.price_id,
     highlight: false,
-    gradient: 'from-secondary via-card to-card',
   },
   {
     id: 'major' as const,
     name: 'Major',
     price: '4,99',
     period: '/mois',
-    tagline: 'L\'expérience complète',
-    description: 'Accès illimité à toutes les fonctionnalités Skoolife.',
+    yearlyPrice: '49,90',
     icon: Crown,
     features: [
-      { text: 'Tout de Student, plus :', highlight: true },
-      { text: 'Suivi de progression détaillé', highlight: true },
-      { text: 'Inviter des camarades', highlight: true },
-      { text: 'Révisions en visio intégrées', highlight: true },
-      { text: 'Statistiques avancées', highlight: false },
+      'Tout de Student inclus',
+      'Suivi de progression complet',
+      'Statistiques détaillées',
+      'Inviter des camarades',
+      'Révisions en visio intégrées',
     ],
     notIncluded: [],
     priceId: STRIPE_PRODUCTS.major.price_id,
     highlight: true,
-    gradient: 'from-primary/20 via-card to-card',
   },
+];
+
+const TESTIMONIALS = [
+  { name: 'Marie L.', school: 'Sciences Po', text: 'J\'ai enfin un planning qui s\'adapte à mes cours !', rating: 5 },
+  { name: 'Thomas B.', school: 'ESSEC', text: 'Fini le stress des révisions de dernière minute.', rating: 5 },
+  { name: 'Léa M.', school: 'Médecine P6', text: 'Indispensable pour gérer mes 12 UE.', rating: 5 },
 ];
 
 const Pricing = () => {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-  const { user, subscriptionTier, subscriptionLoading } = useAuth();
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { user, subscriptionTier } = useAuth();
   const navigate = useNavigate();
 
   const handleSubscribe = async (priceId: string, planId: string) => {
-    // User must be logged in to subscribe
     if (!user) {
       navigate('/auth?mode=signup');
       return;
@@ -96,56 +98,75 @@ const Pricing = () => {
     return !!user && subscriptionTier === planId;
   };
 
-  return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse-soft" />
-        <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse-soft delay-1000" />
-      </div>
+  const FAQ = [
+    { q: 'Puis-je annuler à tout moment ?', a: 'Oui, sans engagement. Tu peux annuler en 2 clics depuis ton espace.' },
+    { q: 'Y a-t-il un essai gratuit ?', a: 'Oui ! 7 jours d\'essai gratuit sur tous les plans, sans CB au départ.' },
+    { q: 'Comment fonctionne le planning IA ?', a: 'L\'algorithme analyse tes examens, tes disponibilités et génère un planning optimal automatiquement.' },
+  ];
 
-      {/* Header */}
-      <header className="relative z-10 p-6 bg-background/80 backdrop-blur-md border-b border-border">
-        <nav className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl shadow-glow" />
-            <span className="text-xl font-bold text-foreground font-heading">Skoolife</span>
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Minimal Header */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50">
+        <nav className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5">
+            <img src={logo} alt="Skoolife" className="w-9 h-9 rounded-xl" />
+            <span className="text-lg font-bold font-heading">Skoolife</span>
           </Link>
           {user ? (
-            <Button variant="outline" size="sm" onClick={() => navigate('/app')}>
-              Retour au dashboard
+            <Button variant="ghost" size="sm" onClick={() => navigate('/app')}>
+              Mon dashboard
             </Button>
           ) : (
             <Link to="/auth">
-              <Button variant="outline" size="sm">
-                J'ai déjà un compte
+              <Button variant="ghost" size="sm">
+                Connexion
               </Button>
             </Link>
           )}
         </nav>
       </header>
 
-      {/* Main content */}
-      <main className="relative z-10 max-w-6xl mx-auto px-4 py-16">
-        {/* Hero */}
-        <div className="text-center mb-16 animate-slide-up">
-          <Badge className="mb-6 px-4 py-2 bg-primary/10 text-primary border-primary/20 text-sm font-medium">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Essai gratuit de 7 jours
-          </Badge>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 font-heading">
-            Un investissement pour ta
+      <main className="max-w-5xl mx-auto px-4 py-12 md:py-20">
+        {/* Hero Section */}
+        <div className="text-center mb-12 md:mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+            <Zap className="w-4 h-4" />
+            7 jours d'essai gratuit
+          </div>
+          
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold font-heading mb-4 leading-tight">
+            Arrête de subir tes révisions.
             <br />
-            <span className="gradient-text-animated">réussite académique</span>
+            <span className="text-primary">Organise-les.</span>
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Moins cher qu'un café par semaine, plus efficace qu'un cours particulier.
+          
+          <p className="text-muted-foreground text-lg md:text-xl max-w-xl mx-auto">
+            Le prix d'un kebab par mois pour ne plus jamais stresser avant un exam.
           </p>
         </div>
 
-        {/* Pricing cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
-          {PLANS.map((plan, index) => {
+        {/* Social Proof Bar */}
+        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 mb-12 md:mb-16 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <div className="flex -space-x-2">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/60 to-primary border-2 border-background" />
+              ))}
+            </div>
+            <span className="ml-2 font-medium text-foreground">500+ étudiants</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-4 h-4 fill-primary text-primary" />
+            ))}
+            <span className="ml-1 font-medium text-foreground">4.9/5</span>
+          </div>
+        </div>
+
+        {/* Pricing Cards */}
+        <div className="grid md:grid-cols-2 gap-6 md:gap-8 mb-16 md:mb-20">
+          {PLANS.map((plan) => {
             const Icon = plan.icon;
             const isCurrent = isCurrentPlan(plan.id);
 
@@ -153,65 +174,53 @@ const Pricing = () => {
               <div 
                 key={plan.id}
                 className={`
-                  relative group rounded-3xl overflow-hidden transition-all duration-500
+                  relative rounded-2xl border-2 transition-all duration-300
                   ${plan.highlight 
-                    ? 'shadow-2xl shadow-primary/20 scale-[1.02] hover:scale-[1.04]' 
-                    : 'shadow-xl hover:shadow-2xl hover:scale-[1.02]'
+                    ? 'border-primary bg-primary/[0.03] shadow-xl shadow-primary/10' 
+                    : 'border-border bg-card hover:border-primary/50'
                   }
-                  animate-slide-up
                 `}
-                style={{ animationDelay: `${index * 100}ms` }}
               >
-                {/* Background gradient */}
-                <div className={`absolute inset-0 bg-gradient-to-b ${plan.gradient}`} />
-                
-                {/* Popular badge */}
                 {plan.highlight && (
-                  <div className="absolute -top-px left-0 right-0 h-1.5 bg-gradient-to-r from-primary via-accent to-primary" />
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-primary text-primary-foreground shadow-lg px-4 py-1">
+                      <Star className="w-3 h-3 mr-1 fill-current" />
+                      Recommandé
+                    </Badge>
+                  </div>
                 )}
 
-                <div className="relative p-8 md:p-10">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className={`
-                        w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300
-                        ${plan.highlight 
-                          ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' 
-                          : 'bg-secondary text-foreground group-hover:bg-primary/10'
-                        }
-                      `}>
-                        <Icon className="w-7 h-7" />
-                      </div>
-                      <div>
-                        <h3 className="text-2xl font-bold text-foreground font-heading">{plan.name}</h3>
-                        <p className="text-sm text-muted-foreground">{plan.tagline}</p>
-                      </div>
+                <div className="p-6 md:p-8">
+                  {/* Plan Header */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`
+                      w-11 h-11 rounded-xl flex items-center justify-center
+                      ${plan.highlight ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'}
+                    `}>
+                      <Icon className="w-5 h-5" />
                     </div>
-                    {plan.highlight && (
-                      <Badge className="bg-primary text-primary-foreground border-0 font-medium">
-                        Populaire
-                      </Badge>
-                    )}
+                    <div>
+                      <h3 className="text-xl font-bold font-heading">{plan.name}</h3>
+                    </div>
                   </div>
 
                   {/* Price */}
                   <div className="mb-6">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-5xl md:text-6xl font-bold text-foreground font-heading">
-                        {plan.price}€
-                      </span>
-                      <span className="text-lg text-muted-foreground">{plan.period}</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl md:text-5xl font-bold font-heading">{plan.price}€</span>
+                      <span className="text-muted-foreground">{plan.period}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">{plan.description}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      soit {plan.yearlyPrice}€/an • Annulable à tout moment
+                    </p>
                   </div>
 
-                  {/* CTA Button */}
+                  {/* CTA */}
                   <Button
                     className={`
-                      w-full h-14 text-base font-semibold rounded-2xl transition-all duration-300
+                      w-full h-12 font-semibold rounded-xl mb-6
                       ${plan.highlight 
-                        ? 'bg-primary hover:bg-accent text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30' 
+                        ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
                         : 'bg-foreground hover:bg-foreground/90 text-background'
                       }
                     `}
@@ -219,45 +228,34 @@ const Pricing = () => {
                     onClick={() => handleSubscribe(plan.priceId, plan.id)}
                   >
                     {loadingPlan === plan.id ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Chargement...
-                      </>
+                      <Loader2 className="w-5 h-5 animate-spin" />
                     ) : isCurrent ? (
                       <>
                         <Check className="w-5 h-5 mr-2" />
-                        Abonnement actif
+                        Actif
                       </>
                     ) : (
                       <>
-                        Choisir {plan.name}
-                        <ArrowRight className="w-5 h-5 ml-2" />
+                        Commencer gratuitement
+                        <ArrowRight className="w-4 h-4 ml-2" />
                       </>
                     )}
                   </Button>
 
                   {/* Features */}
-                  <div className="mt-8 space-y-4">
+                  <div className="space-y-3">
                     {plan.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-3">
-                        <div className={`
-                          w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5
-                          ${feature.highlight 
-                            ? 'bg-primary/20 text-primary' 
-                            : 'bg-muted text-muted-foreground'
-                          }
-                        `}>
-                          <Check className="w-3.5 h-3.5" />
+                      <div key={idx} className="flex items-center gap-3">
+                        <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-3 h-3 text-primary" />
                         </div>
-                        <span className={`text-sm ${feature.highlight ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                          {feature.text}
-                        </span>
+                        <span className="text-sm text-foreground">{feature}</span>
                       </div>
                     ))}
                     {plan.notIncluded.map((feature, idx) => (
-                      <div key={idx} className="flex items-start gap-3 opacity-40">
-                        <div className="w-6 h-6 rounded-full bg-muted/50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <span className="text-xs text-muted-foreground">—</span>
+                      <div key={idx} className="flex items-center gap-3 opacity-50">
+                        <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                          <X className="w-3 h-3 text-muted-foreground" />
                         </div>
                         <span className="text-sm text-muted-foreground">{feature}</span>
                       </div>
@@ -269,80 +267,123 @@ const Pricing = () => {
           })}
         </div>
 
-        {/* Free invite info */}
+        {/* Free invite alert */}
         {subscriptionTier === 'free_invite' && (
-          <div className="mb-16 p-6 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 max-w-2xl mx-auto text-center">
-            <p className="text-amber-700 dark:text-amber-300 font-medium">
-              🎓 Tu as un compte gratuit d'invité. Abonne-toi pour débloquer tout Skoolife !
+          <div className="mb-12 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
+            <p className="text-amber-700 dark:text-amber-300 text-sm font-medium">
+              Tu as un compte invité gratuit — Abonne-toi pour tout débloquer !
             </p>
           </div>
         )}
 
-        {/* Trust badges */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto mb-16">
-          <TrustBadge 
-            icon={<Shield className="w-5 h-5" />}
-            title="Paiement sécurisé"
-            description="Chiffré par Stripe"
-          />
-          <TrustBadge 
-            icon={<Zap className="w-5 h-5" />}
-            title="Annule quand tu veux"
-            description="Sans engagement"
-          />
-          <TrustBadge 
-            icon={<Users className="w-5 h-5" />}
-            title="Support réactif"
-            description="On répond vite"
-          />
+        {/* Testimonials */}
+        <div className="mb-16 md:mb-20">
+          <h2 className="text-xl md:text-2xl font-bold font-heading text-center mb-8">
+            Ce qu'en disent les étudiants
+          </h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            {TESTIMONIALS.map((t, i) => (
+              <div key={i} className="p-5 rounded-xl bg-card border border-border">
+                <div className="flex gap-0.5 mb-3">
+                  {[...Array(t.rating)].map((_, j) => (
+                    <Star key={j} className="w-4 h-4 fill-primary text-primary" />
+                  ))}
+                </div>
+                <p className="text-sm text-foreground mb-3">"{t.text}"</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+                    {t.name[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{t.name}</p>
+                    <p className="text-xs text-muted-foreground">{t.school}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Trust Badges */}
+        <div className="flex flex-wrap justify-center gap-6 md:gap-10 mb-16 md:mb-20 text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Shield className="w-5 h-5 text-primary" />
+            <span>Paiement sécurisé</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Clock className="w-5 h-5 text-primary" />
+            <span>Annulation en 2 clics</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Zap className="w-5 h-5 text-primary" />
+            <span>Support 24h</span>
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div className="max-w-2xl mx-auto mb-16">
+          <h2 className="text-xl md:text-2xl font-bold font-heading text-center mb-8">
+            Questions fréquentes
+          </h2>
+          <div className="space-y-3">
+            {FAQ.map((item, i) => (
+              <div 
+                key={i}
+                className="border border-border rounded-xl overflow-hidden"
+              >
+                <button
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-muted/50 transition-colors"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                >
+                  <span className="font-medium">{item.q}</span>
+                  <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
+                </button>
+                {openFaq === i && (
+                  <div className="px-4 pb-4 text-sm text-muted-foreground">
+                    {item.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Final CTA */}
-        <div className="text-center py-12 px-8 rounded-3xl bg-gradient-to-br from-primary/5 via-transparent to-accent/5 border border-border">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 font-heading">
-            Une question ?
+        <div className="text-center py-10 px-6 rounded-2xl bg-gradient-to-b from-primary/10 to-transparent border border-primary/20">
+          <h2 className="text-2xl md:text-3xl font-bold font-heading mb-3">
+            Prêt à réussir tes exams ?
           </h2>
           <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            Contacte-nous sur WhatsApp, on te répond en moins de 24h.
+            Rejoins les centaines d'étudiants qui ont repris le contrôle de leurs révisions.
           </p>
           <Button 
-            variant="outline" 
             size="lg"
-            className="rounded-2xl"
-            onClick={() => window.open('https://chat.whatsapp.com/KZaZ5cmGBoM60V5Qmqned5?mode=hqrc', '_blank')}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl px-8 font-semibold"
+            onClick={() => !user ? navigate('/auth?mode=signup') : handleSubscribe(STRIPE_PRODUCTS.major.price_id, 'major')}
           >
-            Rejoindre la communauté
+            Commencer gratuitement
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
+          <p className="text-xs text-muted-foreground mt-3">
+            7 jours gratuits • Sans engagement
+          </p>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-border bg-card/50">
-        <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src={logo} alt="Skoolife" className="w-8 h-8 rounded-lg" />
-            <span className="font-bold font-heading">Skoolife</span>
+      <footer className="border-t border-border">
+        <div className="max-w-5xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="Skoolife" className="w-7 h-7 rounded-lg" />
+            <span className="font-bold text-sm font-heading">Skoolife</span>
           </Link>
-          <p className="text-sm text-muted-foreground">
-            © 2025 Skoolife. Fait avec ❤️ pour les étudiants.
+          <p className="text-xs text-muted-foreground">
+            © 2025 Skoolife
           </p>
         </div>
       </footer>
     </div>
   );
 };
-
-const TrustBadge = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => (
-  <div className="flex items-center gap-4 p-4 rounded-2xl bg-card border border-border">
-    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-      {icon}
-    </div>
-    <div>
-      <p className="font-semibold text-foreground text-sm">{title}</p>
-      <p className="text-xs text-muted-foreground">{description}</p>
-    </div>
-  </div>
-);
 
 export default Pricing;
