@@ -30,7 +30,7 @@ export const UpgradeDialog = ({ open, onOpenChange, featureName }: UpgradeDialog
           <div className="mx-auto mb-4 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
             <Crown className="w-6 h-6 text-primary" />
           </div>
-          <DialogTitle className="text-xl">
+          <DialogTitle className="text-xl text-center">
             Passe à Major pour débloquer {featureName || 'cette fonctionnalité'}
           </DialogTitle>
           <DialogDescription className="text-center pt-2">
