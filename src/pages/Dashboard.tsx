@@ -1139,8 +1139,8 @@ const Dashboard = () => {
               <>
                 <Button 
                   id="add-event-btn"
-                  variant="outline" 
                   size="sm"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                   onClick={() => setAddEventDialogOpen(true)}
                 >
                   <Plus className="w-4 h-4" />
