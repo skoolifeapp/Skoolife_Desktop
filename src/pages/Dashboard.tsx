@@ -73,6 +73,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isSigningOut = useRef(false);
+  const inviteDialogShownRef = useRef(false);
   
   // Check if user is free (only applies to users who signed up via invite link AND have no subscription)
   // Regular users (signed up normally) are NOT affected even if they don't have a subscription
@@ -97,6 +98,32 @@ const Dashboard = () => {
     setWeekStart(startOfWeek(parsed, { weekStartsOn: 1 }));
   }, [location.search]);
 
+  // If redirected from an invite accept flow, auto-open the confirm/decline dialog
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const invitedSessionId = params.get('invitedSession');
+    if (!invitedSessionId) return;
+    if (inviteDialogShownRef.current) return;
+    if (loading) return;
+
+    const sessionToPrompt = sessions.find((s) => s.id === invitedSessionId && (s as any).isInvitedSession);
+    if (!sessionToPrompt) return;
+
+    inviteDialogShownRef.current = true;
+    setSelectedInvitedSession(sessionToPrompt);
+    setInvitedSessionDialogOpen(true);
+
+    // Clean URL so it doesn't reopen on refresh
+    params.delete('invitedSession');
+    const nextSearch = params.toString();
+    navigate(
+      {
+        pathname: location.pathname,
+        search: nextSearch ? `?${nextSearch}` : '',
+      },
+      { replace: true }
+    );
+  }, [location.search, location.pathname, loading, sessions, navigate]);
   useEffect(() => {
     if (isSigningOut.current) return;
     

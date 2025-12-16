@@ -153,8 +153,15 @@ const Onboarding = () => {
         .eq('id', user.id)
         .maybeSingle();
 
+      const pendingInviteToken = localStorage.getItem('pending_invite_token');
+
       if (data?.is_onboarding_complete) {
-        navigate('/app');
+        // If user came from an invite flow, continue it instead of sending them to /app
+        if (pendingInviteToken) {
+          navigate(`/invite/${pendingInviteToken}`);
+        } else {
+          navigate('/app');
+        }
       } else if (data?.first_name) {
         setFirstName(data.first_name);
         setLastName(data.last_name || '');
@@ -194,7 +201,12 @@ const Onboarding = () => {
 
       if (profileError) throw profileError;
 
-      navigate('/app');
+      const pendingInviteToken = localStorage.getItem('pending_invite_token');
+      if (pendingInviteToken) {
+        navigate(`/invite/${pendingInviteToken}`);
+      } else {
+        navigate('/app');
+      }
     } catch (err) {
       console.error(err);
       toast.error('Une erreur est survenue');

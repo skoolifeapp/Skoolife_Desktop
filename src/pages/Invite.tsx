@@ -148,7 +148,7 @@ export default function Invite() {
         // Already accepted
         setAccepted(true);
         setTimeout(() => {
-          navigate(`/app?week=${inviteData.session.date}`);
+          navigate(`/app?week=${inviteData.session.date}&invitedSession=${inviteData.session.id}`);
         }, 800);
         return;
       }
@@ -183,7 +183,7 @@ export default function Invite() {
 
       // Redirect to dashboard on the week of this session
       setTimeout(() => {
-        navigate(`/app?week=${inviteData.session.date}`);
+        navigate(`/app?week=${inviteData.session.date}&invitedSession=${inviteData.session.id}`);
       }, 800);
     } catch (err) {
       console.error('Error accepting invite:', err);
