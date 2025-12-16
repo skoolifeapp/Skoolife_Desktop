@@ -1,15 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
-import { supabase } from '@/integrations/supabase/client';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard, Loader2 } from 'lucide-react';
+import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
 const NAV_ITEMS = [
   { path: '/app', label: 'Dashboard', icon: Home, requiresSubscription: false },
@@ -24,28 +23,13 @@ interface AppSidebarProps {
 
 export const AppSidebar = ({ children }: AppSidebarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [portalLoading, setPortalLoading] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, subscriptionTier, subscriptionLoading, isSubscribed } = useAuth();
   const { isInviteFreeUser } = useInviteFreeUser();
 
-  const handleOpenPortal = async () => {
-    setPortalLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (err: any) {
-      console.error('Portal error:', err);
-      toast.error('Impossible d\'ouvrir le portail de gestion');
-    } finally {
-      setPortalLoading(false);
-    }
+  const handleManageSubscription = () => {
+    navigate('/cancel');
   };
 
   const handleSignOut = async () => {
@@ -190,14 +174,9 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
               variant="outline"
               size="sm"
               className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground text-xs"
-              onClick={handleOpenPortal}
-              disabled={portalLoading}
+              onClick={handleManageSubscription}
             >
-              {portalLoading ? (
-                <Loader2 className="w-4 h-4 shrink-0 animate-spin" />
-              ) : (
-                <CreditCard className="w-4 h-4 shrink-0" />
-              )}
+              <CreditCard className="w-4 h-4 shrink-0" />
               <span className="truncate">Gérer mon abonnement</span>
             </Button>
           )}
@@ -262,15 +241,10 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
                 className="w-full justify-start gap-3 px-4 py-4 text-muted-foreground hover:text-foreground"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  handleOpenPortal();
+                  handleManageSubscription();
                 }}
-                disabled={portalLoading}
               >
-                {portalLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <CreditCard className="w-5 h-5" />
-                )}
+                <CreditCard className="w-5 h-5" />
                 <span className="text-lg">Gérer mon abonnement</span>
               </Button>
             )}

@@ -58,21 +58,37 @@ serve(async (req) => {
     logStep("Found Stripe customer", { customerId });
 
     // Include trialing subscriptions for the 7-day free trial
+    // Also include canceled subscriptions that are still within their paid period
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "all",
       limit: 10,
     });
 
-    const eligible = subscriptions.data.find((s: Stripe.Subscription) => s.status === "active" || s.status === "trialing");
+    // Find eligible subscription: active, trialing, OR canceled but still within period
+    const now = Math.floor(Date.now() / 1000);
+    const eligible = subscriptions.data.find((s: Stripe.Subscription) => {
+      // Active or trialing = eligible
+      if (s.status === "active" || s.status === "trialing") {
+        return true;
+      }
+      // Canceled but still within paid period = eligible
+      if (s.status === "canceled" && s.current_period_end && s.current_period_end > now) {
+        return true;
+      }
+      return false;
+    });
+
     const isEligible = Boolean(eligible);
 
     let productId = null;
     let subscriptionEnd = null;
     let subscriptionStatus = null;
+    let cancelAtPeriodEnd = false;
 
     if (eligible) {
       subscriptionStatus = eligible.status;
+      cancelAtPeriodEnd = eligible.cancel_at_period_end || eligible.status === "canceled";
 
       const endSeconds =
         typeof eligible.current_period_end === "number" &&
@@ -87,6 +103,7 @@ serve(async (req) => {
       logStep("Eligible subscription found", {
         subscriptionId: eligible.id,
         status: subscriptionStatus,
+        cancelAtPeriodEnd,
         endSeconds,
         endDate: subscriptionEnd,
       });
@@ -105,6 +122,7 @@ serve(async (req) => {
         product_id: productId,
         subscription_end: subscriptionEnd,
         subscription_status: subscriptionStatus,
+        cancel_at_period_end: cancelAtPeriodEnd,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
