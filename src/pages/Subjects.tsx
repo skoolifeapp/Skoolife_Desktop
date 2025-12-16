@@ -15,7 +15,6 @@ import type { Subject } from '@/types/planning';
 import SubjectDrawer from '@/components/SubjectDrawer';
 import { SubjectsTutorialOverlay } from '@/components/SubjectsTutorialOverlay';
 import SupportButton from '@/components/SupportButton';
-import AppSidebar from '@/components/AppSidebar';
 
 const Subjects = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -174,7 +173,7 @@ const Subjects = () => {
   }
 
   return (
-    <AppSidebar>
+    <>
       {/* Tutorial */}
       {showTutorial && (
         <SubjectsTutorialOverlay 
@@ -426,7 +425,7 @@ const Subjects = () => {
 
       {/* Support Button */}
       <SupportButton />
-    </AppSidebar>
+    </>
   );
 };
 

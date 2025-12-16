@@ -35,7 +35,7 @@ import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 import { SessionStatusDialog } from '@/components/SessionStatusDialog';
 import { InvitedSessionDialog } from '@/components/InvitedSessionDialog';
 import SupportButton from '@/components/SupportButton';
-import AppSidebar from '@/components/AppSidebar';
+
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
 const Dashboard = () => {
@@ -1130,7 +1130,7 @@ const Dashboard = () => {
   }
 
   return (
-    <AppSidebar>
+    <>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header with week title and actions */}
         <div className="flex items-center justify-between mb-6">
@@ -1505,7 +1505,7 @@ const Dashboard = () => {
           setShowTutorial(true);
         }}
       />
-    </AppSidebar>
+    </>
   );
 };
 

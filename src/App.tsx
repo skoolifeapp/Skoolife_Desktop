@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { PresenceProvider } from "@/components/PresenceProvider";
+import { AppLayout } from "@/components/AppLayout";
 
 // Lazy load all pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -61,11 +62,16 @@ const App = () => (
                   <Route path="/pricing" element={<Pricing />} />
                   <Route path="/post-checkout" element={<PostCheckout />} />
                   <Route path="/onboarding" element={<Onboarding />} />
-                  <Route path="/app" element={<Dashboard />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/progression" element={<Progression />} />
-                  <Route path="/subjects" element={<Subjects />} />
-                  <Route path="/profile" element={<Profile />} />
+                  
+                  {/* App routes with persistent sidebar */}
+                  <Route element={<AppLayout />}>
+                    <Route path="/app" element={<Dashboard />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/progression" element={<Progression />} />
+                    <Route path="/subjects" element={<Subjects />} />
+                    <Route path="/profile" element={<Profile />} />
+                  </Route>
+                  
                   <Route path="/admin" element={<Admin />} />
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/admin/stats" element={<AdminStats />} />

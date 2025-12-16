@@ -31,7 +31,6 @@ import { toast } from 'sonner';
 import { Clock, Loader2, RotateCcw, Settings as SettingsIcon } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import SupportButton from '@/components/SupportButton';
-import AppSidebar from '@/components/AppSidebar';
 
 const DAYS_OF_WEEK = [
   { value: 1, label: 'Lun' },
@@ -205,8 +204,7 @@ const Settings = () => {
   }
 
   return (
-    <AppSidebar>
-      <div className="flex-1 p-6 md:p-8 space-y-8 overflow-auto">
+    <div className="flex-1 p-6 md:p-8 space-y-8 overflow-auto">
         <div>
           <h1 className="text-3xl font-bold mb-2">Paramètres</h1>
           <p className="text-muted-foreground">
@@ -411,8 +409,7 @@ const Settings = () => {
         </Card>
 
         <SupportButton />
-      </div>
-    </AppSidebar>
+    </div>
   );
 };
 
