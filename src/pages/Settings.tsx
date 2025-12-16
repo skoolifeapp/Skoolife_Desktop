@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SettingsSkeleton } from '@/components/PageSkeletons';
 import { useAuth } from '@/hooks/useAuth';
 import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { supabase } from '@/integrations/supabase/client';
@@ -196,11 +197,7 @@ const Settings = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <SettingsSkeleton />;
   }
 
   return (
