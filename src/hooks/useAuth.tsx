@@ -2,12 +2,21 @@ import { useState, useEffect, createContext, useContext, ReactNode, useCallback 
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+// Stripe product IDs mapping
+const STRIPE_PRODUCTS = {
+  student: 'prod_Tbz5HgJWHbElHU',
+  major: 'prod_Tbz59WmKmYF5Jk',
+};
+
+export type SubscriptionTier = 'free' | 'student' | 'major' | null;
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
   isSubscribed: boolean;
+  subscriptionTier: SubscriptionTier;
   subscriptionLoading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -24,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>(null);
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
   const checkIsAdmin = async (): Promise<boolean> => {
@@ -46,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const currentSession = session || (await supabase.auth.getSession()).data.session;
     if (!currentSession) {
       setIsSubscribed(false);
+      setSubscriptionTier(null);
       setSubscriptionLoading(false);
       return;
     }
@@ -60,12 +71,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         console.error('Error checking subscription:', error);
         setIsSubscribed(false);
+        setSubscriptionTier(null);
       } else {
-        setIsSubscribed(data?.subscribed || false);
+        const subscribed = data?.subscribed || false;
+        setIsSubscribed(subscribed);
+        
+        // Determine tier from product_id
+        if (subscribed && data?.product_id) {
+          if (data.product_id === STRIPE_PRODUCTS.major) {
+            setSubscriptionTier('major');
+          } else if (data.product_id === STRIPE_PRODUCTS.student) {
+            setSubscriptionTier('student');
+          } else {
+            setSubscriptionTier('student'); // Default to student if unknown product
+          }
+        } else {
+          setSubscriptionTier(subscribed ? 'student' : null);
+        }
       }
     } catch (err) {
       console.error('Error checking subscription:', err);
       setIsSubscribed(false);
+      setSubscriptionTier(null);
     } finally {
       setSubscriptionLoading(false);
     }
@@ -88,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           setIsAdmin(false);
           setIsSubscribed(false);
+          setSubscriptionTier(null);
           setSubscriptionLoading(false);
         }
       }
@@ -135,6 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setIsAdmin(false);
     setIsSubscribed(false);
+    setSubscriptionTier(null);
   };
 
   return (
@@ -144,6 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading, 
       isAdmin, 
       isSubscribed,
+      subscriptionTier,
       subscriptionLoading,
       signUp, 
       signIn, 

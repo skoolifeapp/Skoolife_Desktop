@@ -2,8 +2,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock } from 'lucide-react';
+import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -23,7 +24,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, subscriptionTier, subscriptionLoading } = useAuth();
   const { isInviteFreeUser } = useInviteFreeUser();
 
   const handleSignOut = async () => {
@@ -76,14 +77,51 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
     );
   };
 
+  const renderSubscriptionBadge = (isMobile: boolean = false) => {
+    if (subscriptionLoading) return null;
+    
+    if (subscriptionTier === 'major') {
+      return (
+        <Badge className={cn(
+          "bg-gradient-to-r from-amber-500 to-yellow-500 text-white border-0 gap-1",
+          isMobile ? "text-xs" : "text-[10px]"
+        )}>
+          <Crown className="w-3 h-3" />
+          Major
+        </Badge>
+      );
+    }
+    
+    if (subscriptionTier === 'student') {
+      return (
+        <Badge variant="secondary" className={cn(
+          "gap-1",
+          isMobile ? "text-xs" : "text-[10px]"
+        )}>
+          <Sparkles className="w-3 h-3" />
+          Student
+        </Badge>
+      );
+    }
+    
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex fixed left-0 top-0 h-full w-56 flex-col bg-card border-r border-border p-5 z-50">
-        <Link to="/" className="flex items-center gap-3 mb-10">
-          <img src={logo} alt="Skoolife" className="h-9 w-auto rounded-xl" />
-          <span className="font-bold text-xl text-foreground">Skoolife</span>
-        </Link>
+        <div className="mb-10">
+          <Link to="/" className="flex items-center gap-3">
+            <img src={logo} alt="Skoolife" className="h-9 w-auto rounded-xl" />
+            <span className="font-bold text-xl text-foreground">Skoolife</span>
+          </Link>
+          {subscriptionTier && (
+            <div className="mt-2 ml-12">
+              {renderSubscriptionBadge()}
+            </div>
+          )}
+        </div>
 
         <nav className="flex-1 space-y-1">
           {NAV_ITEMS.map((item) => renderNavItem(item))}
@@ -139,10 +177,13 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
 
       {/* Mobile Header */}
       <header className="lg:hidden sticky top-0 z-50 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="Skoolife" className="h-8 w-auto rounded-lg" />
-          <span className="font-bold text-lg text-foreground">Skoolife</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
+            <img src={logo} alt="Skoolife" className="h-8 w-auto rounded-lg" />
+            <span className="font-bold text-lg text-foreground">Skoolife</span>
+          </Link>
+          {subscriptionTier && renderSubscriptionBadge(true)}
+        </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <a
