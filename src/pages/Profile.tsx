@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, User, Copy, Check } from 'lucide-react';
-import { AppSidebar } from '@/components/AppSidebar';
+
 
 const LEVELS = [
   'Lycée - Seconde',
@@ -231,8 +231,7 @@ const Profile = () => {
   };
 
   return (
-    <AppSidebar>
-      <div className="flex-1 p-6 md:p-8 space-y-8 overflow-auto">
+    <div className="flex-1 p-6 md:p-8 space-y-8 overflow-auto">
         <div>
           <h1 className="text-3xl font-bold mb-2">Mon profil</h1>
           <p className="text-muted-foreground">
@@ -429,8 +428,7 @@ const Profile = () => {
             </CardContent>
           </Card>
         )}
-      </div>
-    </AppSidebar>
+    </div>
   );
 };
 

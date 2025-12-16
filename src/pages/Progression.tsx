@@ -11,7 +11,6 @@ import {
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import SupportButton from '@/components/SupportButton';
-import AppSidebar from '@/components/AppSidebar';
 
 import { format, startOfWeek, endOfWeek, subWeeks, addWeeks, isSameWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -259,8 +258,7 @@ const Progression = () => {
   }
 
   return (
-    <AppSidebar>
-      <div className="flex-1 p-6 md:p-8 space-y-6 overflow-auto">
+    <div className="flex-1 p-6 md:p-8 space-y-6 overflow-auto">
         
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -457,8 +455,7 @@ const Progression = () => {
 
         {/* Support Button */}
         <SupportButton />
-      </div>
-    </AppSidebar>
+    </div>
   );
 };
 
