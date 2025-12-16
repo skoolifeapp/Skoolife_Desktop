@@ -70,6 +70,14 @@ export default function InviteAccept() {
     fetchInvite();
   }, [token]);
 
+  // If the invite was already used by someone else, block this flow
+  useEffect(() => {
+    if (!user || !inviteData) return;
+    if (inviteData.already_accepted && inviteData.accepted_by && inviteData.accepted_by !== user.id) {
+      setError("Ce lien d'invitation a déjà été utilisé.");
+    }
+  }, [user, inviteData]);
+
   // Pre-fill first name from existing profile if available
   useEffect(() => {
     const loadProfile = async () => {
@@ -137,7 +145,8 @@ export default function InviteAccept() {
 
     } catch (err) {
       console.error('Error accepting invite:', err);
-      setError("Une erreur est survenue. Réessaie.");
+      const message = err instanceof Error ? err.message : "Une erreur est survenue. Réessaie.";
+      setError(message);
     } finally {
       setSubmitting(false);
     }
