@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Clock, CheckCircle2, Eye, Trash2, ChevronLeft, ChevronRight, RefreshCw, Sparkles, HelpCircle, Plus } from 'lucide-react';
+import { Clock, CheckCircle2, Eye, Trash2, ChevronLeft, ChevronRight, RefreshCw, HelpCircle, Plus } from 'lucide-react';
 
 const DAYS = [
   { short: 'LUN.', num: 8 },
@@ -168,10 +168,6 @@ const HeroMiniDashboard3D = () => {
                 <div className="px-3 py-2 rounded-lg bg-primary text-primary-foreground text-[8px] font-semibold flex items-center justify-center gap-1 shadow-sm whitespace-nowrap">
                   <RefreshCw className="w-3 h-3 flex-shrink-0" />
                   Générer mon planning
-                </div>
-                <div className="px-3 py-2 rounded-lg text-[8px] font-medium flex items-center justify-center gap-1 border border-border whitespace-nowrap" style={{ backgroundColor: '#F5EFD8', color: '#1a1a2e' }}>
-                  <Sparkles className="w-3 h-3 flex-shrink-0" />
-                  Ajuster ma semaine
                 </div>
               </div>
             </div>

@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, Sparkles, GraduationCap, Lock, Crown
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, GraduationCap, Lock, Crown
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -47,7 +47,6 @@ const Dashboard = () => {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
-  const [adjusting, setAdjusting] = useState(false);
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [subjectsDialogOpen, setSubjectsDialogOpen] = useState(false);
@@ -635,316 +634,6 @@ const Dashboard = () => {
     }
   };
 
-  const adjustWeek = async () => {
-    if (!user) return;
-
-    // Check if any active subject has target_hours defined (exclude terminated subjects)
-    const subjectsWithGoals = subjects.filter(s => s.target_hours && s.target_hours > 0 && (s.status || 'active') === 'active');
-    if (subjectsWithGoals.length === 0) {
-      toast.error("Tu n'as pas encore défini d'objectifs par matière. Va dans 'Gérer mes matières' pour les ajouter.");
-      return;
-    }
-
-    setAdjusting(true);
-
-    try {
-      // Fetch user preferences
-      const { data: preferences } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      // Get current week bounds (Monday to Sunday inclusive)
-      const weekEndDate = addDays(weekStart, 6);
-      const weekStartStr = format(weekStart, 'yyyy-MM-dd');
-      const weekEndStr = format(weekEndDate, 'yyyy-MM-dd');
-
-      // Fetch sessions with their invites to identify protected sessions
-      const { data: weekSessionsWithInvites } = await supabase
-        .from('revision_sessions')
-        .select(`
-          *,
-          session_invites!session_invites_session_id_fkey(id, invited_by, accepted_by)
-        `)
-        .eq('user_id', user.id)
-        .gte('date', weekStartStr)
-        .lte('date', weekEndStr);
-
-      // Identify sessions that have invites (either sent or received) - these are PROTECTED
-      const protectedSessionIds: string[] = [];
-      const sessionsToDelete: string[] = [];
-      
-      (weekSessionsWithInvites || []).forEach(session => {
-        const hasInvites = session.session_invites && session.session_invites.length > 0;
-        if (hasInvites) {
-          protectedSessionIds.push(session.id);
-        } else {
-          sessionsToDelete.push(session.id);
-        }
-      });
-
-      // Also check for sessions where user is invited (accepted_by = user.id)
-      const { data: invitedSessions } = await supabase
-        .from('session_invites')
-        .select('session_id')
-        .eq('accepted_by', user.id);
-      
-      const invitedSessionIds = (invitedSessions || []).map(i => i.session_id);
-
-      // Delete non-protected sessions for this week
-      if (sessionsToDelete.length > 0) {
-        const { error: deleteError } = await supabase
-          .from('revision_sessions')
-          .delete()
-          .in('id', sessionsToDelete);
-        
-        if (deleteError) throw deleteError;
-      }
-
-      // Fetch all sessions (including other weeks) to calculate hours already done
-      const { data: allSessions } = await supabase
-        .from('revision_sessions')
-        .select('*')
-        .eq('user_id', user.id);
-
-      // Calculate hours already done per subject (excluding deleted sessions)
-      const hoursPerSubject: Record<string, number> = {};
-      (allSessions || []).forEach(session => {
-        // Skip sessions we just deleted
-        if (sessionsToDelete.includes(session.id)) return;
-        
-        const [startH, startM] = session.start_time.split(':').map(Number);
-        const [endH, endM] = session.end_time.split(':').map(Number);
-        const durationHours = ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
-        hoursPerSubject[session.subject_id] = (hoursPerSubject[session.subject_id] || 0) + durationHours;
-      });
-
-      // Calculate remaining hours per subject with goals
-      const today = new Date();
-      const subjectsNeedingHours = subjectsWithGoals
-        .map(subject => {
-          const hoursDone = hoursPerSubject[subject.id] || 0;
-          const remaining = (subject.target_hours || 0) - hoursDone;
-          const examDate = subject.exam_date ? parseISO(subject.exam_date) : null;
-          const daysUntilExam = examDate ? Math.ceil((examDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 999;
-          return {
-            ...subject,
-            hoursDone,
-            remaining: Math.max(0, remaining),
-            daysUntilExam
-          };
-        })
-        .filter(s => s.remaining > 0 && s.daysUntilExam > 0)
-        .sort((a, b) => {
-          // Calculate urgency score: weight * (100 / daysUntilExam)
-          const scoreA = a.exam_weight * (100 / Math.max(1, a.daysUntilExam));
-          const scoreB = b.exam_weight * (100 / Math.max(1, b.daysUntilExam));
-          return scoreB - scoreA;
-        });
-
-      // Extract preferences with defaults
-      const preferredDays = preferences?.preferred_days_of_week || [1, 2, 3, 4, 5];
-      const dailyStartTime = preferences?.daily_start_time || '08:00';
-      const dailyEndTime = preferences?.daily_end_time || '22:00';
-      const maxHoursPerDay = preferences?.max_hours_per_day || 4;
-      const sessionDuration = (preferences as any)?.session_duration_minutes || 90;
-      const avoidEarlyMorning = preferences?.avoid_early_morning || false;
-      const avoidLateEvening = preferences?.avoid_late_evening || false;
-
-      const [startHour] = dailyStartTime.split(':').map(Number);
-      const [endHour] = dailyEndTime.split(':').map(Number);
-
-      let effectiveStartHour = startHour;
-      let effectiveEndHour = endHour;
-      if (avoidEarlyMorning && effectiveStartHour < 9) effectiveStartHour = 9;
-      if (avoidLateEvening && effectiveEndHour > 21) effectiveEndHour = 21;
-
-      // Get protected sessions that remain for this week (invited sessions)
-      const protectedSessions = (weekSessionsWithInvites || []).filter(s => protectedSessionIds.includes(s.id));
-      
-      // Also fetch sessions user was invited to
-      const invitedSessionsThisWeek = (allSessions || [])?.filter(s => 
-        invitedSessionIds.includes(s.id) && 
-        s.date >= weekStartStr && 
-        s.date <= weekEndStr
-      ) || [];
-
-      const allProtectedSessions = [...protectedSessions, ...invitedSessionsThisWeek];
-
-      // Get calendar events for blocking
-      const weekEvents = calendarEvents.filter(e => {
-        const eventDateStr = format(parseISO(e.start_datetime), 'yyyy-MM-dd');
-        return eventDateStr >= weekStartStr && eventDateStr <= weekEndStr && e.is_blocking;
-      });
-
-      // Convert preferred days to day offsets
-      const workDays = preferredDays.map(d => (d === 0 ? 6 : d - 1)).sort((a, b) => a - b);
-      
-      // Weekly goal from profile
-      const weeklyGoalHours = profile?.weekly_revision_hours || 10;
-      
-      // Calculate hours from protected sessions this week
-      const protectedHours = allProtectedSessions.reduce((acc, s) => {
-        const [sh, sm] = s.start_time.split(':').map(Number);
-        const [eh, em] = s.end_time.split(':').map(Number);
-        return acc + ((eh * 60 + em) - (sh * 60 + sm)) / 60;
-      }, 0);
-
-      const newSessions: { user_id: string; subject_id: string; date: string; start_time: string; end_time: string; status: string; notes: string | null }[] = [];
-      let totalHoursAddedThisWeek = protectedHours;
-      const sessionHoursToAdd = sessionDuration / 60;
-
-      for (const dayOffset of workDays) {
-        if (totalHoursAddedThisWeek >= weeklyGoalHours) break;
-        
-        const currentDate = addDays(weekStart, dayOffset);
-        if (currentDate < today && !isSameDay(currentDate, today)) continue;
-        
-        const dateStr = format(currentDate, 'yyyy-MM-dd');
-
-        const dayEvents = weekEvents.filter(e => isSameDay(parseISO(e.start_datetime), currentDate));
-        const dayProtectedSessions = allProtectedSessions.filter(s => s.date === dateStr);
-        const isToday = isSameDay(currentDate, new Date());
-
-        // Calculate hours from protected sessions today
-        const protectedHoursToday = dayProtectedSessions.reduce((acc, s) => {
-          const [sh, sm] = s.start_time.split(':').map(Number);
-          const [eh, em] = s.end_time.split(':').map(Number);
-          return acc + ((eh * 60 + em) - (sh * 60 + sm)) / 60;
-        }, 0);
-
-        // Build blocked time ranges
-        const blockedRanges: { start: number; end: number }[] = [];
-        
-        dayEvents.forEach(e => {
-          const eventStart = parseISO(e.start_datetime);
-          const eventEnd = parseISO(e.end_datetime);
-          blockedRanges.push({
-            start: eventStart.getHours() * 60 + eventStart.getMinutes(),
-            end: eventEnd.getHours() * 60 + eventEnd.getMinutes()
-          });
-        });
-
-        // Add protected sessions as blocked
-        dayProtectedSessions.forEach(s => {
-          const [sh, sm] = s.start_time.split(':').map(Number);
-          const [eh, em] = s.end_time.split(':').map(Number);
-          blockedRanges.push({ start: sh * 60 + sm, end: eh * 60 + em });
-        });
-
-        blockedRanges.push({ start: 12.5 * 60, end: 14 * 60 });
-
-        if (isToday) {
-          const now = new Date();
-          const currentMinutes = now.getHours() * 60 + now.getMinutes();
-          blockedRanges.push({ start: 0, end: currentMinutes });
-        }
-
-        blockedRanges.sort((a, b) => a.start - b.start);
-
-        const freeSlots: { start: number; end: number }[] = [];
-        let cursor = effectiveStartHour * 60;
-        const dayEnd = effectiveEndHour * 60;
-
-        for (const block of blockedRanges) {
-          if (cursor < block.start && block.start <= dayEnd) {
-            freeSlots.push({ start: cursor, end: Math.min(block.start, dayEnd) });
-          }
-          cursor = Math.max(cursor, block.end);
-        }
-        if (cursor < dayEnd) {
-          freeSlots.push({ start: cursor, end: dayEnd });
-        }
-
-        let hoursAddedToday = 0;
-        const maxToAddToday = maxHoursPerDay - protectedHoursToday;
-
-        for (const slot of freeSlots) {
-          if (totalHoursAddedThisWeek >= weeklyGoalHours) break;
-          if (hoursAddedToday >= maxToAddToday) break;
-          if (subjectsNeedingHours.length === 0) break;
-          if (totalHoursAddedThisWeek + sessionHoursToAdd > weeklyGoalHours) break;
-
-          const slotDuration = slot.end - slot.start;
-          if (slotDuration < sessionDuration) continue;
-
-          const sessionStart = slot.start;
-          const sessionEnd = sessionStart + sessionDuration;
-
-          const formatTime = (minutes: number) => {
-            const h = Math.floor(minutes / 60);
-            const m = minutes % 60;
-            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-          };
-
-          const eligibleSubjects = subjectsNeedingHours.filter(s => {
-            if (!s.exam_date) return s.remaining > 0;
-            const examDate = parseISO(s.exam_date);
-            if (currentDate >= examDate) return false;
-            const currentScheduled = hoursPerSubject[s.id] || 0;
-            return currentScheduled + sessionHoursToAdd <= (s.target_hours || 0);
-          });
-          
-          if (eligibleSubjects.length === 0) continue;
-          
-          const subject = eligibleSubjects[0];
-
-          newSessions.push({
-            user_id: user.id,
-            subject_id: subject.id,
-            date: dateStr,
-            start_time: formatTime(sessionStart),
-            end_time: formatTime(sessionEnd),
-            status: 'planned',
-            notes: null
-          });
-
-          hoursAddedToday += sessionHoursToAdd;
-          totalHoursAddedThisWeek += sessionHoursToAdd;
-          hoursPerSubject[subject.id] = (hoursPerSubject[subject.id] || 0) + sessionHoursToAdd;
-
-          slot.start = sessionEnd + 30;
-        }
-      }
-
-      if (newSessions.length > 0) {
-        const { error } = await supabase
-          .from('revision_sessions')
-          .insert(newSessions);
-
-        if (error) throw error;
-        
-        const allObjectivesReached = subjectsNeedingHours.every(s => {
-          if (!s.target_hours || s.target_hours <= 0) return true;
-          const scheduled = hoursPerSubject[s.id] || 0;
-          return scheduled >= s.target_hours;
-        });
-        
-        if (allObjectivesReached && subjectsNeedingHours.some(s => s.target_hours && s.target_hours > 0)) {
-          toast.success("L'objectif de révisions a été atteint ✨");
-        } else {
-          toast.success(`Semaine ajustée : ${newSessions.length} nouvelle${newSessions.length > 1 ? 's' : ''} session${newSessions.length > 1 ? 's' : ''} ajoutée${newSessions.length > 1 ? 's' : ''} ✨`);
-        }
-      } else {
-        // Check if objectives are already reached (no sessions needed)
-        const allObjectivesReached = subjectsNeedingHours.every(s => s.remaining <= 0);
-        if (allObjectivesReached && subjectsNeedingHours.some(s => s.target_hours && s.target_hours > 0)) {
-          toast.success("L'objectif de révisions a été atteint ✨");
-        } else {
-          toast.info("Aucun créneau libre disponible cette semaine");
-        }
-      }
-
-      fetchData();
-
-    } catch (err) {
-      console.error(err);
-      toast.error("Erreur lors de l'ajustement de la semaine");
-    } finally {
-      setAdjusting(false);
-    }
-  };
 
   const handleSignOut = async () => {
     isSigningOut.current = true;
@@ -1402,7 +1091,7 @@ const Dashboard = () => {
                   size="lg" 
                   className="w-full"
                   onClick={generatePlanning}
-                  disabled={generating || adjusting || isPastWeek}
+                  disabled={generating || isPastWeek}
                 >
                   {generating ? (
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -1410,21 +1099,6 @@ const Dashboard = () => {
                     <RefreshCw className="w-4 h-4 mr-2" />
                   )}
                   Générer mon planning
-                </Button>
-                <Button 
-                  id="adjust-week-btn"
-                  variant="outline" 
-                  size="lg" 
-                  className="w-full"
-                  onClick={adjustWeek}
-                  disabled={generating || adjusting || isPastWeek}
-                >
-                  {adjusting ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <Sparkles className="w-4 h-4 mr-2" />
-                  )}
-                  Ajuster ma semaine
                 </Button>
               </div>
             )}
