@@ -194,6 +194,44 @@ export const ProfileSkeleton = () => (
   </div>
 );
 
+// Subscription skeleton - matches subscription page layout
+export const SubscriptionSkeleton = () => (
+  <div className="p-6 max-w-2xl mx-auto space-y-6 animate-fade-in">
+    <Skeleton className="h-8 w-48" />
+    <div className="p-6 rounded-xl border border-border bg-card space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-12 w-12 rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+        <Skeleton className="h-6 w-16 rounded-full" />
+      </div>
+      <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+        <Skeleton className="h-5 w-5" />
+        <div className="space-y-1">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-6 w-24" />
+        </div>
+      </div>
+      <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+        <Skeleton className="h-5 w-5" />
+        <div className="space-y-1">
+          <Skeleton className="h-4 w-36" />
+          <Skeleton className="h-6 w-32" />
+        </div>
+      </div>
+    </div>
+    <div className="p-6 rounded-xl border border-border bg-card space-y-4">
+      <Skeleton className="h-6 w-40" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+    </div>
+  </div>
+);
+
 // Generic fallback skeleton
 export const GenericSkeleton = () => (
   <div className="p-6 md:p-8 space-y-6 animate-fade-in">

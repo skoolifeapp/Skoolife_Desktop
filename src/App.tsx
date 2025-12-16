@@ -25,6 +25,7 @@ const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const AdminStats = lazy(() => import("./pages/AdminStats"));
 const Invite = lazy(() => import("./pages/Invite"));
 const CancelSubscription = lazy(() => import("./pages/CancelSubscription"));
+const Subscription = lazy(() => import("./pages/Subscription"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Optimized QueryClient with caching
@@ -77,6 +78,7 @@ const App = () => (
                     <Route path="/progression" element={<Progression />} />
                     <Route path="/subjects" element={<Subjects />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/subscription" element={<Subscription />} />
                   </Route>
                   
                   <Route path="/admin" element={<Admin />} />

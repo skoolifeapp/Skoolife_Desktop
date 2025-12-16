@@ -7,6 +7,7 @@ import {
   SubjectsSkeleton,
   SettingsSkeleton,
   ProfileSkeleton,
+  SubscriptionSkeleton,
   GenericSkeleton,
 } from './PageSkeletons';
 
@@ -16,6 +17,7 @@ const getSkeletonForRoute = (pathname: string) => {
   if (pathname === '/subjects') return <SubjectsSkeleton />;
   if (pathname === '/settings') return <SettingsSkeleton />;
   if (pathname === '/profile') return <ProfileSkeleton />;
+  if (pathname === '/subscription') return <SubscriptionSkeleton />;
   return <GenericSkeleton />;
 };
 

@@ -29,7 +29,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   const { isInviteFreeUser } = useInviteFreeUser();
 
   const handleManageSubscription = () => {
-    navigate('/cancel');
+    navigate('/subscription');
   };
 
   const handleSignOut = async () => {
