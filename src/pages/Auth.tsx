@@ -51,9 +51,11 @@ const Auth = () => {
           .single();
         
         if (profile?.is_onboarding_complete) {
+          // User already onboarded, go to app
           navigate('/app');
         } else {
-          navigate('/onboarding');
+          // New user: send to pricing page to select subscription
+          navigate('/pricing');
         }
         
         setCheckingRedirect(false);

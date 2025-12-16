@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { PresenceProvider } from "@/components/PresenceProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Pricing from "./pages/Pricing";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
@@ -34,6 +35,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/pricing" element={<Pricing />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/app" element={<Dashboard />} />
                 <Route path="/settings" element={<Settings />} />

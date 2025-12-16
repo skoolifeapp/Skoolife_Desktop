@@ -92,18 +92,13 @@ const Index = () => {
               <div className="flex flex-col sm:flex-row items-center lg:items-start gap-4 mt-10 animate-slide-up">
                 <Link to="/auth">
                   <Button variant="hero" size="xl">
-                    Tester gratuitement
+                    Commencer gratuitement
                     <ArrowRight className="w-5 h-5" />
                   </Button>
                 </Link>
-                <div className="flex flex-col items-center lg:items-start gap-1 self-center">
-                  <p className="text-sm text-muted-foreground">
-                    Aucune carte bancaire requise
-                  </p>
-                  <p className="text-xs text-muted-foreground/70">
-                    Disponible sur ordinateur uniquement
-                  </p>
-                </div>
+                <p className="text-xs text-muted-foreground/70 self-center">
+                  Disponible sur ordinateur uniquement
+                </p>
               </div>
             </div>
 
