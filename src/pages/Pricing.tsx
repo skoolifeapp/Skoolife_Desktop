@@ -28,7 +28,7 @@ const PLANS = {
   student: {
     name: 'Student',
     price: '2,99',
-    priceId: 'price_1Sel7HCG6ZnJ9jFuMwPpQ6uS',
+    priceId: 'price_1Sf3tHC3rnIsVpuj5m5zh0cG',
     description: 'Tout pour organiser tes révisions',
     features: [
       { text: 'Planning de révisions intelligent', icon: Calendar },
@@ -43,7 +43,7 @@ const PLANS = {
   major: {
     name: 'Major',
     price: '4,99',
-    priceId: 'price_1Sel7UCG6ZnJ9jFuyilMrJzF',
+    priceId: 'price_1Sf3tdC3rnIsVpuj9TVbB47r',
     description: 'Révise avec tes camarades',
     features: [
       { text: 'Tout de Student +', icon: Check, highlight: true },
