@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 const NAV_ITEMS = [
   { path: '/app', label: 'Dashboard', icon: Home, requiresSubscription: false, requiresMajor: false },
   { path: '/progression', label: 'Progression', icon: TrendingUp, requiresSubscription: true, requiresMajor: true },
-  { path: '/subjects', label: 'Matières', icon: GraduationCap, requiresSubscription: true, requiresMajor: true },
+  { path: '/subjects', label: 'Matières', icon: GraduationCap, requiresSubscription: true, requiresMajor: false },
   { path: '/settings', label: 'Paramètres', icon: Settings, requiresSubscription: true, requiresMajor: false },
 ];
 
