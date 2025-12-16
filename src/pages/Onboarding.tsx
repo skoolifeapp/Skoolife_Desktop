@@ -118,7 +118,7 @@ const STUDY_DOMAINS: Record<string, string[]> = {
 const Onboarding = () => {
   const [loading, setLoading] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   // User data
@@ -131,6 +131,9 @@ const Onboarding = () => {
   const [examPeriod, setExamPeriod] = useState('');
 
   useEffect(() => {
+    // Important: ne pas rediriger tant que l'auth n'est pas initialisée
+    if (authLoading) return;
+
     if (!user) {
       navigate('/auth');
       return;
@@ -160,7 +163,7 @@ const Onboarding = () => {
     };
 
     checkProfile();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const handleFinish = async () => {
     if (!user) return;
