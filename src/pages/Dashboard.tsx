@@ -1042,7 +1042,7 @@ const Dashboard = () => {
                     <h3 className="font-bold text-sm">Compte Gratuit</h3>
                   </div>
                   <p className="text-xs text-muted-foreground mb-3">
-                    Tu peux voir les sessions auxquelles tu es invité(e). Pour créer ton propre planning de révisions, passe à Skoolife Premium.
+                    Tu peux voir les sessions auxquelles tu es invité(e). Pour créer ton propre planning de révisions, passe à Skoolife Student.
                   </p>
                   <Button 
                     size="sm" 
