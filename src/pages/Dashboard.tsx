@@ -113,8 +113,17 @@ const Dashboard = () => {
       return;
     }
 
+    // Wait for subscription check to complete
+    if (subscriptionLoading) return;
+
+    // Users without subscription must pay first
+    if (subscriptionTier === 'none') {
+      navigate('/pricing');
+      return;
+    }
+
     fetchData();
-  }, [user, navigate]);
+  }, [user, navigate, subscriptionTier, subscriptionLoading]);
 
   const fetchData = async () => {
     if (!user) return;

@@ -17,7 +17,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingRedirect, setCheckingRedirect] = useState(false);
-  const { signIn, signUp, user, checkIsAdmin } = useAuth();
+  const { signIn, signUp, user, checkIsAdmin, subscriptionTier, subscriptionLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
@@ -35,43 +35,54 @@ const Auth = () => {
 
   useEffect(() => {
     const handleRedirect = async () => {
-      if (user) {
-        setCheckingRedirect(true);
-        
-        // Admin check by email - simple redirect
-        if (user.email === 'skoolife.co@gmail.com') {
-          navigate('/admin');
-          setCheckingRedirect(false);
-          return;
-        }
-        
-        // If there's a redirect URL (e.g., invite page), go there first
-        if (redirectUrl) {
-          navigate(redirectUrl);
-          setCheckingRedirect(false);
-          return;
-        }
-        
-        // Check if user has completed onboarding and subscription
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_onboarding_complete')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile?.is_onboarding_complete) {
-          // Existing user with completed onboarding → go to app
-          navigate('/app');
-        } else {
-          // New user without onboarding → go to pricing first
-          navigate('/pricing');
-        }
-        
+      if (!user) return;
+      
+      // Wait for subscription check to complete
+      if (subscriptionLoading) return;
+      
+      setCheckingRedirect(true);
+      
+      // Admin check by email - simple redirect
+      if (user.email === 'skoolife.co@gmail.com') {
+        navigate('/admin');
         setCheckingRedirect(false);
+        return;
       }
+      
+      // If there's a redirect URL (e.g., invite page), go there first
+      if (redirectUrl) {
+        navigate(redirectUrl);
+        setCheckingRedirect(false);
+        return;
+      }
+      
+      // Check if user has completed onboarding
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_onboarding_complete')
+        .eq('id', user.id)
+        .single();
+      
+      // User has no paid subscription → go to pricing
+      if (subscriptionTier === 'none') {
+        navigate('/pricing');
+        setCheckingRedirect(false);
+        return;
+      }
+      
+      // User has subscription but hasn't completed onboarding → go to onboarding
+      if (!profile?.is_onboarding_complete) {
+        navigate('/onboarding');
+        setCheckingRedirect(false);
+        return;
+      }
+      
+      // User has subscription and completed onboarding → go to app
+      navigate('/app');
+      setCheckingRedirect(false);
     };
     handleRedirect();
-  }, [user, navigate, redirectUrl]);
+  }, [user, navigate, redirectUrl, subscriptionTier, subscriptionLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
