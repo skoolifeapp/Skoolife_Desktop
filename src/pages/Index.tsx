@@ -90,7 +90,7 @@ const Index = () => {
 
               {/* CTA */}
               <div className="flex flex-col sm:flex-row items-center lg:items-start gap-4 mt-10 animate-slide-up">
-                <Link to="/pricing">
+              <Link to="/auth?mode=signup">
                   <Button variant="hero" size="xl">
                     Commencer gratuitement
                     <ArrowRight className="w-5 h-5" />
