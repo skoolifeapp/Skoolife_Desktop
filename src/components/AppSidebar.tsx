@@ -212,7 +212,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
             onClick={handleManageSubscription}
           >
             <CreditCard className="w-4 h-4 shrink-0" />
-            <span className="truncate">{isSubscribed ? "Gérer mon abonnement" : "Se réabonner"}</span>
+            <span className="truncate">{isSubscribed ? "Mon abonnement" : "Se réabonner"}</span>
           </Button>
           <Button
             variant="ghost"
@@ -281,7 +281,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
               }}
             >
               <CreditCard className="w-5 h-5" />
-              <span className="text-lg">{isSubscribed ? "Gérer mon abonnement" : "Se réabonner"}</span>
+              <span className="text-lg">{isSubscribed ? "Mon abonnement" : "Se réabonner"}</span>
             </Button>
             <Button
               variant="ghost"
