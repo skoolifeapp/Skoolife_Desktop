@@ -10,6 +10,16 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { SubscriptionSkeleton } from "@/components/PageSkeletons";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const TIER_INFO = {
   student: {
@@ -39,6 +49,10 @@ const Subscription = () => {
   } | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [switchLoading, setSwitchLoading] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; targetTier: "student" | "major" | null }>({
+    open: false,
+    targetTier: null,
+  });
 
   useEffect(() => {
     const fetchSubscriptionDetails = async () => {
@@ -118,6 +132,7 @@ const Subscription = () => {
       });
     } finally {
       setSwitchLoading(false);
+      setConfirmDialog({ open: false, targetTier: null });
     }
   };
 
@@ -228,15 +243,11 @@ const Subscription = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-amber-700 dark:text-amber-400">4,99€/mois</span>
                         <Button
-                          onClick={() => handleSwitchPlan("major")}
+                          onClick={() => setConfirmDialog({ open: true, targetTier: "major" })}
                           disabled={switchLoading}
                           className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white"
                         >
-                          {switchLoading ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : (
-                            <ArrowUpCircle className="w-4 h-4 mr-2" />
-                          )}
+                          <ArrowUpCircle className="w-4 h-4 mr-2" />
                           Upgrade
                         </Button>
                       </div>
@@ -258,14 +269,10 @@ const Subscription = () => {
                         <span className="text-lg font-bold">2,99€/mois</span>
                         <Button
                           variant="outline"
-                          onClick={() => handleSwitchPlan("student")}
+                          onClick={() => setConfirmDialog({ open: true, targetTier: "student" })}
                           disabled={switchLoading}
                         >
-                          {switchLoading ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : (
-                            <ArrowDownCircle className="w-4 h-4 mr-2" />
-                          )}
+                          <ArrowDownCircle className="w-4 h-4 mr-2" />
                           Downgrade
                         </Button>
                       </div>
@@ -324,6 +331,48 @@ const Subscription = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmDialog.targetTier === "major" ? "Passer à Major ?" : "Passer à Student ?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDialog.targetTier === "major" ? (
+                <>
+                  Tu vas passer au plan <strong>Major à 4,99€/mois</strong>. Le changement sera effectif immédiatement et le prorata sera calculé automatiquement.
+                </>
+              ) : (
+                <>
+                  Tu vas passer au plan <strong>Student à 2,99€/mois</strong>. Certaines fonctionnalités premium (invitations camarades, analytics) seront désactivées.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={switchLoading}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmDialog.targetTier) {
+                  handleSwitchPlan(confirmDialog.targetTier);
+                }
+              }}
+              disabled={switchLoading}
+              className={confirmDialog.targetTier === "major" 
+                ? "bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600" 
+                : ""
+              }
+            >
+              {switchLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
+              Confirmer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
