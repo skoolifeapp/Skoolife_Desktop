@@ -14,8 +14,8 @@ const logStep = (step: string, details?: any) => {
 
 // Price IDs for the subscription tiers
 const PRICE_IDS = {
-  student: "price_1Sel7HCG6ZnJ9jFuMwPpQ6uS",
-  major: "price_1Sel7UCG6ZnJ9jFuyilMrJzF",
+  student: "price_1Sf3tHC3rnIsVpuj5m5zh0cG",
+  major: "price_1Sf3tdC3rnIsVpuj9TVbB47r",
 };
 
 serve(async (req) => {
