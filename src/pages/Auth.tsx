@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, CheckCircle2, Sparkles } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import logo from '@/assets/logo.png';
 
 const Auth = () => {
@@ -23,16 +23,15 @@ const Auth = () => {
   
   // Get redirect URL from query params (e.g., from invite link)
   const redirectUrl = searchParams.get('redirect');
-  // Check if coming from successful checkout
-  const checkoutSuccess = searchParams.get('checkout') === 'success';
-  const checkoutPlan = searchParams.get('plan');
+  // Check mode from query params
+  const modeParam = searchParams.get('mode');
 
-  // If coming from checkout, default to signup mode
+  // Set initial mode based on query param
   useEffect(() => {
-    if (checkoutSuccess && !user) {
+    if (modeParam === 'signup') {
       setIsLogin(false);
     }
-  }, [checkoutSuccess, user]);
+  }, [modeParam]);
 
   useEffect(() => {
     const handleRedirect = async () => {
@@ -53,7 +52,7 @@ const Auth = () => {
           return;
         }
         
-        // Check if user has completed onboarding
+        // Check if user has completed onboarding and subscription
         const { data: profile } = await supabase
           .from('profiles')
           .select('is_onboarding_complete')
@@ -61,9 +60,11 @@ const Auth = () => {
           .single();
         
         if (profile?.is_onboarding_complete) {
+          // Existing user with completed onboarding → go to app
           navigate('/app');
         } else {
-          navigate('/onboarding');
+          // New user without onboarding → go to pricing first
+          navigate('/pricing');
         }
         
         setCheckingRedirect(false);
@@ -127,34 +128,15 @@ const Auth = () => {
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center px-4 pb-20">
         <div className="w-full max-w-md space-y-8 animate-slide-up">
-          {/* Checkout success message */}
-          {checkoutSuccess && !user && (
-            <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-green-700 dark:text-green-300">Paiement réussi !</p>
-                <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                  Crée maintenant ton compte pour activer ton abonnement et accéder à Skoolife.
-                </p>
-              </div>
-            </div>
-          )}
-
           {/* Hero text */}
           <div className="text-center space-y-3">
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-              {checkoutSuccess && !user 
-                ? 'Finalise ton inscription' 
-                : isLogin 
-                  ? 'Content de te revoir !' 
-                  : 'Rejoins Skoolife'}
+              {isLogin ? 'Content de te revoir !' : 'Rejoins Skoolife'}
             </h1>
             <p className="text-muted-foreground text-lg">
-              {checkoutSuccess && !user
-                ? 'Utilise le même email que pour le paiement'
-                : isLogin 
-                  ? 'Connecte-toi pour accéder à ton planning' 
-                  : 'Organise tes révisions intelligemment'}
+              {isLogin 
+                ? 'Connecte-toi pour accéder à ton planning' 
+                : 'Organise tes révisions intelligemment'}
             </p>
           </div>
 

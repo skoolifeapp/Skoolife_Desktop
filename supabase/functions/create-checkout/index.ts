@@ -29,42 +29,34 @@ serve(async (req) => {
     if (!priceId) throw new Error("Price ID is required");
     logStep("Price ID received", { priceId });
 
-    // Check if user is authenticated (optional for guest checkout)
+    // User must be authenticated
     const authHeader = req.headers.get("Authorization");
-    let userEmail: string | undefined;
-    let customerId: string | undefined;
+    if (!authHeader) throw new Error("Authorization required");
 
-    if (authHeader) {
-      const token = authHeader.replace("Bearer ", "");
-      const { data } = await supabaseClient.auth.getUser(token);
-      const user = data.user;
-      
-      if (user?.email) {
-        userEmail = user.email;
-        logStep("User authenticated", { userId: user.id, email: user.email });
+    const token = authHeader.replace("Bearer ", "");
+    const { data } = await supabaseClient.auth.getUser(token);
+    const user = data.user;
+    if (!user?.email) throw new Error("User not authenticated or email not available");
 
-        // Check if a Stripe customer record exists for this user
-        const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
-          apiVersion: "2025-08-27.basil" 
-        });
-        const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-        if (customers.data.length > 0) {
-          customerId = customers.data[0].id;
-          logStep("Existing customer found", { customerId });
-        }
-      }
-    } else {
-      logStep("Guest checkout - no authentication");
-    }
+    logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Check if a Stripe customer record exists for this user
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2025-08-27.basil" 
     });
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    let customerId: string | undefined;
+    if (customers.data.length > 0) {
+      customerId = customers.data[0].id;
+      logStep("Existing customer found", { customerId });
+    }
 
     const origin = req.headers.get("origin") || "https://skoolife.lovable.app";
 
-    // Create checkout session - allow guest if no user email
+    // Create checkout session
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
+      customer: customerId,
+      customer_email: customerId ? undefined : user.email,
       line_items: [
         {
           price: priceId,
@@ -72,18 +64,10 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${origin}/auth?checkout=success&plan=${priceId}`,
-      cancel_url: `${origin}/pricing?checkout=canceled`,
+      success_url: `${origin}/onboarding`,
+      cancel_url: `${origin}/pricing`,
       allow_promotion_codes: true,
     };
-
-    // If authenticated user, attach to their customer record
-    if (customerId) {
-      sessionConfig.customer = customerId;
-    } else if (userEmail) {
-      sessionConfig.customer_email = userEmail;
-    }
-    // If no user, Stripe will collect email during checkout
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
     logStep("Checkout session created", { sessionId: session.id });

@@ -61,19 +61,22 @@ const Pricing = () => {
   const navigate = useNavigate();
 
   const handleSubscribe = async (priceId: string, planId: string) => {
+    // User must be logged in to subscribe
+    if (!user) {
+      navigate('/auth?mode=signup');
+      return;
+    }
+
     setLoadingPlan(planId);
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      const headers: Record<string, string> = {};
-      if (session?.access_token) {
-        headers.Authorization = `Bearer ${session.access_token}`;
-      }
-
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId },
-        headers
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
+        }
       });
 
       if (error) throw error;
