@@ -20,18 +20,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { SUBSCRIPTION_TIERS } from "@/config/stripe";
 
 const TIER_INFO = {
   student: {
     name: "Skoolife Student",
-    price: "2,99€",
+    price: `${SUBSCRIPTION_TIERS.student.price}€`,
     icon: Sparkles,
     color: "text-primary",
     bgColor: "bg-primary/10",
   },
   major: {
     name: "Skoolife Major",
-    price: "4,99€",
+    price: `${SUBSCRIPTION_TIERS.major.price}€`,
     icon: Crown,
     color: "text-amber-500",
     bgColor: "bg-amber-500/10",

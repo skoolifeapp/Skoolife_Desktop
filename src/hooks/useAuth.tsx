@@ -1,12 +1,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode, useCallback, useMemo, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-
-// Stripe product IDs mapping
-const STRIPE_PRODUCTS = {
-  student: 'prod_TcIUwE2kzf6me6',
-  major: 'prod_TcIU9GEsHSmufa',
-};
+import { STRIPE_PRODUCTS } from '@/config/stripe';
 
 export type SubscriptionTier = 'free' | 'student' | 'major' | null;
 

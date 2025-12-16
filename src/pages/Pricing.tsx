@@ -23,13 +23,11 @@ import {
   MessageCircle
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
+import { SUBSCRIPTION_TIERS } from '@/config/stripe';
 
 const PLANS = {
   student: {
-    name: 'Student',
-    price: '2,99',
-    priceId: 'price_1Sf3tHC3rnIsVpuj5m5zh0cG',
-    description: 'Tout pour organiser tes révisions',
+    ...SUBSCRIPTION_TIERS.student,
     features: [
       { text: 'Planning de révisions intelligent', icon: Calendar },
       { text: 'Génération automatique de sessions', icon: Sparkles },
@@ -41,10 +39,7 @@ const PLANS = {
     popular: false,
   },
   major: {
-    name: 'Major',
-    price: '4,99',
-    priceId: 'price_1Sf3tdC3rnIsVpuj9TVbB47r',
-    description: 'Révise avec tes camarades',
+    ...SUBSCRIPTION_TIERS.major,
     features: [
       { text: 'Tout de Student +', icon: Check, highlight: true },
       { text: 'Invitation de camarades', icon: Users },
