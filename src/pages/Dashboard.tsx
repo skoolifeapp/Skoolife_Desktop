@@ -1134,18 +1134,6 @@ const Dashboard = () => {
         <div className="grid lg:grid-cols-[300px_1fr] gap-8">
           {/* Sidebar */}
           <aside className="space-y-6">
-            {/* Welcome card */}
-            <Card className="border-0 shadow-md bg-gradient-to-br from-primary/10 to-accent/10">
-              <CardContent className="pt-6">
-                <h2 className="text-2xl font-bold mb-2">
-                  Bonjour {profile?.first_name} 👋
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                  {isFreeUser ? 'Tes sessions de révision partagées' : 'Prêt pour une session productive ?'}
-                </p>
-              </CardContent>
-            </Card>
-
             {/* Free user banner */}
             {isFreeUser && (
               <Card className="border-2 border-primary/30 shadow-md bg-gradient-to-br from-primary/5 to-primary/10">
