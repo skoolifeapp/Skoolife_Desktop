@@ -32,19 +32,16 @@ const Subjects = () => {
     { value: 'projet', label: 'Projet' },
   ];
 
-  const { user, signOut, subscriptionTier, subscriptionLoading } = useAuth();
+  const { user, signOut } = useAuth();
   const { isInviteFreeUser, loading: inviteGateLoading } = useInviteFreeUser();
   const navigate = useNavigate();
 
-  // Redirect free users AND Student tier users (only Major has access)
+  // Redirect only free users (invite-signup without subscription)
   useEffect(() => {
-    if (inviteGateLoading || subscriptionLoading) return;
-    
-    const isStudentTier = subscriptionTier === 'student';
-    if (isInviteFreeUser || isStudentTier) {
+    if (!inviteGateLoading && isInviteFreeUser) {
       navigate('/app');
     }
-  }, [inviteGateLoading, subscriptionLoading, isInviteFreeUser, subscriptionTier, navigate]);
+  }, [inviteGateLoading, isInviteFreeUser, navigate]);
 
   useEffect(() => {
     if (!user) {
