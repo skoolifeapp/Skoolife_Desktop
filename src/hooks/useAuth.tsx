@@ -22,7 +22,15 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   checkIsAdmin: () => Promise<boolean>;
-  checkSubscription: () => Promise<void>;
+  checkSubscription: () => Promise<
+    | {
+        subscribed: boolean;
+        product_id?: string | null;
+        subscription_end?: string | null;
+        subscription_status?: string | null;
+      }
+    | null
+  >;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,12 +62,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkSubscription = useCallback(async () => {
     const currentSession = session || (await supabase.auth.getSession()).data.session;
+
     if (!currentSession) {
       setIsSubscribed(false);
       setSubscriptionTier(null);
       setSubscriptionLoading(false);
-      return;
+      return null;
     }
+
+    setSubscriptionLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke('check-subscription', {
@@ -72,27 +83,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error checking subscription:', error);
         setIsSubscribed(false);
         setSubscriptionTier(null);
-      } else {
-        const subscribed = data?.subscribed || false;
-        setIsSubscribed(subscribed);
-        
-        // Determine tier from product_id
-        if (subscribed && data?.product_id) {
-          if (data.product_id === STRIPE_PRODUCTS.major) {
-            setSubscriptionTier('major');
-          } else if (data.product_id === STRIPE_PRODUCTS.student) {
-            setSubscriptionTier('student');
-          } else {
-            setSubscriptionTier('student'); // Default to student if unknown product
-          }
-        } else {
-          setSubscriptionTier(subscribed ? 'student' : null);
-        }
+        return null;
       }
+
+      const subscribed = data?.subscribed || false;
+      setIsSubscribed(subscribed);
+
+      // Determine tier from product_id
+      if (subscribed && data?.product_id) {
+        if (data.product_id === STRIPE_PRODUCTS.major) {
+          setSubscriptionTier('major');
+        } else if (data.product_id === STRIPE_PRODUCTS.student) {
+          setSubscriptionTier('student');
+        } else {
+          setSubscriptionTier('student'); // Default to student if unknown product
+        }
+      } else {
+        setSubscriptionTier(subscribed ? 'student' : null);
+      }
+
+      return data ?? { subscribed };
     } catch (err) {
       console.error('Error checking subscription:', err);
       setIsSubscribed(false);
       setSubscriptionTier(null);
+      return null;
     } finally {
       setSubscriptionLoading(false);
     }
