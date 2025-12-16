@@ -33,6 +33,8 @@ export const UpgradeDialog = ({ open, onOpenChange, featureName, onUpgradeSucces
       toast.success('Félicitations ! Tu es maintenant Major 🎉');
       onOpenChange(false);
       onUpgradeSuccess?.();
+      // Dispatch custom event for pages to refresh
+      window.dispatchEvent(new CustomEvent('subscription-upgraded'));
     } catch (error: any) {
       console.error('Upgrade error:', error);
       toast.error(error.message || 'Erreur lors de la mise à niveau');
@@ -52,7 +54,7 @@ export const UpgradeDialog = ({ open, onOpenChange, featureName, onUpgradeSucces
             Passe à Major pour débloquer {featureName || 'cette fonctionnalité'}
           </DialogTitle>
           <DialogDescription className="text-center pt-2">
-            Accède à toutes les fonctionnalités avancées et optimise tes révisions avec l'offre Major.
+            Accède à toutes les fonctionnalités avancées pour seulement <span className="font-semibold">4,99€/mois</span>.
           </DialogDescription>
         </DialogHeader>
 
