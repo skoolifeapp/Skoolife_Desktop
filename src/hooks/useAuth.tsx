@@ -3,7 +3,11 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 // Subscription tiers
-export type SubscriptionTier = 'free_invite' | 'student' | 'major';
+// 'none' = no subscription (new users who haven't paid yet)
+// 'free_invite' = free tier for users who signed up via invite link
+// 'student' = paid student tier
+// 'major' = paid major tier
+export type SubscriptionTier = 'none' | 'free_invite' | 'student' | 'major';
 
 // Stripe product IDs mapping
 export const STRIPE_PRODUCTS = {
@@ -40,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('major');
+  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('none');
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
   const checkIsAdmin = async (): Promise<boolean> => {
@@ -63,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const currentSession = session || (await supabase.auth.getSession()).data.session;
     if (!currentSession) {
       setIsSubscribed(false);
-      setSubscriptionTier('major'); // Default for non-logged users
+      setSubscriptionTier('none');
       setSubscriptionLoading(false);
       return;
     }
@@ -88,8 +92,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error('Error checking subscription:', error);
         setIsSubscribed(false);
         // If signed up via invite and no subscription = free_invite tier
-        // Otherwise, existing users default to major
-        setSubscriptionTier(signedUpViaInvite ? 'free_invite' : 'major');
+        // Otherwise, no subscription = none tier
+        setSubscriptionTier(signedUpViaInvite ? 'free_invite' : 'none');
       } else {
         const subscribed = data?.subscribed || false;
         const productId = data?.product_id || null;
@@ -109,14 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Free invite account (no subscription)
           setSubscriptionTier('free_invite');
         } else {
-          // Existing users without subscription = major (grandfathered)
-          setSubscriptionTier('major');
+          // No subscription = none tier (must pay to access app)
+          setSubscriptionTier('none');
         }
       }
     } catch (err) {
       console.error('Error checking subscription:', err);
       setIsSubscribed(false);
-      setSubscriptionTier('major');
+      setSubscriptionTier('none');
     } finally {
       setSubscriptionLoading(false);
     }
@@ -186,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setIsAdmin(false);
     setIsSubscribed(false);
-    setSubscriptionTier('major');
+    setSubscriptionTier('none');
   };
 
   return (

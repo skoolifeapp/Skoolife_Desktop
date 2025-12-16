@@ -30,6 +30,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
 
   // Tier hierarchy for access control
   const tierHierarchy: Record<SubscriptionTier, number> = {
+    'none': -1,
     'free_invite': 0,
     'student': 1,
     'major': 2,
