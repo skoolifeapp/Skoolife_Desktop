@@ -806,6 +806,30 @@ const Dashboard = () => {
     }
   };
 
+  const handleSessionDelete = async (sessionId: string) => {
+    try {
+      // First delete any invites associated with this session
+      await supabase
+        .from('session_invites')
+        .delete()
+        .eq('session_id', sessionId);
+
+      // Then delete the session itself
+      const { error } = await supabase
+        .from('revision_sessions')
+        .delete()
+        .eq('id', sessionId);
+
+      if (error) throw error;
+      
+      toast.success('Session supprimée');
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
   const handleSessionClick = (session: RevisionSession) => {
     // If it's an invited session, show the invited session dialog
     if (session.isInvitedSession) {
@@ -1210,6 +1234,12 @@ const Dashboard = () => {
         onEdit={() => {
           setSessionPopoverOpen(null);
           setEditSessionDialogOpen(true);
+        }}
+        onDelete={() => {
+          if (selectedSession) {
+            handleSessionDelete(selectedSession.id);
+            setSelectedSession(null);
+          }
         }}
         onShare={canInviteClassmates ? () => {
           setSessionPopoverOpen(null);

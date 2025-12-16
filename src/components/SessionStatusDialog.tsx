@@ -1,4 +1,4 @@
-import { Check, X, Pencil, Share2, Users, MapPin, Video, ExternalLink } from 'lucide-react';
+import { Check, X, Pencil, Share2, Users, MapPin, Video, ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -24,6 +24,7 @@ interface SessionStatusDialogProps {
   onMarkDone: () => void;
   onMarkSkipped: () => void;
   onEdit: () => void;
+  onDelete?: () => void;
   onShare?: () => void;
   hasAcceptedInvite?: boolean;
   inviteInfo?: InviteInfo;
@@ -36,6 +37,7 @@ export function SessionStatusDialog({
   onMarkDone,
   onMarkSkipped,
   onEdit,
+  onDelete,
   onShare,
   hasAcceptedInvite = false,
   inviteInfo,
@@ -198,6 +200,20 @@ export function SessionStatusDialog({
               <Pencil className="w-4 h-4 mr-2" />
               Modifier la session
             </Button>
+
+            {onDelete && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => {
+                  onDelete();
+                  onOpenChange(false);
+                }}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Supprimer la session
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>
