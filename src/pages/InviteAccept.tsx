@@ -88,7 +88,7 @@ export default function InviteAccept() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !inviteData || !firstName.trim()) {
+    if (!user || !inviteData || !firstName.trim() || !token) {
       toast.error('Entre ton prénom');
       return;
     }
@@ -110,16 +110,19 @@ export default function InviteAccept() {
 
       if (profileError) throw profileError;
 
-      // 2. Update the existing invite record to mark it as accepted by this user
-      const { error: updateError } = await supabase
+      // 2. Update the existing invite record (by its id) to mark it as accepted by this user
+      const { data: updatedInvite, error: updateError } = await supabase
         .from('session_invites')
         .update({
           accepted_by: user.id,
           accepted_at: new Date().toISOString(),
         })
-        .eq('unique_token', token);
+        .eq('id', inviteData.id)
+        .select('id')
+        .maybeSingle();
 
       if (updateError) throw updateError;
+      if (!updatedInvite) throw new Error('Invite not updated');
 
       // 4. Clear pending token
       localStorage.removeItem('pending_invite_token');
