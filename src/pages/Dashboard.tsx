@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useActivityTracker } from '@/hooks/useActivityTracker';
@@ -1131,6 +1132,95 @@ const Dashboard = () => {
   return (
     <AppSidebar>
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header with week title and actions */}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold">
+            Semaine du {format(weekStart, 'dd MMM', { locale: fr })}
+          </h2>
+          <div className="flex items-center gap-2">
+            {!isFreeUser && (
+              <>
+                <Button 
+                  id="add-event-btn"
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setAddEventDialogOpen(true)}
+                >
+                  <Plus className="w-4 h-4" />
+                  Ajouter un évènement
+                </Button>
+                <Button 
+                  id="import-calendar-btn"
+                  variant="outline" 
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={() => setImportDialogOpen(true)}
+                  title="Importer calendrier (.ics)"
+                >
+                  <Upload className="w-4 h-4" />
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
+                      disabled={calendarEvents.length === 0}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer tous les événements ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cette action supprimera définitivement tous les {calendarEvents.length} événements de ton calendrier. 
+                        Cette action est irréversible.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={handleDeleteAllEvents}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        disabled={deletingEvents}
+                      >
+                        {deletingEvents ? (
+                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                          <Trash2 className="w-4 h-4 mr-2" />
+                        )}
+                        Supprimer tout
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => setWeekStart(subWeeks(weekStart, 1))}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+            >
+              Aujourd'hui
+            </Button>
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => setWeekStart(addWeeks(weekStart, 1))}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
         <div className="grid lg:grid-cols-[300px_1fr] gap-8">
           {/* Sidebar */}
           <aside className="space-y-6">
@@ -1249,121 +1339,33 @@ const Dashboard = () => {
                   disabled={generating || adjusting || isPastWeek}
                 >
                   {generating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
                   ) : (
-                    <RefreshCw className="w-4 h-4" />
+                    <RefreshCw className="w-4 h-4 mr-2" />
                   )}
-                  {generating ? 'Génération...' : 'Générer mon planning'}
+                  Générer mon planning
                 </Button>
                 <Button 
-                  variant="secondary" 
+                  id="adjust-week-btn"
+                  variant="outline" 
                   size="lg" 
                   className="w-full"
                   onClick={adjustWeek}
-                  disabled={adjusting || generating || isPastWeek}
+                  disabled={generating || adjusting || isPastWeek}
                 >
                   {adjusting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
                   ) : (
-                    <Sparkles className="w-4 h-4" />
+                    <Sparkles className="w-4 h-4 mr-2" />
                   )}
-                  {adjusting ? 'Ajustement...' : 'Ajuster ma semaine'}
+                  Ajuster ma semaine
                 </Button>
               </div>
             )}
           </aside>
 
-          {/* Calendar */}
-          <div className="space-y-4">
-            {/* Week navigation */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">
-                Semaine du {format(weekStart, 'dd MMM', { locale: fr })}
-              </h2>
-              <div className="flex items-center gap-2">
-                {!isFreeUser && (
-                  <>
-                    <Button 
-                      id="add-event-btn"
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setAddEventDialogOpen(true)}
-                    >
-                      <Plus className="w-4 h-4" />
-                      Ajouter un évènement
-                    </Button>
-                    <Button 
-                      id="import-calendar-btn"
-                      variant="outline" 
-                      size="icon"
-                      className="h-9 w-9"
-                      onClick={() => setImportDialogOpen(true)}
-                      title="Importer calendrier (.ics)"
-                    >
-                      <Upload className="w-4 h-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
-                          disabled={calendarEvents.length === 0}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Supprimer tous les événements ?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Cette action supprimera définitivement tous les {calendarEvents.length} événements de ton calendrier. 
-                            Cette action est irréversible.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Annuler</AlertDialogCancel>
-                          <AlertDialogAction 
-                            onClick={handleDeleteAllEvents}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            disabled={deletingEvents}
-                          >
-                            {deletingEvents ? (
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                              <Trash2 className="w-4 h-4 mr-2" />
-                            )}
-                            Supprimer tout
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </>
-                )}
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => setWeekStart(subWeeks(weekStart, 1))}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
-                >
-                  Aujourd'hui
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => setWeekStart(addWeeks(weekStart, 1))}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-
+          {/* Main content */}
+          <div className={cn("space-y-4", isPastWeek && "opacity-60 pointer-events-none")}>
             {/* Week grid */}
             <WeeklyHourGrid
               weekDays={weekDays}
@@ -1388,7 +1390,6 @@ const Dashboard = () => {
               onSessionResize={isFreeUser ? undefined : handleSessionResize}
               onEventResize={isFreeUser ? undefined : handleEventResize}
             />
-
           </div>
         </div>
       </div>
