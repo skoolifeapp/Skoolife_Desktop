@@ -203,12 +203,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
           <Button
             variant="ghost"
             size="sm"
-            className={cn(
-              "w-full justify-start gap-2 text-xs",
-              isSubscribed 
-                ? "text-sidebar-foreground hover:bg-sidebar-foreground/10" 
-                : "bg-sidebar-foreground text-sidebar hover:bg-sidebar-foreground/90"
-            )}
+            className="w-full justify-start gap-2 text-sidebar-foreground hover:bg-sidebar-foreground/10 text-xs"
             onClick={handleManageSubscription}
           >
             <CreditCard className="w-4 h-4 shrink-0" />
@@ -271,10 +266,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
             {NAV_ITEMS.map((item) => renderNavItem(item, true))}
             <Button
               variant="ghost"
-              className={cn(
-                "w-full justify-start gap-3 px-4 py-4",
-                isSubscribed ? "text-muted-foreground hover:text-foreground" : "text-primary hover:text-primary/80"
-              )}
+              className="w-full justify-start gap-3 px-4 py-4 text-muted-foreground hover:text-foreground"
               onClick={() => {
                 setMobileMenuOpen(false);
                 handleManageSubscription();
