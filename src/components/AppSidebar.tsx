@@ -87,7 +87,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
       <Link
         key={item.path}
         to={item.path}
-        id={item.label === 'Matières' && !isMobile ? 'sidebar-matieres-link' : undefined}
+        id={!isMobile ? (item.label === 'Matières' ? 'sidebar-matieres-link' : item.label === 'Paramètres' ? 'sidebar-parametres-link' : undefined) : undefined}
         onClick={isMobile ? () => setMobileMenuOpen(false) : undefined}
         className={cn(
           "flex items-center gap-3 px-4 rounded-xl transition-colors",
