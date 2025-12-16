@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 // Stripe product IDs mapping
 const STRIPE_PRODUCTS = {
-  student: 'prod_Tbz5HgJWHbElHU',
-  major: 'prod_Tbz59WmKmYF5Jk',
+  student: 'prod_TcIUwE2kzf6me6',
+  major: 'prod_TcIU9GEsHSmufa',
 };
 
 export type SubscriptionTier = 'free' | 'student' | 'major' | null;
