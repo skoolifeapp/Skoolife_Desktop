@@ -302,22 +302,24 @@ const Subscription = () => {
             <CardTitle className="text-lg">Autres actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {/* Manage payment method */}
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={handleOpenPortal}
-              disabled={portalLoading}
-            >
-              {portalLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <CreditCard className="w-4 h-4 mr-2" />
-              )}
-              Gérer mon moyen de paiement
-            </Button>
+            {/* Manage payment method - only show if not canceled */}
+            {!isCanceled && (
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={handleOpenPortal}
+                disabled={portalLoading}
+              >
+                {portalLoading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <CreditCard className="w-4 h-4 mr-2" />
+                )}
+                Gérer mon moyen de paiement
+              </Button>
+            )}
 
-            {/* Cancel button */}
+            {/* Cancel button - only show if not canceled */}
             {!isCanceled && (
               <Button
                 variant="ghost"
