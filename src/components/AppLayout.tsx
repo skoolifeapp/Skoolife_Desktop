@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { AppSidebar } from './AppSidebar';
 
 const PageLoader = () => (
@@ -9,10 +9,14 @@ const PageLoader = () => (
 );
 
 export const AppLayout = () => {
+  const location = useLocation();
+  
   return (
     <AppSidebar>
       <Suspense fallback={<PageLoader />}>
-        <Outlet />
+        <div key={location.pathname} className="animate-fade-in">
+          <Outlet />
+        </div>
       </Suspense>
     </AppSidebar>
   );
