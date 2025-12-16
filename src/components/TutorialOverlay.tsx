@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Upload, GraduationCap, Sparkles } from "lucide-react";
+import { ArrowRight, Upload, GraduationCap, Sparkles, Calendar, Settings } from "lucide-react";
 
 interface TutorialStep {
   title: string;
@@ -18,10 +18,22 @@ const tutorialSteps: TutorialStep[] = [
     icon: <Upload className="w-6 h-6 text-primary" />,
   },
   {
+    title: "Ajouter vos évènements",
+    description: "Ajoutez vos évènements récurrents (alternance, sport, travail...) pour bloquer ces créneaux dans votre planning.",
+    targetId: "add-event-btn",
+    icon: <Calendar className="w-6 h-6 text-primary" />,
+  },
+  {
     title: "Configurer vos matières",
     description: "Ajoutez vos matières avec leurs dates d'examen et leur importance pour prioriser vos révisions.",
     targetId: "sidebar-matieres-link",
     icon: <GraduationCap className="w-6 h-6 text-primary" />,
+  },
+  {
+    title: "Configurer vos préférences",
+    description: "Définissez vos préférences de révision : jours disponibles, horaires, durée des sessions...",
+    targetId: "sidebar-parametres-link",
+    icon: <Settings className="w-6 h-6 text-primary" />,
   },
   {
     title: "Générer votre planning",

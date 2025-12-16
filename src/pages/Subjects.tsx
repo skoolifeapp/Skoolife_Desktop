@@ -14,7 +14,7 @@ import { format, parseISO, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { Subject } from '@/types/planning';
 import SubjectDrawer from '@/components/SubjectDrawer';
-import { SubjectsTutorialOverlay } from '@/components/SubjectsTutorialOverlay';
+
 import SupportButton from '@/components/SupportButton';
 
 const Subjects = () => {
@@ -23,7 +23,7 @@ const Subjects = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [filter, setFilter] = useState<'all' | 'partiel' | 'controle_continu' | 'oral' | 'projet'>('all');
-  const [showTutorial, setShowTutorial] = useState(false);
+  
 
   const EXAM_TYPES = [
     { value: 'partiel', label: 'Partiel' },
@@ -49,16 +49,9 @@ const Subjects = () => {
       return;
     }
     fetchSubjects();
-    checkTutorial();
+    
   }, [user, navigate]);
 
-  const checkTutorial = () => {
-    if (!user) return;
-    const tutorialSeen = localStorage.getItem(`subjects_tutorial_seen_${user.id}`);
-    if (!tutorialSeen) {
-      setShowTutorial(true);
-    }
-  };
 
   const fetchSubjects = async () => {
     if (!user) return;
@@ -171,17 +164,6 @@ const Subjects = () => {
 
   return (
     <>
-      {/* Tutorial */}
-      {showTutorial && (
-        <SubjectsTutorialOverlay 
-          onComplete={() => {
-            setShowTutorial(false);
-            if (user) {
-              localStorage.setItem(`subjects_tutorial_seen_${user.id}`, 'true');
-            }
-          }}
-        />
-      )}
 
       <div className="p-4 lg:p-8 max-w-6xl mx-auto space-y-6">
             {/* Page Header */}
