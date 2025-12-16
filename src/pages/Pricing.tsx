@@ -113,17 +113,11 @@ const Pricing = () => {
             <img src={logo} alt="Skoolife" className="w-9 h-9 rounded-xl" />
             <span className="text-lg font-bold font-heading">Skoolife</span>
           </Link>
-          {user ? (
-            <Button variant="ghost" size="sm" onClick={() => navigate('/app')}>
-              Mon dashboard
+          <Link to="/auth">
+            <Button variant="ghost" size="sm">
+              J'ai déjà un compte
             </Button>
-          ) : (
-            <Link to="/auth">
-              <Button variant="ghost" size="sm">
-                Connexion
-              </Button>
-            </Link>
-          )}
+          </Link>
         </nav>
       </header>
 
