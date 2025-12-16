@@ -84,15 +84,25 @@ const Subscription = () => {
     }
   }, [session, subscriptionLoading]);
 
-  // Auto-refresh when returning from Stripe portal
+  // Auto-refresh when returning from Stripe portal or after upgrade
   useEffect(() => {
     const handleFocus = async () => {
       await checkSubscription();
       await fetchSubscriptionDetails();
     };
 
+    const handleUpgrade = async () => {
+      setLoading(true);
+      await checkSubscription();
+      await fetchSubscriptionDetails();
+    };
+
     window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
+    window.addEventListener("subscription-upgraded", handleUpgrade);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("subscription-upgraded", handleUpgrade);
+    };
   }, [session]);
 
   const handleOpenPortal = async () => {
