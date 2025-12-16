@@ -64,7 +64,7 @@ serve(async (req) => {
       limit: 10,
     });
 
-    const eligible = subscriptions.data.find((s) => s.status === "active" || s.status === "trialing");
+    const eligible = subscriptions.data.find((s: Stripe.Subscription) => s.status === "active" || s.status === "trialing");
     const isEligible = Boolean(eligible);
 
     let productId = null;
@@ -83,7 +83,7 @@ serve(async (req) => {
       logStep("Determined subscription product", { productId });
     } else {
       logStep("No active or trialing subscription found", {
-        statuses: subscriptions.data.map((s) => s.status),
+        statuses: subscriptions.data.map((s: Stripe.Subscription) => s.status),
       });
     }
 
