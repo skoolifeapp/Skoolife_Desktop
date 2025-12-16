@@ -68,7 +68,7 @@ const Dashboard = () => {
     meeting_link: string | null;
   }>>({});
   
-  const { user, signOut, isSubscribed, subscriptionLoading } = useAuth();
+  const { user, signOut, isSubscribed, subscriptionLoading, subscriptionTier } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isSigningOut = useRef(false);
@@ -78,6 +78,8 @@ const Dashboard = () => {
   // Student and Major subscribers ALWAYS have full access regardless of how they signed up
   const hasActiveSubscription = !subscriptionLoading && isSubscribed;
   const isFreeUser = signedUpViaInvite && !subscriptionLoading && !isSubscribed && !hasActiveSubscription;
+  const isStudentTier = subscriptionTier === 'student';
+  const canInviteClassmates = !isFreeUser && !isStudentTier; // Only Major tier can invite
   
   // Track user activity for analytics
   useActivityTracker();
@@ -1462,10 +1464,10 @@ const Dashboard = () => {
           setSessionPopoverOpen(null);
           setEditSessionDialogOpen(true);
         }}
-        onShare={() => {
+        onShare={canInviteClassmates ? () => {
           setSessionPopoverOpen(null);
           setShareSessionDialogOpen(true);
-        }}
+        } : undefined}
         hasAcceptedInvite={selectedSession ? (sessionInvites[selectedSession.id]?.invitees?.some(i => i.accepted_by) ?? false) : false}
         inviteInfo={selectedSession ? sessionInvites[selectedSession.id] : undefined}
       />

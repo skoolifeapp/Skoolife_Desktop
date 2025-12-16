@@ -11,10 +11,10 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { path: '/app', label: 'Dashboard', icon: Home, requiresSubscription: false },
-  { path: '/progression', label: 'Progression', icon: TrendingUp, requiresSubscription: true },
-  { path: '/subjects', label: 'Matières', icon: GraduationCap, requiresSubscription: true },
-  { path: '/settings', label: 'Paramètres', icon: Settings, requiresSubscription: true },
+  { path: '/app', label: 'Dashboard', icon: Home, requiresSubscription: false, requiresMajor: false },
+  { path: '/progression', label: 'Progression', icon: TrendingUp, requiresSubscription: true, requiresMajor: true },
+  { path: '/subjects', label: 'Matières', icon: GraduationCap, requiresSubscription: true, requiresMajor: true },
+  { path: '/settings', label: 'Paramètres', icon: Settings, requiresSubscription: true, requiresMajor: false },
 ];
 
 interface AppSidebarProps {
@@ -44,8 +44,14 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
     return location.pathname === path;
   };
 
+  // Student tier has limited access - only Major gets full access
+  const isStudentTier = subscriptionTier === 'student';
+
   const renderNavItem = (item: typeof NAV_ITEMS[0], isMobile: boolean = false) => {
-    const isLocked = isInviteFreeUser && item.requiresSubscription;
+    // Lock for free users OR for Student tier when requiresMajor is true
+    const isLockedForFree = isInviteFreeUser && item.requiresSubscription;
+    const isLockedForStudent = isStudentTier && item.requiresMajor;
+    const isLocked = isLockedForFree || isLockedForStudent;
     
     if (isLocked) {
       return (
