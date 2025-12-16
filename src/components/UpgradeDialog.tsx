@@ -24,20 +24,21 @@ export const UpgradeDialog = ({ open, onOpenChange, featureName, onUpgradeSucces
   const handleUpgrade = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('switch-subscription', {
-        body: { targetTier: 'major' },
-      });
+      const { data, error } = await supabase.functions.invoke('customer-portal');
 
       if (error) throw error;
-
-      toast.success('Félicitations ! Tu es maintenant Major 🎉');
-      onOpenChange(false);
-      onUpgradeSuccess?.();
-      // Dispatch custom event for pages to refresh
-      window.dispatchEvent(new CustomEvent('subscription-upgraded'));
+      
+      if (data?.url) {
+        // Open Stripe portal in new tab
+        window.open(data.url, '_blank');
+        toast.info('Modifie ton abonnement sur Stripe', {
+          description: 'Ton abonnement sera mis à jour automatiquement à ton retour.',
+        });
+        onOpenChange(false);
+      }
     } catch (error: any) {
       console.error('Upgrade error:', error);
-      toast.error(error.message || 'Erreur lors de la mise à niveau');
+      toast.error(error.message || 'Erreur lors de la redirection vers Stripe');
     } finally {
       setIsLoading(false);
     }
