@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
         expires_at,
         accepted_by,
         accepted_at,
+        invited_by,
         meeting_format,
         meeting_address,
         meeting_link,
@@ -89,6 +90,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         id: invite.id,
+        inviter_id: invite.invited_by,
         session: invite.session,
         inviter: invite.inviter,
         expires_at: invite.expires_at,

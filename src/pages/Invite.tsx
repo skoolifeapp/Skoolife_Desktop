@@ -11,6 +11,7 @@ import logo from '@/assets/logo.png';
 
 interface InviteData {
   id: string;
+  inviter_id: string;
   session: {
     id: string;
     date: string;
@@ -45,7 +46,7 @@ export default function Invite() {
   const [expired, setExpired] = useState(false);
   const [accepting, setAccepting] = useState(false);
   const [accepted, setAccepted] = useState(false);
-  const [alreadyUsed, setAlreadyUsed] = useState(false);
+  
 
   useEffect(() => {
     fetchInviteData();
@@ -54,7 +55,7 @@ export default function Invite() {
   // Auto-accept invite when user is logged in and arrives on this page
   useEffect(() => {
     const autoAcceptIfPending = async () => {
-      if (user && inviteData && !accepted && !alreadyUsed && !inviteData.already_accepted) {
+      if (user && inviteData && !accepted) {
         // Check if this was a pending invite from localStorage
         const pendingToken = localStorage.getItem('pending_invite_token');
         if (pendingToken === token) {
@@ -64,26 +65,32 @@ export default function Invite() {
       }
     };
     autoAcceptIfPending();
-  }, [user, inviteData, accepted, alreadyUsed, token]);
+  }, [user, inviteData, accepted, token]);
 
-  // Determine acceptance state (accepted by me vs already used by someone else)
+  // Check if the current user has already accepted this invite (via their own record)
   useEffect(() => {
-    if (!inviteData) return;
+    const checkUserAcceptance = async () => {
+      if (!inviteData || !user) {
+        setAccepted(false);
+        return;
+      }
 
-    if (!inviteData.accepted_by) {
-      setAccepted(false);
-      setAlreadyUsed(false);
-      return;
-    }
+      // Check if user already has an invite record for this session
+      const { data: existingInvite } = await supabase
+        .from('session_invites')
+        .select('id')
+        .eq('session_id', inviteData.session.id)
+        .eq('accepted_by', user.id)
+        .maybeSingle();
 
-    if (user && inviteData.accepted_by === user.id) {
-      setAccepted(true);
-      setAlreadyUsed(false);
-      return;
-    }
-
-    setAccepted(false);
-    setAlreadyUsed(true);
+      if (existingInvite) {
+        setAccepted(true);
+      } else {
+        setAccepted(false);
+      }
+    };
+    
+    checkUserAcceptance();
   }, [user, inviteData]);
 
   const fetchInviteData = async () => {
@@ -124,39 +131,45 @@ export default function Invite() {
   const handleAcceptInvite = async () => {
     if (!user || !inviteData) return;
 
-    // If someone else already used this invite, stop here.
-    if (inviteData.accepted_by && inviteData.accepted_by !== user.id) {
-      setAlreadyUsed(true);
-      return;
-    }
-
     setAccepting(true);
     setError(null);
     try {
-      const { data, error: updateError } = await supabase
+      // Check if user already accepted this session
+      const { data: existingInvite } = await supabase
         .from('session_invites')
-        .update({
-          accepted_by: user.id,
-          accepted_at: new Date().toISOString(),
-        })
-        .eq('id', inviteData.id)
-        .is('accepted_by', null)
-        .select('accepted_by')
+        .select('id')
+        .eq('session_id', inviteData.session.id)
+        .eq('accepted_by', user.id)
         .maybeSingle();
 
-      if (updateError) throw updateError;
-
-      // If no row was updated, it means the invite was taken in the meantime
-      if (!data?.accepted_by) {
-        setAlreadyUsed(true);
+      if (existingInvite) {
+        // Already accepted
+        setAccepted(true);
+        setTimeout(() => {
+          navigate(`/app?week=${inviteData.session.date}`);
+        }, 800);
         return;
       }
 
+      // Create a NEW session_invite record for this user (multi-accept support)
+      const { error: insertError } = await supabase
+        .from('session_invites')
+        .insert({
+          session_id: inviteData.session.id,
+          invited_by: inviteData.inviter_id,
+          accepted_by: user.id,
+          accepted_at: new Date().toISOString(),
+          expires_at: inviteData.expires_at,
+          meeting_format: inviteData.meeting_format,
+          meeting_address: inviteData.meeting_address,
+          meeting_link: inviteData.meeting_link,
+        });
+
+      if (insertError) throw insertError;
+
       // Mark this user as having signed up via invite (for free user logic)
-      // This only matters if the user was a new signup - existing users won't be affected
       const pendingToken = localStorage.getItem('pending_invite_token');
       if (pendingToken === token) {
-        // User just signed up via this invite link - mark them as invite signup
         await supabase
           .from('profiles')
           .update({ signed_up_via_invite: true })
@@ -164,7 +177,6 @@ export default function Invite() {
       }
 
       localStorage.removeItem('pending_invite_token');
-      setInviteData(prev => (prev ? { ...prev, accepted_by: user.id, already_accepted: true } : prev));
       setAccepted(true);
 
       // Redirect to dashboard on the week of this session
@@ -206,24 +218,6 @@ export default function Invite() {
     );
   }
 
-  if (alreadyUsed) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardContent className="pt-6 text-center">
-            <XCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Invitation déjà utilisée</h2>
-            <p className="text-muted-foreground mb-6">
-              Ce lien a déjà été accepté par quelqu'un d'autre.
-            </p>
-            <Link to="/">
-              <Button>Retour à l'accueil</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   if (error || !inviteData) {
     return (
