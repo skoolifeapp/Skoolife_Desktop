@@ -40,18 +40,9 @@ const queryClient = new QueryClient({
   },
 });
 
-// Minimal loading fallback with skeleton
-const PageLoader = () => (
-  <div className="min-h-screen p-8 space-y-6">
-    <div className="h-10 w-64 rounded-lg animate-shimmer" />
-    <div className="h-6 w-96 rounded-lg animate-shimmer" />
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="h-32 rounded-xl animate-shimmer" />
-      ))}
-    </div>
-    <div className="h-64 rounded-xl animate-shimmer mt-4" />
-  </div>
+// Minimal loading fallback for public pages (no skeleton)
+const MinimalLoader = () => (
+  <div className="min-h-screen" />
 );
 
 const App = () => (
@@ -63,7 +54,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <PresenceProvider>
-              <Suspense fallback={<PageLoader />}>
+              <Suspense fallback={<MinimalLoader />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
