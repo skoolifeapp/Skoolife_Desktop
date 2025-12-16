@@ -25,36 +25,29 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { priceId } = await req.json();
-    if (!priceId) throw new Error("Price ID is required");
-    logStep("Price ID received", { priceId });
-
-    // User must be authenticated
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Authorization required");
-
+    const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
-
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if a Stripe customer record exists for this user
+    const { priceId } = await req.json();
+    if (!priceId) throw new Error("Price ID is required");
+    logStep("Price ID received", { priceId });
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2025-08-27.basil" 
     });
+
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId: string | undefined;
+    let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
       logStep("Existing customer found", { customerId });
     }
 
-    const origin = req.headers.get("origin") || "https://skoolife.lovable.app";
-
-    // Create checkout session
-    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
+    const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
@@ -64,12 +57,10 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${origin}/onboarding`,
-      cancel_url: `${origin}/pricing`,
-      allow_promotion_codes: true,
-    };
+      success_url: `${req.headers.get("origin")}/app?checkout=success`,
+      cancel_url: `${req.headers.get("origin")}/app?checkout=canceled`,
+    });
 
-    const session = await stripe.checkout.sessions.create(sessionConfig);
     logStep("Checkout session created", { sessionId: session.id });
 
     return new Response(JSON.stringify({ url: session.url }), {

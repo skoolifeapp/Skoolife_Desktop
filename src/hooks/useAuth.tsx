@@ -2,32 +2,12 @@ import { useState, useEffect, createContext, useContext, ReactNode, useCallback 
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-// Subscription tiers
-// 'none' = no subscription (new users who haven't paid yet)
-// 'free_invite' = free tier for users who signed up via invite link
-// 'student' = paid student tier
-// 'major' = paid major tier
-export type SubscriptionTier = 'none' | 'free_invite' | 'student' | 'major';
-
-// Stripe product IDs mapping
-export const STRIPE_PRODUCTS = {
-  student: {
-    product_id: 'prod_Tbz5HgJWHbElHU',
-    price_id: 'price_1Sel7HCG6ZnJ9jFuMwPpQ6uS',
-  },
-  major: {
-    product_id: 'prod_Tbz59WmKmYF5Jk',
-    price_id: 'price_1Sel7UCG6ZnJ9jFuyilMrJzF',
-  }
-} as const;
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
   isSubscribed: boolean;
-  subscriptionTier: SubscriptionTier;
   subscriptionLoading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -44,7 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>('none');
   const [subscriptionLoading, setSubscriptionLoading] = useState(true);
 
   const checkIsAdmin = async (): Promise<boolean> => {
@@ -67,21 +46,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const currentSession = session || (await supabase.auth.getSession()).data.session;
     if (!currentSession) {
       setIsSubscribed(false);
-      setSubscriptionTier('none');
       setSubscriptionLoading(false);
       return;
     }
 
     try {
-      // First check if user signed up via invite (free account)
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('signed_up_via_invite')
-        .eq('id', currentSession.user.id)
-        .maybeSingle();
-
-      const signedUpViaInvite = profileData?.signed_up_via_invite || false;
-
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
           Authorization: `Bearer ${currentSession.access_token}`
@@ -91,36 +60,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         console.error('Error checking subscription:', error);
         setIsSubscribed(false);
-        // If signed up via invite and no subscription = free_invite tier
-        // Otherwise, no subscription = none tier
-        setSubscriptionTier(signedUpViaInvite ? 'free_invite' : 'none');
       } else {
-        const subscribed = data?.subscribed || false;
-        const productId = data?.product_id || null;
-        setIsSubscribed(subscribed);
-        
-        if (subscribed && productId) {
-          // Map Stripe product_id to tier
-          if (productId === STRIPE_PRODUCTS.major.product_id) {
-            setSubscriptionTier('major');
-          } else if (productId === STRIPE_PRODUCTS.student.product_id) {
-            setSubscriptionTier('student');
-          } else {
-            // Unknown product, default to major for safety
-            setSubscriptionTier('major');
-          }
-        } else if (signedUpViaInvite) {
-          // Free invite account (no subscription)
-          setSubscriptionTier('free_invite');
-        } else {
-          // No subscription = none tier (must pay to access app)
-          setSubscriptionTier('none');
-        }
+        setIsSubscribed(data?.subscribed || false);
       }
     } catch (err) {
       console.error('Error checking subscription:', err);
       setIsSubscribed(false);
-      setSubscriptionTier('none');
     } finally {
       setSubscriptionLoading(false);
     }
@@ -190,7 +135,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setIsAdmin(false);
     setIsSubscribed(false);
-    setSubscriptionTier('none');
   };
 
   return (
@@ -200,7 +144,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading, 
       isAdmin, 
       isSubscribed,
-      subscriptionTier,
       subscriptionLoading,
       signUp, 
       signIn, 

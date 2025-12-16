@@ -39,6 +39,7 @@ import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/p
 
 const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [signedUpViaInvite, setSignedUpViaInvite] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [sessions, setSessions] = useState<RevisionSession[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
@@ -67,16 +68,14 @@ const Dashboard = () => {
     meeting_link: string | null;
   }>>({});
   
-  const { user, signOut, subscriptionTier, subscriptionLoading } = useAuth();
+  const { user, signOut, isSubscribed, subscriptionLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isSigningOut = useRef(false);
   
-  // Free user = free_invite tier (users who signed up via invite link)
-  const isFreeUser = subscriptionTier === 'free_invite';
-  
-  // Can invite classmates = only 'major' tier
-  const canInviteClassmates = subscriptionTier === 'major';
+  // Check if user is free (only applies to users who signed up via invite link)
+  // Regular users (signed up normally) are NOT affected even if they don't have a subscription
+  const isFreeUser = signedUpViaInvite && !subscriptionLoading && !isSubscribed;
   
   // Track user activity for analytics
   useActivityTracker();
@@ -113,17 +112,8 @@ const Dashboard = () => {
       return;
     }
 
-    // Wait for subscription check to complete
-    if (subscriptionLoading) return;
-
-    // Users without subscription must pay first
-    if (subscriptionTier === 'none') {
-      navigate('/pricing');
-      return;
-    }
-
     fetchData();
-  }, [user, navigate, subscriptionTier, subscriptionLoading]);
+  }, [user, navigate]);
 
   const fetchData = async () => {
     if (!user) return;
@@ -142,6 +132,7 @@ const Dashboard = () => {
       }
 
       setProfile(profileData);
+      setSignedUpViaInvite(profileData?.signed_up_via_invite || false);
 
       // Check if tutorial should be shown (first visit after onboarding)
       const tutorialSeen = localStorage.getItem(`tutorial_seen_${user.id}`);
@@ -1469,10 +1460,10 @@ const Dashboard = () => {
           setSessionPopoverOpen(null);
           setEditSessionDialogOpen(true);
         }}
-        onShare={canInviteClassmates ? () => {
+        onShare={() => {
           setSessionPopoverOpen(null);
           setShareSessionDialogOpen(true);
-        } : undefined}
+        }}
         hasAcceptedInvite={selectedSession ? (sessionInvites[selectedSession.id]?.invitees?.some(i => i.accepted_by) ?? false) : false}
         inviteInfo={selectedSession ? sessionInvites[selectedSession.id] : undefined}
       />

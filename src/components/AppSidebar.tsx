@@ -1,21 +1,18 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth, SubscriptionTier } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth';
+import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown } from 'lucide-react';
+import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-// Define which tiers can access each feature
-// 'free_invite' = only dashboard (view invited sessions)
-// 'student' = dashboard, matières, paramètres (no progression, no invite)
-// 'major' = everything
 const NAV_ITEMS = [
-  { path: '/app', label: 'Dashboard', icon: Home, minTier: 'free_invite' as SubscriptionTier },
-  { path: '/progression', label: 'Progression', icon: TrendingUp, minTier: 'major' as SubscriptionTier },
-  { path: '/subjects', label: 'Matières', icon: GraduationCap, minTier: 'student' as SubscriptionTier },
-  { path: '/settings', label: 'Paramètres', icon: Settings, minTier: 'student' as SubscriptionTier },
+  { path: '/app', label: 'Dashboard', icon: Home, requiresSubscription: false },
+  { path: '/progression', label: 'Progression', icon: TrendingUp, requiresSubscription: true },
+  { path: '/subjects', label: 'Matières', icon: GraduationCap, requiresSubscription: true },
+  { path: '/settings', label: 'Paramètres', icon: Settings, requiresSubscription: true },
 ];
 
 interface AppSidebarProps {
@@ -26,19 +23,8 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, subscriptionTier } = useAuth();
-
-  // Tier hierarchy for access control
-  const tierHierarchy: Record<SubscriptionTier, number> = {
-    'none': -1,
-    'free_invite': 0,
-    'student': 1,
-    'major': 2,
-  };
-
-  const canAccessFeature = (minTier: SubscriptionTier): boolean => {
-    return tierHierarchy[subscriptionTier] >= tierHierarchy[minTier];
-  };
+  const { signOut } = useAuth();
+  const { isInviteFreeUser } = useInviteFreeUser();
 
   const handleSignOut = async () => {
     await signOut();
@@ -53,7 +39,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   };
 
   const renderNavItem = (item: typeof NAV_ITEMS[0], isMobile: boolean = false) => {
-    const isLocked = !canAccessFeature(item.minTier);
+    const isLocked = isInviteFreeUser && item.requiresSubscription;
     
     if (isLocked) {
       return (
@@ -101,17 +87,6 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
 
         <nav className="flex-1 space-y-1">
           {NAV_ITEMS.map((item) => renderNavItem(item))}
-          
-          {/* Upgrade CTA for free_invite users */}
-          {subscriptionTier === 'free_invite' && (
-            <Link
-              to="/pricing"
-              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-colors mt-4"
-            >
-              <Crown className="w-5 h-5" />
-              <span className="font-medium">Passer à Premium</span>
-            </Link>
-          )}
         </nav>
 
         <div className="pt-6 border-t border-border space-y-3">

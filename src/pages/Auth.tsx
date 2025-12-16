@@ -17,72 +17,50 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingRedirect, setCheckingRedirect] = useState(false);
-  const { signIn, signUp, user, checkIsAdmin, subscriptionTier, subscriptionLoading } = useAuth();
+  const { signIn, signUp, user, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
   // Get redirect URL from query params (e.g., from invite link)
   const redirectUrl = searchParams.get('redirect');
-  // Check mode from query params
-  const modeParam = searchParams.get('mode');
-
-  // Set initial mode based on query param
-  useEffect(() => {
-    if (modeParam === 'signup') {
-      setIsLogin(false);
-    }
-  }, [modeParam]);
 
   useEffect(() => {
     const handleRedirect = async () => {
-      if (!user) return;
-      
-      // Wait for subscription check to complete
-      if (subscriptionLoading) return;
-      
-      setCheckingRedirect(true);
-      
-      // Admin check by email - simple redirect
-      if (user.email === 'skoolife.co@gmail.com') {
-        navigate('/admin');
+      if (user) {
+        setCheckingRedirect(true);
+        
+        // Admin check by email - simple redirect
+        if (user.email === 'skoolife.co@gmail.com') {
+          navigate('/admin');
+          setCheckingRedirect(false);
+          return;
+        }
+        
+        // If there's a redirect URL (e.g., invite page), go there first
+        if (redirectUrl) {
+          navigate(redirectUrl);
+          setCheckingRedirect(false);
+          return;
+        }
+        
+        // Check if user has completed onboarding
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_onboarding_complete')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.is_onboarding_complete) {
+          navigate('/app');
+        } else {
+          navigate('/onboarding');
+        }
+        
         setCheckingRedirect(false);
-        return;
       }
-      
-      // If there's a redirect URL (e.g., invite page), go there first
-      if (redirectUrl) {
-        navigate(redirectUrl);
-        setCheckingRedirect(false);
-        return;
-      }
-      
-      // Check if user has completed onboarding
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_onboarding_complete')
-        .eq('id', user.id)
-        .single();
-      
-      // User has no paid subscription → go to pricing
-      if (subscriptionTier === 'none') {
-        navigate('/pricing');
-        setCheckingRedirect(false);
-        return;
-      }
-      
-      // User has subscription but hasn't completed onboarding → go to onboarding
-      if (!profile?.is_onboarding_complete) {
-        navigate('/onboarding');
-        setCheckingRedirect(false);
-        return;
-      }
-      
-      // User has subscription and completed onboarding → go to app
-      navigate('/app');
-      setCheckingRedirect(false);
     };
     handleRedirect();
-  }, [user, navigate, redirectUrl, subscriptionTier, subscriptionLoading]);
+  }, [user, navigate, redirectUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

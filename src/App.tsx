@@ -18,7 +18,6 @@ import Admin from "./pages/Admin";
 import AdminUsers from "./pages/AdminUsers";
 import AdminStats from "./pages/AdminStats";
 import Invite from "./pages/Invite";
-import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,7 +44,6 @@ const App = () => (
                 <Route path="/admin/users" element={<AdminUsers />} />
                 <Route path="/admin/stats" element={<AdminStats />} />
                 <Route path="/invite/:token" element={<Invite />} />
-                <Route path="/pricing" element={<Pricing />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </PresenceProvider>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -78,15 +79,16 @@ const Settings = () => {
     notes: '',
   });
 
-  const { user, subscriptionTier, subscriptionLoading } = useAuth();
+  const { user } = useAuth();
+  const { isInviteFreeUser, loading: inviteGateLoading } = useInviteFreeUser();
   const navigate = useNavigate();
 
-  // Redirect: only 'student' or 'major' tier can access Settings
+  // Redirect uniquement les comptes créés via lien d'invitation (comptes gratuits)
   useEffect(() => {
-    if (!subscriptionLoading && subscriptionTier === 'free_invite') {
+    if (!inviteGateLoading && isInviteFreeUser) {
       navigate('/app');
     }
-  }, [subscriptionLoading, subscriptionTier, navigate]);
+  }, [inviteGateLoading, isInviteFreeUser, navigate]);
 
   useEffect(() => {
     if (!user) {
