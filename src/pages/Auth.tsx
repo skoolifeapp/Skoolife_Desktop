@@ -157,8 +157,8 @@ const Auth = () => {
                   const baseUrl = window.location.hostname.includes('skoolife.fr') 
                     ? 'https://app.skoolife.fr' 
                     : window.location.origin;
-                  // Include redirect URL if present
-                  const finalRedirect = redirectUrl ? `${baseUrl}${redirectUrl}` : `${baseUrl}/app`;
+                  // Always redirect to /auth so the useEffect handles proper routing to /pricing
+                  const finalRedirect = redirectUrl ? `${baseUrl}${redirectUrl}` : `${baseUrl}/auth`;
                   const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
