@@ -90,7 +90,7 @@ const Index = () => {
 
               {/* CTA */}
               <div className="flex flex-col sm:flex-row items-center lg:items-start gap-4 mt-10 animate-slide-up">
-                <Link to="/auth">
+                <Link to="/auth?mode=signup">
                   <Button variant="hero" size="xl">
                     Commencer gratuitement
                     <ArrowRight className="w-5 h-5" />
@@ -149,7 +149,7 @@ const Index = () => {
             <p className="text-lg text-muted-foreground mb-10 max-w-lg mx-auto">
               Rejoins Skoolife et reprends le contrôle de tes révisions.
             </p>
-            <Link to="/auth">
+            <Link to="/auth?mode=signup">
               <Button variant="hero" size="xl" className="hover-lift">
                 Créer mon planning
                 <ArrowRight className="w-5 h-5" />

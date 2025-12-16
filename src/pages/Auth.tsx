@@ -11,7 +11,11 @@ import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import logo from '@/assets/logo.png';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get('mode');
+  const redirectUrl = searchParams.get('redirect');
+  
+  const [isLogin, setIsLogin] = useState(mode !== 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -19,10 +23,6 @@ const Auth = () => {
   const [checkingRedirect, setCheckingRedirect] = useState(false);
   const { signIn, signUp, user, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  
-  // Get redirect URL from query params (e.g., from invite link)
-  const redirectUrl = searchParams.get('redirect');
 
   useEffect(() => {
     const handleRedirect = async () => {
