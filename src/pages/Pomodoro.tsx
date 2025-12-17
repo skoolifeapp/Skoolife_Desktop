@@ -53,7 +53,6 @@ const Pomodoro = () => {
     
     try {
       const today = format(new Date(), 'yyyy-MM-dd');
-      const now = format(new Date(), 'HH:mm');
       
       const { data, error } = await supabase
         .from('revision_sessions')
@@ -200,7 +199,7 @@ const Pomodoro = () => {
         </div>
 
         {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Left Column - Timer */}
           <div className="space-y-6">
             {/* Session Type Buttons */}
@@ -295,9 +294,9 @@ const Pomodoro = () => {
                   <Button
                     size="icon"
                     onClick={toggleTimer}
-                    className="w-16 h-16 rounded-full"
+                    className="w-12 h-12 rounded-full"
                   >
-                    {isRunning ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
+                    {isRunning ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
                   </Button>
                 </div>
               </CardContent>
@@ -332,20 +331,7 @@ const Pomodoro = () => {
 
           {/* Right Column - Sessions */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-primary" />
-                <h2 className="font-semibold">Sessions suggérées</h2>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => navigate('/app')}
-                className="text-muted-foreground"
-              >
-                Voir tout
-              </Button>
-            </div>
+            <h2 className="font-semibold">Sessions suggérées</h2>
 
             {loading ? (
               <div className="space-y-3">
