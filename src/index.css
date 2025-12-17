@@ -172,6 +172,14 @@
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
   }
 
+  .gradient-sidebar {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--skoo-orange)) 100%
+    );
+  }
+
   .gradient-card {
     background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%);
   }
