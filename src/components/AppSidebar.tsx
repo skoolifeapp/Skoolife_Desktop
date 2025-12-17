@@ -181,7 +181,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
       <aside className={cn(
-        "hidden lg:flex fixed left-0 top-0 h-full flex-col gradient-sidebar border-r border-sidebar-border z-50 transition-all duration-300",
+        "hidden lg:flex fixed left-0 top-0 h-full flex-col bg-sidebar border-r border-sidebar-border z-50 transition-all duration-300",
         sidebarCollapsed ? "w-16 p-3" : "w-56 p-5"
       )}>
         <div className={cn("mb-10", sidebarCollapsed && "flex justify-center")}>
