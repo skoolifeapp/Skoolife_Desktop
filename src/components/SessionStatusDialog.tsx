@@ -1,5 +1,5 @@
-import { memo, useCallback } from 'react';
-import { Check, X, Pencil, Share2, Users, MapPin, Video, ExternalLink, Trash2 } from 'lucide-react';
+import { memo, lazy, Suspense } from 'react';
+import { Check, X, Pencil, Share2, Users, MapPin, Video, ExternalLink, Trash2, Paperclip, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,6 +10,9 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import type { RevisionSession } from '@/types/planning';
+
+// Lazy load FileUploadPopover
+const FileUploadPopover = lazy(() => import('./FileUploadPopover').then(m => ({ default: m.FileUploadPopover })));
 
 export interface InviteInfo {
   invitees: Array<{ accepted_by: string | null; first_name: string | null; last_name: string | null; confirmed?: boolean }>;
@@ -27,6 +30,7 @@ interface SessionStatusDialogProps {
   onEdit: () => void;
   onDelete?: () => void;
   onShare?: () => void;
+  onFileChange?: () => void;
   hasAcceptedInvite?: boolean;
   inviteInfo?: InviteInfo;
 }
@@ -40,6 +44,7 @@ export const SessionStatusDialog = memo(function SessionStatusDialog({
   onEdit,
   onDelete,
   onShare,
+  onFileChange,
   hasAcceptedInvite = false,
   inviteInfo,
 }: SessionStatusDialogProps) {
@@ -143,6 +148,29 @@ export const SessionStatusDialog = memo(function SessionStatusDialog({
                 : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
             }`}>
               {session.status === 'done' ? 'Terminée' : 'Manquée'}
+            </div>
+          )}
+
+          {/* Course files section - shared at subject level */}
+          {session.subject?.name && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Paperclip className="w-4 h-4 text-primary" />
+                <span>Fichiers de cours</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  (partagés pour "{session.subject.name}")
+                </span>
+              </div>
+              <div className="p-3 border rounded-lg bg-muted/30">
+                <Suspense fallback={<div className="flex items-center justify-center py-2"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>}>
+                  <FileUploadPopover 
+                    targetId={session.id} 
+                    targetType="session"
+                    subjectName={session.subject.name}
+                    onFileChange={onFileChange}
+                  />
+                </Suspense>
+              </div>
             </div>
           )}
 

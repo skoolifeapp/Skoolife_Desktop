@@ -1273,6 +1273,7 @@ const Dashboard = () => {
           setSessionPopoverOpen(null);
           setShareSessionDialogOpen(true);
         } : undefined}
+        onFileChange={fetchData}
         hasAcceptedInvite={selectedSession ? (sessionInvites[selectedSession.id]?.invitees?.some(i => i.accepted_by) ?? false) : false}
         inviteInfo={selectedSession ? sessionInvites[selectedSession.id] : undefined}
       />
