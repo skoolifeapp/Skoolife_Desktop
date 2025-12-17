@@ -298,8 +298,8 @@ const Progression = () => {
           <TrendingUp className="w-6 h-6 text-primary" />
           <h1 className="text-2xl font-bold">Tableau de Bord des Progrès</h1>
         </div>
-        <div className="flex items-center gap-2 bg-secondary/50 rounded-lg p-1">
-          <Button variant="ghost" size="icon" onClick={goToPreviousWeek} className="h-8 w-8">
+        <div className="flex items-center gap-2 bg-background border border-border rounded-lg px-2 py-1.5 shadow-sm">
+          <Button variant="ghost" size="icon" onClick={goToPreviousWeek} className="h-8 w-8 hover:bg-secondary">
             <ChevronLeft className="w-4 h-4" />
           </Button>
           <span className="px-3 text-sm font-medium min-w-[140px] text-center">{getWeekLabel()}</span>
@@ -308,12 +308,12 @@ const Progression = () => {
               variant="ghost" 
               size="sm" 
               onClick={() => setSelectedWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
-              className="h-8 text-xs"
+              className="h-8 text-xs hover:bg-secondary"
             >
               Aujourd'hui
             </Button>
           )}
-          <Button variant="ghost" size="icon" onClick={goToNextWeek} className="h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={goToNextWeek} className="h-8 w-8 hover:bg-secondary">
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
