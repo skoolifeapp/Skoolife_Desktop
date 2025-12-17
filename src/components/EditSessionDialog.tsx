@@ -345,10 +345,7 @@ const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate, onShare,
                     type="button"
                     variant="outline"
                     size="icon"
-                    onClick={() => {
-                      handleClose();
-                      onShare();
-                    }}
+                    onClick={onShare}
                   >
                     <Share2 className="w-4 h-4" />
                   </Button>
