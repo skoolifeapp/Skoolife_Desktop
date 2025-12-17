@@ -36,6 +36,7 @@ export interface CalendarEvent {
   event_type?: string;
   source?: string;
   recurrence_group_id?: string | null;
+  subject_name?: string | null;
 }
 
 export interface Profile {

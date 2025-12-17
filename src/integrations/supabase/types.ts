@@ -57,6 +57,7 @@ export type Database = {
           recurrence_group_id: string | null
           source: string | null
           start_datetime: string
+          subject_name: string | null
           title: string
           user_id: string
         }
@@ -70,6 +71,7 @@ export type Database = {
           recurrence_group_id?: string | null
           source?: string | null
           start_datetime: string
+          subject_name?: string | null
           title: string
           user_id: string
         }
@@ -83,6 +85,7 @@ export type Database = {
           recurrence_group_id?: string | null
           source?: string | null
           start_datetime?: string
+          subject_name?: string | null
           title?: string
           user_id?: string
         }
@@ -373,6 +376,7 @@ export type Database = {
           file_type: string
           id: string
           session_id: string | null
+          subject_name: string | null
           user_id: string
         }
         Insert: {
@@ -384,6 +388,7 @@ export type Database = {
           file_type: string
           id?: string
           session_id?: string | null
+          subject_name?: string | null
           user_id: string
         }
         Update: {
@@ -395,6 +400,7 @@ export type Database = {
           file_type?: string
           id?: string
           session_id?: string | null
+          subject_name?: string | null
           user_id?: string
         }
         Relationships: [
@@ -487,6 +493,7 @@ export type Database = {
           event_id: string | null
           id: string
           session_id: string | null
+          subject_name: string | null
           title: string | null
           url: string
           user_id: string
@@ -496,6 +503,7 @@ export type Database = {
           event_id?: string | null
           id?: string
           session_id?: string | null
+          subject_name?: string | null
           title?: string | null
           url: string
           user_id: string
@@ -505,6 +513,7 @@ export type Database = {
           event_id?: string | null
           id?: string
           session_id?: string | null
+          subject_name?: string | null
           title?: string | null
           url?: string
           user_id?: string

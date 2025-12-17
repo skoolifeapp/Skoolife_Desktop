@@ -19,7 +19,38 @@ interface ParsedEvent {
   end: Date;
   location?: string;
   isAllDay: boolean;
+  subjectName?: string;
 }
+
+// Extract subject name from DESCRIPTION field (Hyperplanning format)
+// Tolerates variants: "Matière :", "Matiere:", "Matière:", etc.
+const extractSubjectFromDescription = (description: string | undefined): string | null => {
+  if (!description) return null;
+  
+  // Match "Matière :" or "Matiere :" with various spacing and accents
+  const matiereRegex = /mati[eè]re\s*:\s*([^\n\r]+)/i;
+  const match = description.match(matiereRegex);
+  
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  
+  return null;
+};
+
+// Extract subject name from SUMMARY field (NetYParéo format)
+// Takes the first segment before " - "
+const extractSubjectFromSummary = (summary: string): string | null => {
+  if (!summary) return null;
+  
+  const dashIndex = summary.indexOf(' - ');
+  if (dashIndex > 0) {
+    return summary.substring(0, dashIndex).trim();
+  }
+  
+  // If no " - " found, return the whole summary as subject name
+  return summary.trim();
+};
 
 const ImportCalendarDialog = ({ open, onOpenChange, onImportComplete }: ImportCalendarDialogProps) => {
   const [file, setFile] = useState<File | null>(null);
@@ -65,14 +96,27 @@ const ImportCalendarDialog = ({ open, onOpenChange, onImportComplete }: ImportCa
           // Get location if available
           const location = event.location || undefined;
 
-          console.log(`Parsed event: "${title}" from ${start.toISOString()} to ${end.toISOString()}, allDay: ${isAllDay}`);
+          // Extract subject name from DESCRIPTION first, then fallback to SUMMARY
+          const description = vevent.getFirstPropertyValue('description');
+          const altDesc = vevent.getFirstPropertyValue('x-alt-desc');
+          
+          let subjectName = extractSubjectFromDescription(description as string);
+          if (!subjectName) {
+            subjectName = extractSubjectFromDescription(altDesc as string);
+          }
+          if (!subjectName) {
+            subjectName = extractSubjectFromSummary(title);
+          }
+
+          console.log(`Parsed event: "${title}" from ${start.toISOString()} to ${end.toISOString()}, allDay: ${isAllDay}, subject: ${subjectName}`);
 
           events.push({
             title,
             start,
             end,
             location,
-            isAllDay
+            isAllDay,
+            subjectName: subjectName || undefined
           });
         } catch (eventError) {
           console.error('Error parsing individual event:', eventError);
@@ -159,7 +203,8 @@ const ImportCalendarDialog = ({ open, onOpenChange, onImportComplete }: ImportCa
         end_datetime: event.end.toISOString(),
         location: event.location || null,
         is_blocking: true,
-        event_type: 'cours'
+        event_type: 'cours',
+        subject_name: event.subjectName || null
       }));
 
       if (eventsToInsert.length > 0) {
