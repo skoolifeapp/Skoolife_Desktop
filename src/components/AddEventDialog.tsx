@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, addWeeks, addDays, isBefore, isEqual, getDay } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarIcon, Loader2, FileText, Upload, Trash2, Link, Plus } from 'lucide-react';
+import { CalendarIcon, Loader2, FileText, Upload, Trash2, Link, Plus, Video, Users, Copy, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -96,6 +96,7 @@ const EVENT_TYPES = [
   { value: 'travail', label: 'Travail' },
   { value: 'perso', label: 'Personnel' },
   { value: 'revision_libre', label: 'Révision libre' },
+  { value: 'visio', label: 'Visio' },
   { value: 'autre', label: 'Autre' },
 ];
 
@@ -181,6 +182,14 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initial
   const [newLinkTitle, setNewLinkTitle] = useState('');
   const [showLinkInput, setShowLinkInput] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Visio state
+  const [generatedVisioLink, setGeneratedVisioLink] = useState<string | null>(null);
+  const [generatingVisio, setGeneratingVisio] = useState(false);
+  const [inviteTab, setInviteTab] = useState<'code' | 'link'>('code');
+  const [inviteCode, setInviteCode] = useState('');
+  const [invitedUsers, setInvitedUsers] = useState<{ id: string; name: string; code: string }[]>([]);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -216,6 +225,10 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initial
       setNewLinkUrl('');
       setNewLinkTitle('');
       setShowLinkInput(false);
+      setGeneratedVisioLink(null);
+      setInvitedUsers([]);
+      setInviteCode('');
+      setLinkCopied(false);
     }
   }, [open, initialDate, initialStartTime, initialEndTime]);
 
@@ -224,6 +237,102 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initial
   const eventType = form.watch('event_type');
 
   const showFilesSection = eventType === 'cours' || eventType === 'revision_libre';
+  const isVisioEvent = eventType === 'visio';
+
+  // Auto-generate visio link when visio type is selected
+  useEffect(() => {
+    if (isVisioEvent && !generatedVisioLink && !generatingVisio) {
+      generateVisioLink();
+    }
+  }, [isVisioEvent]);
+
+  const generateVisioLink = async () => {
+    if (!user || generatingVisio) return;
+    setGeneratingVisio(true);
+    try {
+      const formDate = form.getValues('date') || new Date();
+      const startTime = form.getValues('start_time') || '09:00';
+      const title = form.getValues('title') || 'Visio';
+      
+      const { data, error } = await supabase.functions.invoke('create-daily-room', {
+        body: {
+          sessionId: crypto.randomUUID(),
+          sessionDate: formatLocalDate(formDate),
+          sessionTime: startTime,
+          subjectName: title
+        }
+      });
+      
+      if (error) throw error;
+      if (data?.roomUrl) {
+        setGeneratedVisioLink(data.roomUrl);
+      }
+    } catch (err) {
+      console.error('Error generating visio link:', err);
+      toast.error('Erreur lors de la génération du lien visio');
+    } finally {
+      setGeneratingVisio(false);
+    }
+  };
+
+  const copyVisioLink = async () => {
+    if (!generatedVisioLink) return;
+    try {
+      await navigator.clipboard.writeText(generatedVisioLink);
+      setLinkCopied(true);
+      toast.success('Lien copié !');
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      toast.error('Erreur lors de la copie');
+    }
+  };
+
+  const inviteByCode = async () => {
+    if (!inviteCode.trim() || !user) return;
+    
+    try {
+      // Find user by liaison code
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, first_name, liaison_code')
+        .eq('liaison_code', inviteCode.trim().toUpperCase())
+        .limit(1);
+      
+      if (profileError) throw profileError;
+      
+      if (!profiles || profiles.length === 0) {
+        toast.error('Code non trouvé');
+        return;
+      }
+      
+      const profile = profiles[0];
+      
+      if (profile.id === user.id) {
+        toast.error('Tu ne peux pas t\'inviter toi-même');
+        return;
+      }
+      
+      if (invitedUsers.some(u => u.id === profile.id)) {
+        toast.error('Déjà invité');
+        return;
+      }
+      
+      setInvitedUsers(prev => [...prev, {
+        id: profile.id,
+        name: profile.first_name || 'Camarade',
+        code: profile.liaison_code || inviteCode
+      }]);
+      setInviteCode('');
+      toast.success(`${profile.first_name || 'Camarade'} ajouté`);
+    } catch (err) {
+      console.error('Error inviting by code:', err);
+      toast.error('Erreur lors de l\'invitation');
+    }
+  };
+
+  const removeInvitedUser = (userId: string) => {
+    setInvitedUsers(prev => prev.filter(u => u.id !== userId));
+  };
 
   const toggleCustomDay = (dayValue: number) => {
     const current = form.getValues('custom_days') || [];
@@ -816,6 +925,150 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initial
                 )}
               </div>
             )}
+
+            {/* Visio section */}
+            {isVisioEvent && (
+              <div className="rounded-md border p-4 space-y-4">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Video className="w-4 h-4 text-violet-500" />
+                  <span>Visioconférence</span>
+                </div>
+
+                {/* Generated link */}
+                {generatingVisio ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Génération du lien...</span>
+                  </div>
+                ) : generatedVisioLink ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 p-2 rounded bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800">
+                      <Video className="w-4 h-4 text-violet-500 flex-shrink-0" />
+                      <span className="text-xs text-violet-700 dark:text-violet-300 truncate flex-1">
+                        {generatedVisioLink}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={copyVisioLink}
+                        className="h-7 px-2"
+                      >
+                        {linkCopied ? (
+                          <Check className="w-3.5 h-3.5 text-green-500" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </Button>
+                    </div>
+
+                    {/* Invitation tabs */}
+                    <div className="space-y-3">
+                      <p className="text-xs text-muted-foreground">Inviter des camarades</p>
+                      <div className="flex gap-1">
+                        <Button
+                          type="button"
+                          variant={inviteTab === 'code' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setInviteTab('code')}
+                          className="h-7 text-xs"
+                        >
+                          <Users className="w-3 h-3 mr-1" />
+                          Code
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={inviteTab === 'link' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setInviteTab('link')}
+                          className="h-7 text-xs"
+                        >
+                          <Link className="w-3 h-3 mr-1" />
+                          Lien
+                        </Button>
+                      </div>
+
+                      {inviteTab === 'code' && (
+                        <div className="space-y-2">
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Code liaison (ex: MARIE-7X2K)"
+                              value={inviteCode}
+                              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                              className="h-8 text-xs flex-1"
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={inviteByCode}
+                              disabled={!inviteCode.trim()}
+                              className="h-8"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
+                          </div>
+                          {invitedUsers.length > 0 && (
+                            <div className="space-y-1.5">
+                              {invitedUsers.map((user) => (
+                                <div key={user.id} className="flex items-center justify-between p-2 rounded bg-muted/50 text-xs">
+                                  <span>{user.name}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => removeInvitedUser(user.id)}
+                                    className="text-destructive hover:text-destructive/80"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {inviteTab === 'link' && (
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground">
+                            Partage ce lien avec tes camarades pour qu'ils rejoignent la visio :
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={copyVisioLink}
+                            className="w-full h-8 text-xs"
+                          >
+                            {linkCopied ? (
+                              <>
+                                <Check className="w-3 h-3 mr-1 text-green-500" />
+                                Copié !
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3 mr-1" />
+                                Copier le lien
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={generateVisioLink}
+                    className="w-full"
+                  >
+                    <Video className="w-3.5 h-3.5 mr-2" />
+                    Générer le lien visio
+                  </Button>
+                )}
+              </div>
+            )}
+
 
             {/* Buttons */}
             <div className="flex gap-3 pt-2">
