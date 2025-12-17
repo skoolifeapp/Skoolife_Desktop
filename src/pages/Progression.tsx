@@ -4,12 +4,10 @@ import { ProgressionSkeleton } from '@/components/PageSkeletons';
 import { useAuth } from '@/hooks/useAuth';
 import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
-  Clock, CheckCircle2, Target, TrendingUp, Loader2, BarChart3, ChevronLeft, ChevronRight
+  Clock, CheckCircle2, TrendingUp, ChevronLeft, ChevronRight, BookOpen, Minus
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import SupportButton from '@/components/SupportButton';
 
@@ -47,6 +45,9 @@ interface SubjectStats {
   color: string;
   doneHours: number;
   plannedHours: number;
+  doneCount: number;
+  plannedCount: number;
+  trend: 'up' | 'down' | 'stable';
 }
 
 const Progression = () => {
@@ -181,12 +182,23 @@ const Progression = () => {
     const weekStartStr = format(weekStart, 'yyyy-MM-dd');
     const weekEndStr = format(weekEnd, 'yyyy-MM-dd');
     
+    // Previous week for trend calculation
+    const prevWeekStart = subWeeks(weekStart, 1);
+    const prevWeekEnd = endOfWeek(prevWeekStart, { weekStartsOn: 1 });
+    const prevWeekStartStr = format(prevWeekStart, 'yyyy-MM-dd');
+    const prevWeekEndStr = format(prevWeekEnd, 'yyyy-MM-dd');
+    
     const weekSessions = sessions.filter(
       s => s.date >= weekStartStr && s.date <= weekEndStr
+    );
+    
+    const prevWeekSessions = sessions.filter(
+      s => s.date >= prevWeekStartStr && s.date <= prevWeekEndStr
     );
 
     const subjectStatsMap = new Map<string, SubjectStats>();
     
+    // Calculate current week stats
     weekSessions.forEach(session => {
       const subject = subjectsData.find(s => s.id === session.subject_id);
       if (!subject) return;
@@ -197,16 +209,38 @@ const Progression = () => {
         color: subject.color || '#FFC107',
         doneHours: 0,
         plannedHours: 0,
+        doneCount: 0,
+        plannedCount: 0,
+        trend: 'stable' as const,
       };
 
       const duration = calculateSessionDuration(session.start_time, session.end_time);
       existing.plannedHours += duration;
+      existing.plannedCount++;
       
       if (session.status === 'done') {
         existing.doneHours += duration;
+        existing.doneCount++;
       }
 
       subjectStatsMap.set(session.subject_id, existing);
+    });
+    
+    // Calculate trend based on previous week
+    subjectStatsMap.forEach((stat, subjectId) => {
+      const prevSubjectSessions = prevWeekSessions.filter(s => s.subject_id === subjectId && s.status === 'done');
+      let prevDoneHours = 0;
+      prevSubjectSessions.forEach(s => {
+        prevDoneHours += calculateSessionDuration(s.start_time, s.end_time);
+      });
+      
+      if (stat.doneHours > prevDoneHours) {
+        stat.trend = 'up';
+      } else if (stat.doneHours < prevDoneHours) {
+        stat.trend = 'down';
+      } else {
+        stat.trend = 'stable';
+      }
     });
 
     setSubjectStats(Array.from(subjectStatsMap.values()));
@@ -237,17 +271,19 @@ const Progression = () => {
     return `${format(selectedWeekStart, 'd', { locale: fr })} - ${format(weekEnd, 'd MMM', { locale: fr })}`;
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+  const formatHours = (hours: number) => {
+    if (hours < 1) {
+      return `${Math.round(hours * 60)}m`;
+    }
+    return `${Math.round(hours * 10) / 10}h`;
   };
 
-  const getMotivationalMessage = (rate: number) => {
-    if (rate >= 80) return "Excellente semaine ! Continue comme ça 🔥";
-    if (rate >= 60) return "Belle progression 👏";
-    if (rate >= 40) return "Tu avances bien, garde le rythme !";
-    if (rate > 0) return "Tu peux faire mieux cette semaine, on y va !";
-    return "C'est le moment de démarrer !";
+  // Generate a lighter version of the color for background
+  const getSubjectBgStyle = (color: string) => {
+    return {
+      background: `linear-gradient(135deg, ${color}15 0%, ${color}08 100%)`,
+      borderLeft: `4px solid ${color}`,
+    };
   };
 
   if (loading) {
@@ -255,203 +291,201 @@ const Progression = () => {
   }
 
   return (
-    <div className="flex-1 p-6 md:p-8 space-y-6 overflow-auto">
-        
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">Ta progression</h1>
-            <p className="text-muted-foreground">Suis tes efforts et tes résultats</p>
-          </div>
+    <div className="flex-1 p-6 md:p-8 space-y-8 overflow-auto">
+      {/* Header with navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <TrendingUp className="w-6 h-6 text-primary" />
+          <h1 className="text-2xl font-bold">Tableau de Bord des Progrès</h1>
+        </div>
+        <div className="flex items-center gap-2 bg-secondary/50 rounded-lg p-1">
+          <Button variant="ghost" size="icon" onClick={goToPreviousWeek} className="h-8 w-8">
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <span className="px-3 text-sm font-medium min-w-[140px] text-center">{getWeekLabel()}</span>
+          {!isCurrentWeek && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setSelectedWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+              className="h-8 text-xs"
+            >
+              Aujourd'hui
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" onClick={goToNextWeek} className="h-8 w-8">
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Top summary cards */}
+      {currentWeekStats && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Heures d'étude */}
+          <Card className="border shadow-sm">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-muted-foreground">Heures d'étude</span>
+                <Clock className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <p className="text-3xl font-bold">{formatHours(currentWeekStats.doneHours)}</p>
+              <p className="text-xs text-muted-foreground mt-1">Cette semaine</p>
+            </CardContent>
+          </Card>
+
+          {/* Taux de complétion */}
+          <Card className="border shadow-sm">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-muted-foreground">Taux de complétion</span>
+                <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <p className="text-3xl font-bold">
+                {currentWeekStats.completionRate}<span className="text-xl">%</span>
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {currentWeekStats.doneHours}h / {currentWeekStats.plannedHours}h planifiées
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Sessions */}
+          <Card className="border shadow-sm">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-muted-foreground">Sessions réalisées</span>
+                <BookOpen className="w-4 h-4 text-muted-foreground" />
+              </div>
+              <p className="text-3xl font-bold">{currentWeekStats.doneCount}</p>
+              <p className="text-xs text-muted-foreground mt-1">Cette semaine</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Subject cards section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-semibold">Progrès par Matière</h2>
         </div>
 
-        {/* Current week summary */}
-        <Card className="border-0 shadow-md" data-progression-week-stats>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
-              {getWeekLabel()}
-            </CardTitle>
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" onClick={goToPreviousWeek} className="h-8 w-8">
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              {!isCurrentWeek && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setSelectedWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
-                  className="h-8 text-xs"
-                >
-                  Aujourd'hui
-                </Button>
-              )}
-              <Button variant="ghost" size="icon" onClick={goToNextWeek} className="h-8 w-8">
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {currentWeekStats && (
-              <>
-                {/* Main stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-4 bg-secondary/50 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
+        {subjectStats.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {subjectStats.map((stat) => (
+              <Card 
+                key={stat.subjectId} 
+                className="border-0 shadow-sm overflow-hidden"
+                style={getSubjectBgStyle(stat.color)}
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <span 
+                        className="inline-block px-2.5 py-0.5 rounded text-xs font-medium text-white mb-2"
+                        style={{ backgroundColor: stat.color }}
+                      >
+                        {stat.subjectName.substring(0, 3).toUpperCase()}
+                      </span>
+                      <h3 className="font-semibold text-foreground">{stat.subjectName}</h3>
                     </div>
-                    <p className="text-2xl font-bold">{currentWeekStats.plannedHours}h</p>
-                    <p className="text-xs text-muted-foreground">planifiées</p>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 mb-1">
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    </div>
-                    <p className="text-2xl font-bold text-green-600">{currentWeekStats.doneHours}h</p>
-                    <p className="text-xs text-muted-foreground">réalisées</p>
-                  </div>
-                  <div className="text-center p-4 bg-primary/10 rounded-lg col-span-2 md:col-span-2">
-                    <p className="text-3xl font-bold text-primary">{currentWeekStats.completionRate}%</p>
-                    <p className="text-xs text-muted-foreground">de ton planning respecté</p>
-                    <Progress value={currentWeekStats.completionRate} className="mt-2 h-2" />
-                  </div>
-                </div>
-
-                {/* Session counts */}
-                <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-                  <span>Sessions : {currentWeekStats.plannedCount} prévues</span>
-                  <span>•</span>
-                  <span className="text-green-600">{currentWeekStats.doneCount} terminées</span>
-                  <span>•</span>
-                  <span className="text-red-600">{currentWeekStats.skippedCount} manquées</span>
-                </div>
-
-                {/* Motivational message */}
-                <p className="text-center text-sm font-medium text-primary">
-                  {getMotivationalMessage(currentWeekStats.completionRate)}
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Subject breakdown */}
-        {subjectStats.length > 0 && (
-          <Card className="border-0 shadow-md" data-progression-subject-breakdown>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-primary" />
-                Répartition par matière
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={subjectStats} layout="vertical">
-                    <XAxis type="number" unit="h" />
-                    <YAxis 
-                      type="category" 
-                      dataKey="subjectName" 
-                      width={100}
-                      tick={{ fontSize: 12 }}
-                    />
-                    <Tooltip 
-                      formatter={(value: number) => [`${value}h`, 'Heures terminées']}
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
-                      }}
-                    />
-                    <Bar dataKey="doneHours" radius={[0, 4, 4, 0]} barSize={24}>
-                      {subjectStats.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Subject list with progress */}
-              <div className="space-y-3 mt-4">
-                {subjectStats.map(stat => (
-                  <div key={stat.subjectId} className="flex items-center gap-3">
                     <div 
-                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      className="w-3 h-3 rounded-full"
                       style={{ backgroundColor: stat.color }}
                     />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium truncate">{stat.subjectName}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {Math.round(stat.doneHours * 10) / 10}h / {Math.round(stat.plannedHours * 10) / 10}h
-                        </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                        <Clock className="w-3 h-3" />
+                        <span>Temps d'étude</span>
                       </div>
-                      <Progress 
-                        value={stat.plannedHours > 0 ? (stat.doneHours / stat.plannedHours) * 100 : 0} 
-                        className="h-1.5"
-                        style={{ 
-                          '--progress-background': stat.color 
-                        } as React.CSSProperties}
-                      />
+                      <p className="text-lg font-bold">{formatHours(stat.doneHours)}</p>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                        <BookOpen className="w-3 h-3" />
+                        <span>Sessions</span>
+                      </div>
+                      <p className="text-lg font-bold">{stat.doneCount}</p>
                     </div>
                   </div>
-                ))}
-              </div>
+
+                  <div className="mt-4 pt-3 border-t border-border/50">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1">
+                      <Minus className="w-3 h-3" />
+                      <span>Tendance</span>
+                    </div>
+                    <p className="text-sm font-medium">
+                      {stat.trend === 'up' && <span className="text-green-600">↑ En hausse</span>}
+                      {stat.trend === 'down' && <span className="text-red-600">↓ En baisse</span>}
+                      {stat.trend === 'stable' && <span className="text-muted-foreground">— Stable</span>}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="border shadow-sm">
+            <CardContent className="p-8 text-center">
+              <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">Aucune session de révision cette semaine</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Génère ton planning pour commencer à suivre ta progression !
+              </p>
             </CardContent>
           </Card>
         )}
+      </div>
 
-        {/* Week history */}
-        <Card className="border-0 shadow-md" data-progression-history>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              Historique des dernières semaines
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {weekHistory.map((week, index) => {
-                const weekLabel = index === weekHistory.length - 1 
-                  ? 'Cette semaine' 
-                  : `Semaine du ${format(week.weekStart, 'd MMM', { locale: fr })}`;
-                
-                return (
-                  <div 
-                    key={index} 
-                    className={`flex items-center justify-between p-3 rounded-lg ${
-                      index === weekHistory.length - 1 
-                        ? 'bg-primary/10 border border-primary/20' 
-                        : 'bg-secondary/50'
-                    }`}
-                  >
+      {/* Week history */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-semibold">Historique des dernières semaines</h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {weekHistory.map((week, index) => {
+            const weekLabel = index === weekHistory.length - 1 
+              ? 'Cette semaine' 
+              : `Sem. du ${format(week.weekStart, 'd MMM', { locale: fr })}`;
+            const isCurrent = index === weekHistory.length - 1;
+            
+            return (
+              <Card 
+                key={index} 
+                className={`border shadow-sm ${isCurrent ? 'ring-2 ring-primary/20' : ''}`}
+              >
+                <CardContent className="p-4">
+                  <p className="text-sm font-medium mb-2">{weekLabel}</p>
+                  <div className="flex items-end justify-between">
                     <div>
-                      <p className="font-medium text-sm">{weekLabel}</p>
+                      <p className="text-2xl font-bold">{week.completionRate}%</p>
                       <p className="text-xs text-muted-foreground">
                         {week.doneHours}h / {week.plannedHours}h
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className={`text-lg font-bold ${
-                        week.completionRate >= 70 ? 'text-green-600' :
-                        week.completionRate >= 40 ? 'text-primary' :
-                        'text-muted-foreground'
-                      }`}>
-                        {week.completionRate}%
-                      </p>
+                    <div className={`text-xs font-medium px-2 py-1 rounded ${
+                      week.completionRate >= 70 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                      week.completionRate >= 40 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                      'bg-secondary text-muted-foreground'
+                    }`}>
+                      {week.doneCount} sessions
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
 
-        {/* Support Button */}
-        <SupportButton />
+      {/* Support Button */}
+      <SupportButton />
     </div>
   );
 };
