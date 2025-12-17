@@ -71,7 +71,6 @@ export function useSessionFiles() {
         return null;
       }
 
-      toast.success('Fichier uploadé avec succès');
       return data as SessionFile;
     } catch (err) {
       console.error('Error uploading file:', err);
@@ -148,7 +147,6 @@ export function useSessionFiles() {
         return false;
       }
 
-      toast.success('Fichier supprimé');
       return true;
     } catch (err) {
       console.error('Error deleting file:', err);
