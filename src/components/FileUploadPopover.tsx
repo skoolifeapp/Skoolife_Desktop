@@ -106,23 +106,27 @@ const LinkItem = memo(({
 }) => (
   <div className="flex items-center gap-2 p-2 rounded-md bg-background border hover:bg-muted/50 transition-colors min-w-0">
     <Link className="w-4 h-4 flex-shrink-0 text-blue-500" />
-    <a
-      href={link.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex-1 min-w-0 overflow-hidden text-xs text-blue-600 hover:underline truncate max-w-[180px]"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {link.title || extractDomain(link.url)}
-    </a>
-    <button
-      type="button"
-      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(link); }}
-      className="p-1.5 hover:bg-destructive/10 rounded transition-colors text-destructive flex-shrink-0"
-      title="Supprimer"
-    >
-      <Trash2 className="w-3.5 h-3.5" />
-    </button>
+    <div className="flex-1 min-w-0 overflow-hidden">
+      <a
+        href={link.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-xs text-blue-600 hover:underline truncate block max-w-[180px]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {link.title || extractDomain(link.url)}
+      </a>
+    </div>
+    <div className="flex items-center gap-1 flex-shrink-0">
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(link); }}
+        className="p-1.5 hover:bg-destructive/10 rounded transition-colors text-destructive"
+        title="Supprimer"
+      >
+        <Trash2 className="w-3.5 h-3.5" />
+      </button>
+    </div>
   </div>
 ));
 
