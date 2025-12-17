@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import { Check, X, Pencil, Share2, Users, MapPin, Video, ExternalLink, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,7 +31,7 @@ interface SessionStatusDialogProps {
   inviteInfo?: InviteInfo;
 }
 
-export function SessionStatusDialog({
+export const SessionStatusDialog = memo(function SessionStatusDialog({
   session,
   open,
   onOpenChange,
@@ -219,4 +220,4 @@ export function SessionStatusDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo, lazy, Suspense } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { CheckCircle2, Trash2, Loader2, Clock, Paperclip } from 'lucide-react';
 import type { Subject, RevisionSession } from '@/types/planning';
-import { FileUploadPopover } from './FileUploadPopover';
+
+// Lazy load FileUploadPopover to not block dialog opening
+const FileUploadPopover = lazy(() => import('./FileUploadPopover').then(m => ({ default: m.FileUploadPopover })));
 
 interface EditSessionDialogProps {
   session: RevisionSession | null;
@@ -18,7 +20,7 @@ interface EditSessionDialogProps {
   onUpdate: () => void;
 }
 
-const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSessionDialogProps) => {
+const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate }: EditSessionDialogProps) => {
   const [subjectId, setSubjectId] = useState('');
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -37,7 +39,7 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
     }
   }, [session]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!session) return;
     setLoading(true);
 
@@ -63,9 +65,9 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
     } finally {
       setLoading(false);
     }
-  };
+  }, [session, subjectId, date, startTime, endTime, notes, onUpdate, onClose]);
 
-  const handleMarkDone = async () => {
+  const handleMarkDone = useCallback(async () => {
     if (!session) return;
     setLoading(true);
 
@@ -86,9 +88,9 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
     } finally {
       setLoading(false);
     }
-  };
+  }, [session, onUpdate, onClose]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!session) return;
     setDeleting(true);
 
@@ -108,7 +110,7 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
     } finally {
       setDeleting(false);
     }
-  };
+  }, [session, onUpdate, onClose]);
 
   const currentSubject = subjects.find(s => s.id === subjectId);
 
@@ -202,7 +204,7 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
             />
           </div>
 
-          {/* Files */}
+          {/* Files - Lazy loaded */}
           {session && (
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
@@ -210,11 +212,13 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
                 Fichiers de cours
               </Label>
               <div className="p-3 border rounded-lg bg-muted/30">
-                <FileUploadPopover 
-                  targetId={session.id} 
-                  targetType="session"
-                  onFileChange={onUpdate}
-                />
+                <Suspense fallback={<div className="flex items-center justify-center py-2"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>}>
+                  <FileUploadPopover 
+                    targetId={session.id} 
+                    targetType="session"
+                    onFileChange={onUpdate}
+                  />
+                </Suspense>
               </div>
             </div>
           )}
@@ -269,6 +273,8 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
       </DialogContent>
     </Dialog>
   );
-};
+});
+
+EditSessionDialog.displayName = 'EditSessionDialog';
 
 export default EditSessionDialog;

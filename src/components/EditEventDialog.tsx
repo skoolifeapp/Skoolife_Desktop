@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo, lazy, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -41,7 +41,9 @@ import {
 } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { CalendarEvent } from '@/types/planning';
-import { FileUploadPopover } from './FileUploadPopover';
+
+// Lazy load FileUploadPopover
+const FileUploadPopover = lazy(() => import('./FileUploadPopover').then(m => ({ default: m.FileUploadPopover })));
 
 const EVENT_TYPES = [
   { value: 'cours', label: 'Cours' },
@@ -77,7 +79,7 @@ interface EditEventDialogProps {
   onUpdate: () => void;
 }
 
-const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => {
+const EditEventDialog = memo(({ event, onClose, onUpdate }: EditEventDialogProps) => {
   const [mode, setMode] = useState<DialogMode>('edit');
   const [saving, setSaving] = useState(false);
   const [savingAll, setSavingAll] = useState(false);
@@ -118,11 +120,11 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
     }
   }, [event, form]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setMode('edit');
     setPendingValues(null);
     onClose();
-  };
+  }, [onClose]);
 
   const onSubmit = async (values: FormValues) => {
     if (!event) return;
@@ -228,7 +230,7 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
     }
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = useCallback(() => {
     if (!event) return;
 
     if (isRecurring) {
@@ -237,7 +239,7 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
     }
 
     deleteSingleEvent();
-  };
+  }, [event, isRecurring]);
 
   const deleteSingleEvent = async () => {
     if (!event) return;
@@ -527,11 +529,13 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
                   Fichiers de cours
                 </Label>
                 <div className="p-3 border rounded-lg bg-muted/30">
-                  <FileUploadPopover 
-                    targetId={event.id} 
-                    targetType="event"
-                    onFileChange={onUpdate}
-                  />
+                  <Suspense fallback={<div className="flex items-center justify-center py-2"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>}>
+                    <FileUploadPopover 
+                      targetId={event.id} 
+                      targetType="event"
+                      onFileChange={onUpdate}
+                    />
+                  </Suspense>
                 </div>
               </div>
             )}
@@ -582,6 +586,8 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
       </DialogContent>
     </Dialog>
   );
-};
+});
+
+EditEventDialog.displayName = 'EditEventDialog';
 
 export default EditEventDialog;
