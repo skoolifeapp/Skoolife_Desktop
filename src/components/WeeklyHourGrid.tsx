@@ -672,6 +672,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                     const style = getItemStyle(event.start_datetime, event.end_datetime, true);
                     const isClickable = !!onEventClick;
                     const isDraggable = !!onEventMove;
+                    const isElearning = event.title.toUpperCase().includes('ELEARNING');
                     
                     return (
                       <div
@@ -682,7 +683,10 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         onDragEnd={handleDragEnd}
                         onClick={() => { if (!justResizedRef.current) onEventClick?.(event); }}
                         className={cn(
-                          "absolute rounded-md px-1 py-1 overflow-hidden bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 z-10 flex flex-col items-start justify-start text-left group",
+                          "absolute rounded-md px-1 py-1 overflow-hidden z-10 flex flex-col items-start justify-start text-left group",
+                          isElearning 
+                            ? "bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800"
+                            : "bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800",
                           isClickable && "cursor-pointer transition-all hover:shadow-md",
                           isDraggable && !resizingItem && "cursor-grab active:cursor-grabbing"
                         )}
@@ -695,17 +699,32 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         }}
                         title={`${event.title}\n${formatTimeRange(event.start_datetime, event.end_datetime, true)}`}
                       >
+                        {/* E-learning camera icon */}
+                        {isElearning && (
+                          <Video className="absolute top-1 right-1 w-3 h-3 text-purple-600 dark:text-purple-300" />
+                        )}
                         {/* Top resize handle - only visible when hovering near top */}
                         {onEventResize && (
                           <div
-                            className="absolute top-0 left-0 right-0 h-1.5 cursor-ns-resize hover:bg-blue-400/50 rounded-t-md transition-colors"
+                            className={cn(
+                              "absolute top-0 left-0 right-0 h-1.5 cursor-ns-resize rounded-t-md transition-colors",
+                              isElearning ? "hover:bg-purple-400/50" : "hover:bg-blue-400/50"
+                            )}
                             onMouseDown={(e) => handleResizeStart(e, 'event', event.id, block.startMinutes, block.endMinutes, 'top')}
                           />
                         )}
-                        <p className="text-xs font-medium text-blue-800 dark:text-blue-200 truncate w-full pt-1">
+                        <p className={cn(
+                          "text-xs font-medium truncate w-full pt-1",
+                          isElearning 
+                            ? "text-purple-800 dark:text-purple-200 pr-4" 
+                            : "text-blue-800 dark:text-blue-200"
+                        )}>
                           {event.title}
                         </p>
-                        <p className="text-[10px] text-blue-600 dark:text-blue-300">
+                        <p className={cn(
+                          "text-[10px]",
+                          isElearning ? "text-purple-600 dark:text-purple-300" : "text-blue-600 dark:text-blue-300"
+                        )}>
                           {resizePreview?.id === event.id 
                             ? `${resizePreview.newStartTime || formatTimeRange(event.start_datetime, event.end_datetime, true).split(' - ')[0]} - ${resizePreview.newEndTime || formatTimeRange(event.start_datetime, event.end_datetime, true).split(' - ')[1]}`
                             : formatTimeRange(event.start_datetime, event.end_datetime, true)}
@@ -713,7 +732,10 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         {/* Bottom resize handle - only visible when hovering near bottom */}
                         {onEventResize && (
                           <div
-                            className="absolute bottom-0 left-0 right-0 h-1.5 cursor-ns-resize hover:bg-blue-400/50 rounded-b-md transition-colors"
+                            className={cn(
+                              "absolute bottom-0 left-0 right-0 h-1.5 cursor-ns-resize rounded-b-md transition-colors",
+                              isElearning ? "hover:bg-purple-400/50" : "hover:bg-blue-400/50"
+                            )}
                             onMouseDown={(e) => handleResizeStart(e, 'event', event.id, block.startMinutes, block.endMinutes, 'bottom')}
                           />
                         )}
