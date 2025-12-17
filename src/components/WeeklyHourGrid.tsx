@@ -2,8 +2,9 @@ import { format, isSameDay, parseISO, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEffect, useRef, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar, Users, MapPin, Video, ExternalLink } from 'lucide-react';
+import { Calendar, Users, MapPin, Video, ExternalLink, Paperclip } from 'lucide-react';
 import type { RevisionSession, CalendarEvent, Subject } from '@/types/planning';
+import { FileUploadPopover } from './FileUploadPopover';
 
 export interface SessionInvitee {
   accepted_by: string | null;
@@ -703,6 +704,16 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         {isElearning && (
                           <Video className="absolute top-1 right-1 w-3 h-3 text-purple-600 dark:text-purple-300" />
                         )}
+                        {/* File upload for "cours" type events */}
+                        {event.event_type === 'cours' && (
+                          <div className="absolute top-1 right-1">
+                            <FileUploadPopover 
+                              targetId={event.id} 
+                              targetType="event" 
+                              compact 
+                            />
+                          </div>
+                        )}
                         {/* Top resize handle - only visible when hovering near top */}
                         {onEventResize && (
                           <div
@@ -717,7 +728,8 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                           "text-xs font-medium truncate w-full pt-1",
                           isElearning 
                             ? "text-purple-800 dark:text-purple-200 pr-4" 
-                            : "text-blue-800 dark:text-blue-200"
+                            : "text-blue-800 dark:text-blue-200",
+                          event.event_type === 'cours' && !isElearning && "pr-4"
                         )}>
                           {event.title}
                         </p>
@@ -802,7 +814,17 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                             onMouseDown={(e) => handleResizeStart(e, 'session', session.id, block.startMinutes, block.endMinutes, 'top')}
                           />
                         )}
-                        <div className="flex items-center gap-1 w-full pt-1">
+                        {/* File upload icon for revision sessions */}
+                        {!isInvited && (
+                          <div className="absolute top-1 right-1">
+                            <FileUploadPopover 
+                              targetId={session.id} 
+                              targetType="session" 
+                              compact 
+                            />
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1 w-full pt-1 pr-4">
                           <p 
                             className={`text-xs font-semibold truncate flex-1 ${isDone ? 'line-through' : ''}`}
                             style={{ color: isInvited ? (isInviteConfirmed ? '#22c55e' : '#f59e0b') : isDone ? '#22c55e' : isSkipped ? '#ef4444' : session.subject?.color }}
