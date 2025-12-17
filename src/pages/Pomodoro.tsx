@@ -198,41 +198,41 @@ const Pomodoro = () => {
           </div>
         </div>
 
+        {/* Session Type Buttons */}
+        <div className="flex gap-2 justify-center mb-6">
+          <Button
+            variant={sessionType === 'work' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => switchSession('work')}
+            className="gap-2"
+          >
+            <Brain className="w-4 h-4" />
+            Focus
+          </Button>
+          <Button
+            variant={sessionType === 'shortBreak' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => switchSession('shortBreak')}
+            className="gap-2"
+          >
+            <Coffee className="w-4 h-4" />
+            Pause courte
+          </Button>
+          <Button
+            variant={sessionType === 'longBreak' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => switchSession('longBreak')}
+            className="gap-2"
+          >
+            <Coffee className="w-4 h-4" />
+            Pause longue
+          </Button>
+        </div>
+
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Left Column - Timer */}
           <div className="space-y-6">
-            {/* Session Type Buttons */}
-            <div className="flex gap-2 justify-center">
-              <Button
-                variant={sessionType === 'work' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => switchSession('work')}
-                className="gap-2"
-              >
-                <Brain className="w-4 h-4" />
-                Focus
-              </Button>
-              <Button
-                variant={sessionType === 'shortBreak' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => switchSession('shortBreak')}
-                className="gap-2"
-              >
-                <Coffee className="w-4 h-4" />
-                Pause courte
-              </Button>
-              <Button
-                variant={sessionType === 'longBreak' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => switchSession('longBreak')}
-                className="gap-2"
-              >
-                <Coffee className="w-4 h-4" />
-                Pause longue
-              </Button>
-            </div>
-
             {/* Timer Card */}
             <Card className="border shadow-sm">
               <CardContent className="py-12 flex flex-col items-center">
@@ -330,82 +330,81 @@ const Pomodoro = () => {
           </div>
 
           {/* Right Column - Sessions */}
-          <div className="space-y-4 lg:mt-[60px]">
-            <h2 className="font-semibold">Sessions suggérées</h2>
+          <div className="space-y-4">
+            <Card className="border shadow-sm">
+              <CardContent className="p-4 space-y-4">
+                <h2 className="font-semibold">Sessions suggérées</h2>
 
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-20 bg-muted rounded-lg animate-pulse" />
-                ))}
-              </div>
-            ) : suggestedSessions.length > 0 ? (
-              <div className="space-y-3">
-                {suggestedSessions.map((session) => (
-                  <Card
-                    key={session.id}
-                    className={cn(
-                      "border shadow-sm cursor-pointer transition-all hover:shadow-md hover:scale-[1.01]",
-                      selectedSession?.id === session.id && "ring-2 ring-primary"
-                    )}
-                    onClick={() => selectAndStartSession(session)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div
-                          className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{ backgroundColor: `${session.subject?.color || '#FFC107'}20` }}
-                        >
-                          <BookOpen 
-                            className="w-5 h-5" 
-                            style={{ color: session.subject?.color || '#FFC107' }}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold truncate">{session.subject?.name || 'Sans matière'}</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                            <span className="text-xs bg-muted px-2 py-0.5 rounded-full">
-                              {formatSessionDate(session.date)}
-                            </span>
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>{formatSessionTime(session.start_time, session.end_time)}</span>
-                          </div>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          className="gap-1.5 flex-shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            selectAndStartSession(session);
-                          }}
-                        >
-                          <Play className="w-3.5 h-3.5" />
-                          Focus
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card className="border shadow-sm">
-                <CardContent className="py-12 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                    <BookOpen className="w-8 h-8 text-muted-foreground" />
+                {loading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-20 bg-muted rounded-lg animate-pulse" />
+                    ))}
                   </div>
-                  <h3 className="font-semibold mb-1">Aucune session à venir</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Génère ton planning pour voir tes sessions ici
-                  </p>
-                  <Button 
-                    variant="outline"
-                    onClick={() => navigate('/app')}
-                  >
-                    Aller au calendrier
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+                ) : suggestedSessions.length > 0 ? (
+                  <div className="space-y-3">
+                    {suggestedSessions.map((session) => (
+                      <Card
+                        key={session.id}
+                        className={cn(
+                          "border shadow-sm cursor-pointer transition-all hover:shadow-md hover:scale-[1.01]",
+                          selectedSession?.id === session.id && "ring-2 ring-primary"
+                        )}
+                        onClick={() => selectAndStartSession(session)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            <div
+                              className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                              style={{ backgroundColor: `${session.subject?.color || '#FFC107'}20` }}
+                            >
+                              <BookOpen
+                                className="w-5 h-5"
+                                style={{ color: session.subject?.color || '#FFC107' }}
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold truncate">{session.subject?.name || 'Sans matière'}</p>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                <span className="text-xs bg-muted px-2 py-0.5 rounded-full">
+                                  {formatSessionDate(session.date)}
+                                </span>
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>{formatSessionTime(session.start_time, session.end_time)}</span>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              className="gap-1.5 flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                selectAndStartSession(session);
+                              }}
+                            >
+                              <Play className="w-3.5 h-3.5" />
+                              Focus
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                      <BookOpen className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="font-semibold mb-1">Aucune session à venir</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Génère ton planning pour voir tes sessions ici
+                    </p>
+                    <Button variant="outline" onClick={() => navigate('/app')}>
+                      Aller au calendrier
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Method Explanation */}
             <Card className="border shadow-sm bg-muted/30">
