@@ -8,13 +8,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-} from '@/components/ui/sheet';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -167,18 +167,18 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
               {isEditing ? 'Modifier la matière' : 'Ajouter une matière'}
-            </SheetTitle>
-            <SheetDescription>
+            </DialogTitle>
+            <DialogDescription>
               {isEditing 
                 ? 'Modifie les informations de cette matière' 
                 : 'Renseigne les informations de ta nouvelle matière'}
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           <div className="space-y-6 py-6">
             {/* Name */}
@@ -306,7 +306,7 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
             </div>
           </div>
 
-          <SheetFooter className="flex-col gap-3 sm:flex-col">
+          <DialogFooter className="flex-col gap-3 sm:flex-col pt-4">
             <div className="flex gap-2 w-full">
               <Button
                 variant="outline"
@@ -342,9 +342,9 @@ const SubjectDrawer = ({ open, onOpenChange, subject, onSaved, onDeleted }: Subj
                 Supprimer cette matière
               </Button>
             )}
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
