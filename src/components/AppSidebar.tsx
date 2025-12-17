@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UpgradeDialog } from '@/components/UpgradeDialog';
-import { Calendar, BarChart3, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard, ChevronDown, MoreVertical, HelpCircle, Bell, PanelLeftClose, PanelLeft, Pencil } from 'lucide-react';
+import { Calendar, BarChart3, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard, ChevronDown, MoreVertical, HelpCircle, Bell, PanelLeftClose, PanelLeft } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState, useEffect } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -332,8 +332,8 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
                       className="w-full justify-start gap-2 text-sm"
                       onClick={() => { setProfileMenuOpen(false); navigate('/profile'); }}
                     >
-                      <Pencil className="w-4 h-4" />
-                      Modifier mon profil
+                      <User className="w-4 h-4" />
+                      Compte
                     </Button>
                     <Button
                       variant="ghost"
