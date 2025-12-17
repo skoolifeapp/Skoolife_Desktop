@@ -465,11 +465,18 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
         </div>
       )}
 
-      {/* Main content */}
-      <main className={cn(
-        "lg:pt-14 min-h-screen transition-all duration-300",
-        sidebarCollapsed ? "lg:ml-16" : "lg:ml-56"
+      {/* Main content with yellow border frame */}
+      <div className={cn(
+        "hidden lg:block fixed top-14 bottom-0 right-0 bg-sidebar transition-all duration-300 pt-2 pr-2 pb-2",
+        sidebarCollapsed ? "left-16" : "left-56"
       )}>
+        <main className="h-full bg-background rounded-tl-xl rounded-tr-xl rounded-br-xl overflow-auto">
+          {children}
+        </main>
+      </div>
+      
+      {/* Mobile main content (no frame) */}
+      <main className="lg:hidden min-h-screen">
         {children}
       </main>
 
