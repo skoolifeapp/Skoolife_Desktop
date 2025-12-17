@@ -47,6 +47,7 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
       if (fileUploadRef.current?.hasPendingFiles()) {
         const uploadSuccess = await fileUploadRef.current.uploadPendingFiles();
         if (!uploadSuccess) {
+          toast.error('Erreur lors de l\'upload du fichier');
           setLoading(false);
           return;
         }

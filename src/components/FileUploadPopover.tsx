@@ -100,7 +100,7 @@ export const FileUploadPopover = forwardRef<FileUploadPopoverRef, FileUploadPopo
         }
       },
       hasPendingFiles: () => pendingFiles.length > 0
-    }));
+    }), [pendingFiles, targetId, targetType, uploadFile, onFileChange]);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
