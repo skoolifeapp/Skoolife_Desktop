@@ -165,7 +165,7 @@ const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate, onShare,
 
   return (
     <Dialog open={!!session} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Modifier la session</DialogTitle>
         </DialogHeader>
