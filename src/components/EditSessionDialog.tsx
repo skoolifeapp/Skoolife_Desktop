@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { CheckCircle2, Trash2, Loader2, Clock, Paperclip } from 'lucide-react';
 import type { Subject, RevisionSession } from '@/types/planning';
-import { FileUploadPopover, FileUploadPopoverRef } from './FileUploadPopover';
+import { FileUploadPopover } from './FileUploadPopover';
 
 interface EditSessionDialogProps {
   session: RevisionSession | null;
@@ -26,7 +26,6 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const fileUploadRef = useRef<FileUploadPopoverRef>(null);
 
   useEffect(() => {
     if (session) {
@@ -43,16 +42,6 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
     setLoading(true);
 
     try {
-      // First upload any pending files
-      if (fileUploadRef.current?.hasPendingFiles()) {
-        const uploadSuccess = await fileUploadRef.current.uploadPendingFiles();
-        if (!uploadSuccess) {
-          toast.error('Erreur lors de l\'upload du fichier');
-          setLoading(false);
-          return;
-        }
-      }
-
       const { error } = await supabase
         .from('revision_sessions')
         .update({
@@ -222,9 +211,9 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
               </Label>
               <div className="p-3 border rounded-lg bg-muted/30">
                 <FileUploadPopover 
-                  ref={fileUploadRef}
                   targetId={session.id} 
                   targetType="session"
+                  onFileChange={onUpdate}
                 />
               </div>
             </div>

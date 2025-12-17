@@ -1,25 +1,13 @@
-import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, FileText, Trash2, ExternalLink, Loader2, X } from 'lucide-react';
+import { Upload, Trash2, ExternalLink, Loader2 } from 'lucide-react';
 import { useSessionFiles, SessionFile } from '@/hooks/useSessionFiles';
-
-export interface FileUploadPopoverRef {
-  uploadPendingFiles: () => Promise<boolean>;
-  hasPendingFiles: () => boolean;
-}
+import { toast } from 'sonner';
 
 interface FileUploadPopoverProps {
   targetId: string;
   targetType: 'session' | 'event';
   onFileChange?: () => void;
-}
-
-interface PendingFile {
-  id: string;
-  file: File;
-  name: string;
-  size: number;
-  type: string;
 }
 
 const ACCEPTED_TYPES = [
@@ -51,198 +39,141 @@ function getFileIcon(fileType: string): string {
   return '📎';
 }
 
-export const FileUploadPopover = forwardRef<FileUploadPopoverRef, FileUploadPopoverProps>(
-  ({ targetId, targetType, onFileChange }, ref) => {
-    const [existingFiles, setExistingFiles] = useState<SessionFile[]>([]);
-    const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [uploading, setUploading] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    
-    const { uploadFile, getFilesForSession, getFilesForEvent, getFileUrl, deleteFile } = useSessionFiles();
+export const FileUploadPopover = ({ targetId, targetType, onFileChange }: FileUploadPopoverProps) => {
+  const [files, setFiles] = useState<SessionFile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { uploadFile, getFilesForSession, getFilesForEvent, getFileUrl, deleteFile } = useSessionFiles();
 
-    const loadFiles = async () => {
-      setLoading(true);
-      const result = targetType === 'session' 
-        ? await getFilesForSession(targetId)
-        : await getFilesForEvent(targetId);
-      setExistingFiles(result);
-      setLoading(false);
-    };
+  const loadFiles = async () => {
+    setLoading(true);
+    const result = targetType === 'session' 
+      ? await getFilesForSession(targetId)
+      : await getFilesForEvent(targetId);
+    setFiles(result);
+    setLoading(false);
+  };
 
-    useEffect(() => {
-      loadFiles();
-      setPendingFiles([]); // Reset pending files when target changes
-    }, [targetId, targetType]);
+  useEffect(() => {
+    loadFiles();
+  }, [targetId, targetType]);
 
-    // Expose methods to parent via ref
-    useImperativeHandle(ref, () => ({
-      uploadPendingFiles: async () => {
-        if (pendingFiles.length === 0) return true;
-        
-        setUploading(true);
-        try {
-          for (const pending of pendingFiles) {
-            const result = await uploadFile(pending.file, targetId, targetType);
-            if (!result) {
-              setUploading(false);
-              return false;
-            }
-          }
-          setPendingFiles([]);
-          onFileChange?.();
-          return true;
-        } catch (err) {
-          console.error('Error uploading files:', err);
-          return false;
-        } finally {
-          setUploading(false);
-        }
-      },
-      hasPendingFiles: () => pendingFiles.length > 0
-    }), [pendingFiles, targetId, targetType, uploadFile, onFileChange]);
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      // Add to pending files (not uploaded yet)
-      const pendingFile: PendingFile = {
-        id: `pending-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-        file,
-        name: file.name,
-        size: file.size,
-        type: file.type
-      };
-      
-      setPendingFiles(prev => [...prev, pendingFile]);
-      
+    // Upload immediately when file is selected
+    setUploading(true);
+    try {
+      const result = await uploadFile(file, targetId, targetType);
+      if (result) {
+        toast.success('Fichier ajouté');
+        await loadFiles(); // Refresh file list
+        onFileChange?.(); // Notify parent to refresh file counts
+      } else {
+        toast.error('Erreur lors de l\'upload');
+      }
+    } catch (err) {
+      console.error('Error uploading file:', err);
+      toast.error('Erreur lors de l\'upload');
+    } finally {
+      setUploading(false);
       // Reset input
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-    };
+    }
+  };
 
-    const handleRemovePending = (id: string) => {
-      setPendingFiles(prev => prev.filter(f => f.id !== id));
-    };
+  const handleOpenFile = async (file: SessionFile) => {
+    const url = await getFileUrl(file.file_path);
+    if (url) {
+      window.open(url, '_blank');
+    }
+  };
 
-    const handleOpenFile = async (file: SessionFile) => {
-      const url = await getFileUrl(file.file_path);
-      if (url) {
-        window.open(url, '_blank');
-      }
-    };
+  const handleDeleteFile = async (file: SessionFile) => {
+    const success = await deleteFile(file);
+    if (success) {
+      setFiles(prev => prev.filter(f => f.id !== file.id));
+      onFileChange?.();
+      toast.success('Fichier supprimé');
+    }
+  };
 
-    const handleDeleteFile = async (file: SessionFile) => {
-      const success = await deleteFile(file);
-      if (success) {
-        setExistingFiles(prev => prev.filter(f => f.id !== file.id));
-        onFileChange?.();
-      }
-    };
-
-    const totalFiles = existingFiles.length + pendingFiles.length;
-
-    return (
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">
-            {totalFiles} fichier{totalFiles !== 1 ? 's' : ''}
-            {pendingFiles.length > 0 && (
-              <span className="text-primary ml-1">
-                ({pendingFiles.length} en attente)
-              </span>
-            )}
-          </span>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPTED_TYPES}
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="h-8 text-xs"
-          >
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">
+          {files.length} fichier{files.length !== 1 ? 's' : ''}
+        </span>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ACCEPTED_TYPES}
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="h-8 text-xs"
+        >
+          {uploading ? (
+            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+          ) : (
             <Upload className="w-3 h-3 mr-1" />
-            Ajouter un fichier
-          </Button>
-        </div>
+          )}
+          {uploading ? 'Upload...' : 'Ajouter un fichier'}
+        </Button>
+      </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-4">
-            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-          </div>
-        ) : totalFiles === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-3">
-            Aucun fichier attaché
-          </p>
-        ) : (
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {/* Pending files (not yet uploaded) */}
-            {pendingFiles.map(file => (
-              <div 
-                key={file.id}
-                className="flex items-center gap-2 p-2 rounded-md bg-primary/10 border border-primary/30 group"
-              >
-                <span className="text-lg">{getFileIcon(file.type)}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate">{file.name}</p>
-                  <p className="text-[10px] text-primary">
-                    En attente • {formatFileSize(file.size)}
-                  </p>
-                </div>
+      {loading ? (
+        <div className="flex items-center justify-center py-4">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : files.length === 0 ? (
+        <p className="text-xs text-muted-foreground text-center py-3">
+          Aucun fichier attaché
+        </p>
+      ) : (
+        <div className="space-y-2 max-h-48 overflow-y-auto">
+          {files.map(file => (
+            <div 
+              key={file.id}
+              className="flex items-center gap-2 p-2 rounded-md bg-background border hover:bg-muted/50 transition-colors group"
+            >
+              <span className="text-lg">{getFileIcon(file.file_type)}</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate">{file.file_name}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {formatFileSize(file.file_size)}
+                </p>
+              </div>
+              <div className="flex items-center gap-1">
                 <button
-                  onClick={() => handleRemovePending(file.id)}
-                  className="p-1.5 hover:bg-destructive/10 rounded transition-colors text-destructive"
-                  title="Retirer"
+                  onClick={() => handleOpenFile(file)}
+                  className="p-1.5 hover:bg-muted rounded transition-colors"
+                  title="Ouvrir"
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => handleDeleteFile(file)}
+                  className="p-1.5 hover:bg-destructive/10 rounded transition-colors text-destructive"
+                  title="Supprimer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
-            ))}
-
-            {/* Existing files (already uploaded) */}
-            {existingFiles.map(file => (
-              <div 
-                key={file.id}
-                className="flex items-center gap-2 p-2 rounded-md bg-background border hover:bg-muted/50 transition-colors group"
-              >
-                <span className="text-lg">{getFileIcon(file.file_type)}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium truncate">{file.file_name}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {formatFileSize(file.file_size)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleOpenFile(file)}
-                    className="p-1.5 hover:bg-muted rounded transition-colors"
-                    title="Ouvrir"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteFile(file)}
-                    className="p-1.5 hover:bg-destructive/10 rounded transition-colors text-destructive"
-                    title="Supprimer"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-);
-
-FileUploadPopover.displayName = 'FileUploadPopover';
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
