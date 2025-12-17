@@ -330,7 +330,7 @@ const Pomodoro = () => {
           </div>
 
           {/* Right Column - Sessions */}
-          <div className="space-y-4 lg:pt-[52px]">
+          <div className="space-y-4 lg:mt-[60px]">
             <h2 className="font-semibold">Sessions suggérées</h2>
 
             {loading ? (
