@@ -320,9 +320,20 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
         </div>
       </header>
 
-      {/* Fixed Theme Toggle for Desktop */}
-      <div className="hidden lg:block fixed top-4 right-4 z-50">
-        <ThemeToggle />
+      {/* Fixed Top Bar for Desktop */}
+      <div className="hidden lg:flex fixed top-0 left-56 right-0 h-14 bg-card border-b border-border items-center justify-between px-6 z-40">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <span>/</span>
+          <span className="font-medium text-foreground">
+            {NAV_ITEMS.find(item => isActive(item.path))?.label || 'Planning'}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="w-9 h-9 rounded-lg">
+            <Bell className="w-4 h-4" />
+          </Button>
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Mobile Menu Overlay */}
@@ -357,7 +368,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
       )}
 
       {/* Main content */}
-      <main className="lg:ml-56 min-h-screen">
+      <main className="lg:ml-56 lg:pt-14 min-h-screen">
         {children}
       </main>
 
