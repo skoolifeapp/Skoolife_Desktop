@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -41,7 +41,7 @@ import {
 } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { CalendarEvent } from '@/types/planning';
-import { FileUploadPopover } from './FileUploadPopover';
+import { FileUploadPopover, FileUploadPopoverRef } from './FileUploadPopover';
 
 const EVENT_TYPES = [
   { value: 'cours', label: 'Cours' },
@@ -84,6 +84,7 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
   const [deleting, setDeleting] = useState(false);
   const [deletingAll, setDeletingAll] = useState(false);
   const [pendingValues, setPendingValues] = useState<FormValues | null>(null);
+  const fileUploadRef = useRef<FileUploadPopoverRef>(null);
 
   const isRecurring = event?.recurrence_group_id != null;
 
@@ -143,6 +144,15 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
     setSaving(true);
 
     try {
+      // First upload any pending files for 'cours' type
+      if (values.event_type === 'cours' && fileUploadRef.current?.hasPendingFiles()) {
+        const uploadSuccess = await fileUploadRef.current.uploadPendingFiles();
+        if (!uploadSuccess) {
+          setSaving(false);
+          return;
+        }
+      }
+
       const year = values.date.getFullYear();
       const month = String(values.date.getMonth() + 1).padStart(2, '0');
       const day = String(values.date.getDate()).padStart(2, '0');
@@ -527,6 +537,7 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
                 </Label>
                 <div className="p-3 border rounded-lg bg-muted/30">
                   <FileUploadPopover 
+                    ref={fileUploadRef}
                     targetId={event.id} 
                     targetType="event"
                   />
