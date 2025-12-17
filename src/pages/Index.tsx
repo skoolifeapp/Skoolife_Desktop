@@ -7,7 +7,6 @@ import {
   Clock, 
   Target, 
   ArrowRight, 
-  Monitor, 
   Zap, 
   Users, 
   BarChart3, 
@@ -20,12 +19,10 @@ import {
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import HeroMiniDashboard3D from '@/components/HeroMiniDashboard3D';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!loading && user) {
@@ -33,24 +30,6 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
-  // Mobile-only fullscreen page
-  if (isMobile) {
-    return (
-      <div className="min-h-screen bg-primary flex flex-col items-center justify-center px-6 text-center">
-        <img src={logo} alt="Skoolife" className="w-20 h-20 rounded-2xl shadow-lg mb-8" />
-        <h1 className="text-2xl font-bold text-primary-foreground mb-4">
-          Skoolife est optimisé pour ordinateur
-        </h1>
-        <p className="text-primary-foreground/80 text-lg mb-8 max-w-sm">
-          Pour profiter pleinement de ton planning de révisions, connecte-toi depuis un ordinateur.
-        </p>
-        <div className="flex items-center gap-2 text-primary-foreground/60">
-          <Monitor className="w-5 h-5" />
-          <span className="text-sm">Reviens sur PC pour commencer</span>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
