@@ -467,10 +467,12 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
 
       {/* Main content */}
       <main className={cn(
-        "lg:pt-14 min-h-screen transition-all duration-300",
+        "lg:pt-14 min-h-screen transition-all duration-300 p-4 lg:p-6",
         sidebarCollapsed ? "lg:ml-16" : "lg:ml-56"
       )}>
-        {children}
+        <div className="bg-card rounded-2xl shadow-sm border border-border min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-104px)]">
+          {children}
+        </div>
       </main>
 
       {/* Upgrade Dialog */}
