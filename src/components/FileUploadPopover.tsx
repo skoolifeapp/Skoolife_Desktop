@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 interface FileUploadPopoverProps {
   targetId: string;
   targetType: 'session' | 'event';
+  subjectName?: string; // For subject-level resource sharing
   onFileChange?: () => void;
 }
 
@@ -132,7 +133,7 @@ const LinkItem = memo(({
 
 LinkItem.displayName = 'LinkItem';
 
-export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: FileUploadPopoverProps) => {
+export const FileUploadPopover = memo(({ targetId, targetType, subjectName, onFileChange }: FileUploadPopoverProps) => {
   const [files, setFiles] = useState<SessionFile[]>([]);
   const [links, setLinks] = useState<SessionLink[]>([]);
   const [loading, setLoading] = useState(false);
@@ -143,26 +144,45 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
   const fileInputRef = useRef<HTMLInputElement>(null);
   const loadedRef = useRef(false);
   
-  const { uploadFile, getFilesForSession, getFilesForEvent, getFileUrl, deleteFile } = useSessionFiles();
+  const { uploadFile, getFilesForSession, getFilesForEvent, getFilesForSubject, getFileUrl, deleteFile } = useSessionFiles();
 
   const loadData = useCallback(async () => {
-    // Load files
-    const fileResult = targetType === 'session' 
-      ? await getFilesForSession(targetId)
-      : await getFilesForEvent(targetId);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    // If subject name is provided, load all files for that subject (shared across events)
+    let fileResult: SessionFile[] = [];
+    if (subjectName) {
+      fileResult = await getFilesForSubject(subjectName);
+    } else if (targetType === 'session') {
+      fileResult = await getFilesForSession(targetId);
+    } else {
+      fileResult = await getFilesForEvent(targetId);
+    }
     setFiles(fileResult);
 
-    // Load links - cast to any to bypass type checking for new table
-    const columnName = targetType === 'session' ? 'session_id' : 'event_id';
-    const { data: linkData } = await (supabase as any)
+    // Load links - either by subject or by specific target
+    let linkQuery = supabase
       .from('session_links')
       .select('*')
-      .eq(columnName, targetId)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
+
+    if (subjectName) {
+      linkQuery = linkQuery.eq('subject_name', subjectName);
+    } else {
+      const columnName = targetType === 'session' ? 'session_id' : 'event_id';
+      linkQuery = linkQuery.eq(columnName, targetId);
+    }
+
+    const { data: linkData } = await linkQuery;
     
     setLinks((linkData as SessionLink[]) || []);
     setLoading(false);
-  }, [targetId, targetType, getFilesForSession, getFilesForEvent]);
+  }, [targetId, targetType, subjectName, getFilesForSession, getFilesForEvent, getFilesForSubject]);
 
   // Load data in background without blocking render
   useEffect(() => {
@@ -196,7 +216,8 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
     let hasError = false;
     for (let i = 0; i < selectedFiles.length; i++) {
       try {
-        const result = await uploadFile(selectedFiles[i], targetId, targetType);
+        // Pass subject name to link file at subject level
+        const result = await uploadFile(selectedFiles[i], targetId, targetType, subjectName);
         if (!result) hasError = true;
       } catch (err) {
         console.error('Error uploading file:', err);
@@ -215,7 +236,7 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  }, [uploadFile, targetId, targetType, loadData, onFileChange]);
+  }, [uploadFile, targetId, targetType, subjectName, loadData, onFileChange]);
 
   const handleOpenFile = useCallback(async (file: SessionFile) => {
     const url = await getFileUrl(file.file_path);
@@ -257,14 +278,17 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
 
     const columnName = targetType === 'session' ? 'session_id' : 'event_id';
     
-    const { data, error } = await (supabase as any)
+    const linkRecord: any = {
+      user_id: user.id,
+      url,
+      title: newLinkTitle.trim() || null,
+      [columnName]: targetId,
+      subject_name: subjectName || null // Link at subject level for sharing
+    };
+
+    const { data, error } = await supabase
       .from('session_links')
-      .insert({
-        user_id: user.id,
-        url,
-        title: newLinkTitle.trim() || null,
-        [columnName]: targetId
-      })
+      .insert(linkRecord)
       .select()
       .single();
 
@@ -272,17 +296,17 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
       console.error('Error adding link:', error);
       toast.error("Erreur lors de l'ajout du lien");
     } else if (data) {
-      setLinks(prev => [data, ...prev]);
+      setLinks(prev => [data as SessionLink, ...prev]);
       setNewLinkUrl('');
       setNewLinkTitle('');
       onFileChange?.();
     }
     
     setAddingLink(false);
-  }, [newLinkUrl, targetId, targetType, onFileChange]);
+  }, [newLinkUrl, newLinkTitle, targetId, targetType, subjectName, onFileChange]);
 
   const handleDeleteLink = useCallback(async (link: SessionLink) => {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from('session_links')
       .delete()
       .eq('id', link.id);

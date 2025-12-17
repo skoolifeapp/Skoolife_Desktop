@@ -12,6 +12,7 @@ export interface SessionFile {
   file_size: number;
   file_type: string;
   created_at: string;
+  subject_name?: string | null;
 }
 
 export function useSessionFiles() {
@@ -20,7 +21,8 @@ export function useSessionFiles() {
   const uploadFile = useCallback(async (
     file: File,
     targetId: string,
-    targetType: 'session' | 'event'
+    targetType: 'session' | 'event',
+    subjectName?: string
   ): Promise<SessionFile | null> => {
     setUploading(true);
     
@@ -46,15 +48,16 @@ export function useSessionFiles() {
         return null;
       }
 
-      // Create record in session_files table
-      const fileRecord = {
+      // Create record in session_files table with subject_name for sharing
+      const fileRecord: any = {
         user_id: user.id,
         session_id: targetType === 'session' ? targetId : null,
         event_id: targetType === 'event' ? targetId : null,
         file_name: file.name,
         file_path: filePath,
         file_size: file.size,
-        file_type: file.type
+        file_type: file.type,
+        subject_name: subjectName || null
       };
 
       const { data, error } = await supabase
@@ -111,6 +114,26 @@ export function useSessionFiles() {
     return data as SessionFile[];
   }, []);
 
+  // Get all files shared at subject level (across all events/sessions of the same subject)
+  const getFilesForSubject = useCallback(async (subjectName: string): Promise<SessionFile[]> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+      .from('session_files')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('subject_name', subjectName)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching subject files:', error);
+      return [];
+    }
+
+    return data as SessionFile[];
+  }, []);
+
   const getFileUrl = useCallback(async (filePath: string): Promise<string | null> => {
     const { data, error } = await supabase.storage
       .from('course_files')
@@ -160,6 +183,7 @@ export function useSessionFiles() {
     uploadFile,
     getFilesForSession,
     getFilesForEvent,
+    getFilesForSubject,
     getFileUrl,
     deleteFile
   };

@@ -521,18 +521,24 @@ const EditEventDialog = memo(({ event, onClose, onUpdate }: EditEventDialogProps
               )}
             />
 
-            {/* Files - only for 'cours' type */}
-            {event && form.watch('event_type') === 'cours' && (
+            {/* Files - only for 'cours' or 'revision_libre' type, shared at subject level */}
+            {event && (form.watch('event_type') === 'cours' || form.watch('event_type') === 'revision_libre') && (
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <Paperclip className="w-4 h-4" />
                   Fichiers de cours
+                  {event.subject_name && (
+                    <span className="text-xs text-muted-foreground font-normal">
+                      (partagés pour "{event.subject_name}")
+                    </span>
+                  )}
                 </Label>
                 <div className="p-3 border rounded-lg bg-muted/30">
                   <Suspense fallback={<div className="flex items-center justify-center py-2"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>}>
                     <FileUploadPopover 
                       targetId={event.id} 
                       targetType="event"
+                      subjectName={event.subject_name || undefined}
                       onFileChange={onUpdate}
                     />
                   </Suspense>

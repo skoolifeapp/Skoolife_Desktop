@@ -361,6 +361,14 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initial
       // Upload files and links to the first created event
       const firstEventId = createdEvents?.[0]?.id;
       if (firstEventId && (pendingFiles.length > 0 || pendingLinks.length > 0)) {
+        // Extract subject name from title for resource sharing
+        // Same logic as ICS import: take first segment before " - "
+        let subjectName: string | null = null;
+        if (values.event_type === 'cours' || values.event_type === 'revision_libre') {
+          const dashIndex = values.title.indexOf(' - ');
+          subjectName = dashIndex > 0 ? values.title.substring(0, dashIndex).trim() : values.title.trim();
+        }
+
         // Upload files
         for (const pendingFile of pendingFiles) {
           const fileExt = pendingFile.file.name.split('.').pop();
@@ -378,18 +386,20 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initial
               file_name: pendingFile.file.name,
               file_path: filePath,
               file_size: pendingFile.file.size,
-              file_type: pendingFile.file.type
+              file_type: pendingFile.file.type,
+              subject_name: subjectName
             });
           }
         }
 
         // Add links
         for (const link of pendingLinks) {
-          await (supabase.from('session_links') as any).insert({
+          await supabase.from('session_links').insert({
             user_id: user.id,
             event_id: firstEventId,
             url: link.url,
-            title: link.title || null
+            title: link.title || null,
+            subject_name: subjectName
           });
         }
       }

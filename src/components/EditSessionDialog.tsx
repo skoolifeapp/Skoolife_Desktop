@@ -204,18 +204,22 @@ const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate }: EditSe
             />
           </div>
 
-          {/* Files - Lazy loaded */}
-          {session && (
+          {/* Files - Lazy loaded, shared at subject level */}
+          {session && currentSubject && (
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Paperclip className="w-4 h-4" />
                 Fichiers de cours
+                <span className="text-xs text-muted-foreground font-normal">
+                  (partagés pour "{currentSubject.name}")
+                </span>
               </Label>
               <div className="p-3 border rounded-lg bg-muted/30">
                 <Suspense fallback={<div className="flex items-center justify-center py-2"><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /></div>}>
                   <FileUploadPopover 
                     targetId={session.id} 
                     targetType="session"
+                    subjectName={currentSubject.name}
                     onFileChange={onUpdate}
                   />
                 </Suspense>
