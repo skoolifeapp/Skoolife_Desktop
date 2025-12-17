@@ -407,30 +407,39 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
         </div>
       </header>
 
-      {/* Fixed Top Bar for Desktop */}
+      {/* Desktop: Yellow frame container with header + content inside */}
       <div className={cn(
-        "hidden lg:flex fixed top-0 right-0 h-14 bg-background border-b border-border items-center justify-between px-6 z-40 transition-all duration-300",
+        "hidden lg:flex flex-col fixed top-0 bottom-0 right-0 bg-sidebar transition-all duration-300 pt-2 pr-2 pb-2",
         sidebarCollapsed ? "left-16" : "left-56"
       )}>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="w-8 h-8 rounded-lg"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          >
-            {sidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
-          </Button>
-          <span>/</span>
-          <span className="font-medium text-foreground">
-            {NAV_ITEMS.find(item => isActive(item.path))?.label || 'Planning'}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="w-9 h-9 rounded-lg">
-            <Bell className="w-4 h-4" />
-          </Button>
-          <ThemeToggle />
+        <div className="flex-1 flex flex-col bg-background rounded-xl overflow-hidden">
+          {/* Top Bar inside the container */}
+          <div className="flex h-14 items-center justify-between px-6 border-b border-border flex-shrink-0">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="w-8 h-8 rounded-lg"
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              >
+                {sidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+              </Button>
+              <span>/</span>
+              <span className="font-medium text-foreground">
+                {NAV_ITEMS.find(item => isActive(item.path))?.label || 'Planning'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="w-9 h-9 rounded-lg">
+                <Bell className="w-4 h-4" />
+              </Button>
+              <ThemeToggle />
+            </div>
+          </div>
+          {/* Main content */}
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
         </div>
       </div>
 
@@ -464,16 +473,6 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
           </nav>
         </div>
       )}
-
-      {/* Main content with yellow border frame */}
-      <div className={cn(
-        "hidden lg:block fixed top-14 bottom-0 right-0 bg-sidebar transition-all duration-300 pt-2 pr-2 pb-2",
-        sidebarCollapsed ? "left-16" : "left-56"
-      )}>
-        <main className="h-full bg-background rounded-tl-xl rounded-tr-xl rounded-br-xl overflow-auto">
-          {children}
-        </main>
-      </div>
       
       {/* Mobile main content (no frame) */}
       <main className="lg:hidden min-h-screen">
