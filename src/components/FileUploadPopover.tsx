@@ -134,6 +134,7 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [newLinkTitle, setNewLinkTitle] = useState('');
   const [addingLink, setAddingLink] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const loadedRef = useRef(false);
@@ -257,8 +258,9 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
       .insert({
         user_id: user.id,
         url,
+        title: newLinkTitle.trim() || null,
         [columnName]: targetId
-      } as { user_id: string; url: string; session_id?: string; event_id?: string })
+      } as { user_id: string; url: string; title?: string | null; session_id?: string; event_id?: string })
       .select()
       .single();
 
@@ -268,6 +270,7 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
     } else if (data) {
       setLinks(prev => [data, ...prev]);
       setNewLinkUrl('');
+      setNewLinkTitle('');
       onFileChange?.();
     }
     
@@ -358,38 +361,47 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
         </div>
 
         {/* Add link input */}
-        <div className="flex items-center gap-2">
+        <div className="space-y-1.5">
           <Input
-            type="url"
-            placeholder="https://..."
-            value={newLinkUrl}
-            onChange={(e) => setNewLinkUrl(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddLink();
-              }
-            }}
-            className="h-8 text-xs flex-1"
+            type="text"
+            placeholder="Titre (optionnel)"
+            value={newLinkTitle}
+            onChange={(e) => setNewLinkTitle(e.target.value)}
+            className="h-7 text-xs"
           />
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleAddLink();
-            }}
-            disabled={addingLink || !newLinkUrl.trim()}
-            className="h-8 px-2"
-          >
-            {addingLink ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Plus className="w-3.5 h-3.5" />
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Input
+              type="url"
+              placeholder="https://..."
+              value={newLinkUrl}
+              onChange={(e) => setNewLinkUrl(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddLink();
+                }
+              }}
+              className="h-7 text-xs flex-1"
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAddLink();
+              }}
+              disabled={addingLink || !newLinkUrl.trim()}
+              className="h-7 px-2"
+            >
+              {addingLink ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Plus className="w-3.5 h-3.5" />
+              )}
+            </Button>
+          </div>
         </div>
 
         {links.length > 0 && (
