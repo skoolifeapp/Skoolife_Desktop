@@ -183,11 +183,6 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
             <img src={logo} alt="Skoolife" className="h-9 w-auto rounded-xl" />
             <span className="font-bold text-xl text-sidebar-foreground">Skoolife</span>
           </Link>
-          {!subscriptionLoading && (
-            <div className="mt-2 ml-12">
-              {renderSubscriptionBadge()}
-            </div>
-          )}
         </div>
 
         <Collapsible open={navExpanded} onOpenChange={setNavExpanded} className="flex-1">
