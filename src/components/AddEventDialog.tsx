@@ -942,9 +942,9 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initial
                   </div>
                 ) : generatedVisioLink ? (
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2 p-2 rounded bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800">
+                    <div className="flex items-center gap-2 p-2 rounded bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 overflow-hidden">
                       <Video className="w-4 h-4 text-violet-500 flex-shrink-0" />
-                      <span className="text-xs text-violet-700 dark:text-violet-300 truncate flex-1">
+                      <span className="text-xs text-violet-700 dark:text-violet-300 truncate flex-1 max-w-[280px]">
                         {generatedVisioLink}
                       </span>
                       <Button
