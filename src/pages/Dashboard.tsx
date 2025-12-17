@@ -68,6 +68,8 @@ const Dashboard = () => {
     meeting_address: string | null;
     meeting_link: string | null;
   }>>({});
+  const [sessionFileCounts, setSessionFileCounts] = useState<Record<string, number>>({});
+  const [eventFileCounts, setEventFileCounts] = useState<Record<string, number>>({});
   
   const { user, signOut, isSubscribed, subscriptionLoading, subscriptionTier } = useAuth();
   const navigate = useNavigate();
@@ -328,6 +330,25 @@ const Dashboard = () => {
         });
       });
       setSessionInvites(invitesMap);
+
+      // Fetch file counts for sessions and events
+      const { data: sessionFilesData } = await supabase
+        .from('session_files')
+        .select('session_id, event_id')
+        .eq('user_id', user.id);
+
+      const sessionFileCountsMap: Record<string, number> = {};
+      const eventFileCountsMap: Record<string, number> = {};
+      (sessionFilesData || []).forEach((file: any) => {
+        if (file.session_id) {
+          sessionFileCountsMap[file.session_id] = (sessionFileCountsMap[file.session_id] || 0) + 1;
+        }
+        if (file.event_id) {
+          eventFileCountsMap[file.event_id] = (eventFileCountsMap[file.event_id] || 0) + 1;
+        }
+      });
+      setSessionFileCounts(sessionFileCountsMap);
+      setEventFileCounts(eventFileCountsMap);
 
       // Check if event tutorial should be shown
       // Skip for users who signed up via invite link
@@ -1175,6 +1196,8 @@ const Dashboard = () => {
                 }))
               }
               sessionInvites={sessionInvites}
+              sessionFileCounts={sessionFileCounts}
+              eventFileCounts={eventFileCounts}
               isPastWeek={isPastWeek}
               onSessionClick={handleSessionClick}
               onEventClick={isFreeUser ? undefined : setSelectedEvent}

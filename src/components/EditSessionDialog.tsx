@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { CheckCircle2, Trash2, Loader2, Clock } from 'lucide-react';
+import { CheckCircle2, Trash2, Loader2, Clock, Paperclip } from 'lucide-react';
 import type { Subject, RevisionSession } from '@/types/planning';
+import { FileUploadPopover } from './FileUploadPopover';
 
 interface EditSessionDialogProps {
   session: RevisionSession | null;
@@ -200,6 +201,22 @@ const EditSessionDialog = ({ session, subjects, onClose, onUpdate }: EditSession
               rows={3}
             />
           </div>
+
+          {/* Files */}
+          {session && (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Paperclip className="w-4 h-4" />
+                Fichiers de cours
+              </Label>
+              <div className="p-3 border rounded-lg bg-muted/30">
+                <FileUploadPopover 
+                  targetId={session.id} 
+                  targetType="session"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="space-y-3 pt-2">

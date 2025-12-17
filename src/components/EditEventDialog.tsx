@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarIcon, Loader2, Trash2, Repeat, ArrowLeft } from 'lucide-react';
+import { CalendarIcon, Loader2, Trash2, Repeat, ArrowLeft, Paperclip } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -40,6 +41,7 @@ import {
 } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { CalendarEvent } from '@/types/planning';
+import { FileUploadPopover } from './FileUploadPopover';
 
 const EVENT_TYPES = [
   { value: 'cours', label: 'Cours' },
@@ -515,6 +517,22 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
                 </FormItem>
               )}
             />
+
+            {/* Files - only for 'cours' type */}
+            {event && form.watch('event_type') === 'cours' && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Paperclip className="w-4 h-4" />
+                  Fichiers de cours
+                </Label>
+                <div className="p-3 border rounded-lg bg-muted/30">
+                  <FileUploadPopover 
+                    targetId={event.id} 
+                    targetType="event"
+                  />
+                </div>
+              </div>
+            )}
 
             {isRecurring && (
               <div className="flex items-center gap-2 p-3 bg-muted rounded-md text-sm">

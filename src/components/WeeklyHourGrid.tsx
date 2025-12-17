@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar, Users, MapPin, Video, ExternalLink, Paperclip } from 'lucide-react';
 import type { RevisionSession, CalendarEvent, Subject } from '@/types/planning';
-import { FileUploadPopover } from './FileUploadPopover';
 
 export interface SessionInvitee {
   accepted_by: string | null;
@@ -45,6 +44,8 @@ interface WeeklyHourGridProps {
   calendarEvents: CalendarEvent[];
   exams?: ExamInfo[];
   sessionInvites?: Record<string, SessionInviteInfo>;
+  sessionFileCounts?: Record<string, number>;
+  eventFileCounts?: Record<string, number>;
   isPastWeek?: boolean;
   onSessionClick: (session: RevisionSession) => void;
   onEventClick?: (event: CalendarEvent) => void;
@@ -160,7 +161,7 @@ export interface ResizeData {
   endTime?: string;
 }
 
-const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessionInvites = {}, isPastWeek = false, onSessionClick, onEventClick, onGridClick, onSessionMove, onEventMove, onSessionResize, onEventResize }: WeeklyHourGridProps & {
+const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessionInvites = {}, sessionFileCounts = {}, eventFileCounts = {}, isPastWeek = false, onSessionClick, onEventClick, onGridClick, onSessionMove, onEventMove, onSessionResize, onEventResize }: WeeklyHourGridProps & {
   onSessionResize?: (sessionId: string, data: ResizeData) => void;
   onEventResize?: (eventId: string, data: ResizeData) => void;
 }) => {
@@ -704,15 +705,9 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         {isElearning && (
                           <Video className="absolute top-1 right-1 w-3 h-3 text-purple-600 dark:text-purple-300" />
                         )}
-                        {/* File upload for "cours" type events */}
-                        {event.event_type === 'cours' && (
-                          <div className="absolute top-1 right-1">
-                            <FileUploadPopover 
-                              targetId={event.id} 
-                              targetType="event" 
-                              compact 
-                            />
-                          </div>
+                        {/* File indicator for "cours" type events with files */}
+                        {event.event_type === 'cours' && eventFileCounts[event.id] > 0 && !isElearning && (
+                          <Paperclip className="absolute top-1 right-1 w-3 h-3 text-blue-600 dark:text-blue-300" />
                         )}
                         {/* Top resize handle - only visible when hovering near top */}
                         {onEventResize && (
@@ -814,15 +809,9 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                             onMouseDown={(e) => handleResizeStart(e, 'session', session.id, block.startMinutes, block.endMinutes, 'top')}
                           />
                         )}
-                        {/* File upload icon for revision sessions */}
-                        {!isInvited && (
-                          <div className="absolute top-1 right-1">
-                            <FileUploadPopover 
-                              targetId={session.id} 
-                              targetType="session" 
-                              compact 
-                            />
-                          </div>
+                        {/* File indicator for sessions with files */}
+                        {!isInvited && sessionFileCounts[session.id] > 0 && (
+                          <Paperclip className="absolute top-1 right-1 w-3 h-3" style={{ color: session.subject?.color }} />
                         )}
                         <div className="flex items-center gap-1 w-full pt-1 pr-4">
                           <p 
