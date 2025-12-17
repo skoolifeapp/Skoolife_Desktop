@@ -44,8 +44,7 @@ interface WeeklyHourGridProps {
   calendarEvents: CalendarEvent[];
   exams?: ExamInfo[];
   sessionInvites?: Record<string, SessionInviteInfo>;
-  sessionFileCounts?: Record<string, number>;
-  eventFileCounts?: Record<string, number>;
+  subjectFileCounts?: Record<string, number>;
   isPastWeek?: boolean;
   onSessionClick: (session: RevisionSession) => void;
   onEventClick?: (event: CalendarEvent) => void;
@@ -161,7 +160,7 @@ export interface ResizeData {
   endTime?: string;
 }
 
-const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessionInvites = {}, sessionFileCounts = {}, eventFileCounts = {}, isPastWeek = false, onSessionClick, onEventClick, onGridClick, onSessionMove, onEventMove, onSessionResize, onEventResize }: WeeklyHourGridProps & {
+const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessionInvites = {}, subjectFileCounts = {}, isPastWeek = false, onSessionClick, onEventClick, onGridClick, onSessionMove, onEventMove, onSessionResize, onEventResize }: WeeklyHourGridProps & {
   onSessionResize?: (sessionId: string, data: ResizeData) => void;
   onEventResize?: (eventId: string, data: ResizeData) => void;
 }) => {
@@ -705,8 +704,8 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         {isElearning && (
                           <Video className="absolute top-1 right-1 w-3 h-3 text-purple-600 dark:text-purple-300" />
                         )}
-                        {/* File indicator for "cours" type events with files */}
-                        {event.event_type === 'cours' && (eventFileCounts?.[event.id] ?? 0) > 0 && !isElearning && (
+                        {/* File indicator for "cours" type events with files for this subject */}
+                        {event.event_type === 'cours' && event.subject_name && (subjectFileCounts?.[event.subject_name] ?? 0) > 0 && !isElearning && (
                           <Paperclip className="absolute top-1 right-1 w-3 h-3 text-blue-600 dark:text-blue-300" />
                         )}
                         {/* Top resize handle - only visible when hovering near top */}
@@ -809,8 +808,8 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                             onMouseDown={(e) => handleResizeStart(e, 'session', session.id, block.startMinutes, block.endMinutes, 'top')}
                           />
                         )}
-                        {/* File indicator for sessions with files */}
-                        {!isInvited && (sessionFileCounts?.[session.id] ?? 0) > 0 && (
+                        {/* File indicator for sessions with files for this subject */}
+                        {!isInvited && session.subject?.name && (subjectFileCounts?.[session.subject.name] ?? 0) > 0 && (
                           <Paperclip className="absolute top-1 right-1 w-3 h-3" style={{ color: session.subject?.color }} />
                         )}
                         <div className="flex items-center gap-1 w-full pt-1 pr-4">
