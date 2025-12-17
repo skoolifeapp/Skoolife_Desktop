@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UpgradeDialog } from '@/components/UpgradeDialog';
-import { Calendar, BarChart3, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard, ChevronDown, MoreVertical, HelpCircle, Bell, PanelLeftClose, PanelLeft, Timer } from 'lucide-react';
+import { NotificationsDropdown } from '@/components/NotificationsDropdown';
+import { Calendar, BarChart3, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard, ChevronDown, MoreVertical, HelpCircle, PanelLeftClose, PanelLeft, Timer } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState, useEffect } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -438,9 +439,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="w-9 h-9 rounded-lg">
-                <Bell className="w-4 h-4" />
-              </Button>
+              <NotificationsDropdown />
               <ThemeToggle />
             </div>
           </div>
