@@ -6,15 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UpgradeDialog } from '@/components/UpgradeDialog';
-import { Home, TrendingUp, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard, ChevronDown } from 'lucide-react';
+import { Calendar, BarChart3, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard, ChevronDown } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { path: '/app', label: 'Dashboard', icon: Home, requiresSubscription: false, requiresMajor: false },
-  { path: '/progression', label: 'Progression', icon: TrendingUp, requiresSubscription: true, requiresMajor: true },
+  { path: '/app', label: 'Calendrier', icon: Calendar, requiresSubscription: false, requiresMajor: false },
+  { path: '/progression', label: 'Progression', icon: BarChart3, requiresSubscription: true, requiresMajor: true },
   { path: '/subjects', label: 'Matières', icon: GraduationCap, requiresSubscription: true, requiresMajor: false },
   { path: '/settings', label: 'Paramètres', icon: Settings, requiresSubscription: true, requiresMajor: false },
 ];
