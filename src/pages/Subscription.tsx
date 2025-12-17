@@ -41,7 +41,7 @@ const TIER_INFO = {
 
 const Subscription = () => {
   const navigate = useNavigate();
-  const { subscriptionTier, session, subscriptionLoading, checkSubscription } = useAuth();
+  const { subscriptionTier, session, subscriptionLoading, checkSubscription, refreshSubscription } = useAuth();
   const [loading, setLoading] = useState(true);
   const [subscriptionData, setSubscriptionData] = useState<{
     subscription_end?: string | null;
@@ -88,13 +88,14 @@ const Subscription = () => {
   // Auto-refresh when returning from Stripe portal or after upgrade
   useEffect(() => {
     const handleFocus = async () => {
-      await checkSubscription();
+      // Use refreshSubscription to bypass cache and get fresh data
+      await refreshSubscription();
       await fetchSubscriptionDetails();
     };
 
     const handleUpgrade = async () => {
       setLoading(true);
-      await checkSubscription();
+      await refreshSubscription();
       await fetchSubscriptionDetails();
     };
 
