@@ -49,13 +49,13 @@ const FileItem = memo(({
   onOpen: (file: SessionFile) => void; 
   onDelete: (file: SessionFile) => void;
 }) => (
-  <div className="flex items-center gap-2 p-2 rounded-md bg-background border hover:bg-muted/50 transition-colors">
-    <span className="text-lg">{getFileIcon(file.file_type)}</span>
-    <div className="flex-1 min-w-0">
-      <p className="text-xs font-medium truncate">{file.file_name}</p>
+  <div className="flex items-center gap-2 p-2 rounded-md bg-background border hover:bg-muted/50 transition-colors min-w-0">
+    <span className="text-lg flex-shrink-0">{getFileIcon(file.file_type)}</span>
+    <div className="flex-1 min-w-0 overflow-hidden">
+      <p className="text-xs font-medium truncate max-w-[180px]">{file.file_name}</p>
       <p className="text-[10px] text-muted-foreground">{formatFileSize(file.file_size)}</p>
     </div>
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 flex-shrink-0">
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onOpen(file); }}
