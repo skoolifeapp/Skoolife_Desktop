@@ -196,7 +196,7 @@ const Profile = () => {
 
     setSaving(true);
     try {
-      await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({
           first_name: profile.first_name,
@@ -208,8 +208,15 @@ const Profile = () => {
           main_exam_period: profile.main_exam_period,
         })
         .eq('id', user.id);
+
+      if (error) {
+        toast.error('Erreur lors de la sauvegarde');
+      } else {
+        toast.success('Profil mis à jour !');
+      }
     } catch (err) {
       console.error(err);
+      toast.error('Erreur lors de la sauvegarde');
     } finally {
       setSaving(false);
     }
