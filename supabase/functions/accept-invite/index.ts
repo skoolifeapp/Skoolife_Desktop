@@ -154,12 +154,42 @@ Deno.serve(async (req) => {
       )
     }
 
-    // 5. Get session date
+    // 5. Get session date and subject info
     const { data: sessionData } = await supabase
       .from('revision_sessions')
-      .select('date')
+      .select('date, start_time, subjects (name)')
       .eq('id', templateInvite.session_id)
       .maybeSingle()
+
+    // 6. Get accepter's name for notification
+    const { data: accepterProfile } = await supabase
+      .from('profiles')
+      .select('first_name')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const accepterName = accepterProfile?.first_name || first_name?.trim() || 'Un camarade'
+    const subjectName = (sessionData?.subjects as any)?.name || 'Révision'
+
+    // 7. Send notification to the inviter (only for new acceptances)
+    if (!existingUserInvite) {
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: templateInvite.invited_by,
+          type: 'invitation',
+          title: '🎉 Invitation acceptée !',
+          message: `${accepterName} a rejoint ta session de ${subjectName}`,
+          link: '/app',
+          metadata: {
+            session_id: templateInvite.session_id,
+            accepted_by: user.id,
+            accepter_name: accepterName
+          }
+        })
+
+      console.log('Notification sent to inviter:', templateInvite.invited_by)
+    }
 
     console.log('Invite accepted successfully:', { 
       template_invite_id: invite_id, 
