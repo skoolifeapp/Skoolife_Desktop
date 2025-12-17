@@ -148,15 +148,15 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
       : await getFilesForEvent(targetId);
     setFiles(fileResult);
 
-    // Load links
+    // Load links - cast to any to bypass type checking for new table
     const columnName = targetType === 'session' ? 'session_id' : 'event_id';
-    const { data: linkData } = await supabase
+    const { data: linkData } = await (supabase as any)
       .from('session_links')
       .select('*')
       .eq(columnName, targetId)
       .order('created_at', { ascending: false });
     
-    setLinks(linkData || []);
+    setLinks((linkData as SessionLink[]) || []);
     setLoading(false);
   }, [targetId, targetType, getFilesForSession, getFilesForEvent]);
 
@@ -253,14 +253,14 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
 
     const columnName = targetType === 'session' ? 'session_id' : 'event_id';
     
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('session_links')
       .insert({
         user_id: user.id,
         url,
         title: newLinkTitle.trim() || null,
         [columnName]: targetId
-      } as { user_id: string; url: string; title?: string | null; session_id?: string; event_id?: string })
+      })
       .select()
       .single();
 
@@ -278,7 +278,7 @@ export const FileUploadPopover = memo(({ targetId, targetType, onFileChange }: F
   }, [newLinkUrl, targetId, targetType, onFileChange]);
 
   const handleDeleteLink = useCallback(async (link: SessionLink) => {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('session_links')
       .delete()
       .eq('id', link.id);
