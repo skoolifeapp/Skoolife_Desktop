@@ -706,7 +706,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                           <Video className="absolute top-1 right-1 w-3 h-3 text-purple-600 dark:text-purple-300" />
                         )}
                         {/* File indicator for "cours" type events with files */}
-                        {event.event_type === 'cours' && eventFileCounts[event.id] > 0 && !isElearning && (
+                        {event.event_type === 'cours' && (eventFileCounts?.[event.id] ?? 0) > 0 && !isElearning && (
                           <Paperclip className="absolute top-1 right-1 w-3 h-3 text-blue-600 dark:text-blue-300" />
                         )}
                         {/* Top resize handle - only visible when hovering near top */}
@@ -810,7 +810,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                           />
                         )}
                         {/* File indicator for sessions with files */}
-                        {!isInvited && sessionFileCounts[session.id] > 0 && (
+                        {!isInvited && (sessionFileCounts?.[session.id] ?? 0) > 0 && (
                           <Paperclip className="absolute top-1 right-1 w-3 h-3" style={{ color: session.subject?.color }} />
                         )}
                         <div className="flex items-center gap-1 w-full pt-1 pr-4">

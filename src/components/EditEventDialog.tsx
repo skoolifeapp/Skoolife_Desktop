@@ -148,6 +148,7 @@ const EditEventDialog = ({ event, onClose, onUpdate }: EditEventDialogProps) => 
       if (values.event_type === 'cours' && fileUploadRef.current?.hasPendingFiles()) {
         const uploadSuccess = await fileUploadRef.current.uploadPendingFiles();
         if (!uploadSuccess) {
+          toast.error('Erreur lors de l\'upload du fichier');
           setSaving(false);
           return;
         }
