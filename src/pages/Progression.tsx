@@ -533,7 +533,7 @@ const Progression = () => {
                       className="text-xs font-medium"
                       style={{ color: stat.color }}
                     >
-                      {stat.percentage}% du planifié
+                      {stat.percentage}% effectué
                     </span>
                     {stat.objectivePercentage !== null && (
                       <span className="text-xs text-muted-foreground">
