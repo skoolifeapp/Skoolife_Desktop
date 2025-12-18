@@ -183,7 +183,7 @@ const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate, onShare,
 
       if (error) throw error;
 
-      toast.success('Visio supprimée');
+      
       onUpdate();
     } catch (err) {
       console.error('Error deleting visio:', err);
