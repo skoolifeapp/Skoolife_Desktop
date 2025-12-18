@@ -28,6 +28,8 @@ interface CumulativeSubjectStats {
   doneHours: number;
   targetHours: number;
   percentage: number;
+  objectiveHours: number | null;
+  objectivePercentage: number | null;
 }
 
 interface RevisionSession {
@@ -162,6 +164,11 @@ const Progression = () => {
         totalPlannedHours = Math.round(totalPlannedHours * 10) / 10;
         const percentage = totalPlannedHours > 0 ? Math.min(100, Math.round((doneHours / totalPlannedHours) * 100)) : 0;
         
+        const objectiveHours = subject.target_hours;
+        const objectivePercentage = objectiveHours && objectiveHours > 0 
+          ? Math.min(100, Math.round((doneHours / objectiveHours) * 100)) 
+          : null;
+        
         return {
           subjectId: subject.id,
           subjectName: subject.name,
@@ -169,6 +176,8 @@ const Progression = () => {
           doneHours,
           targetHours: totalPlannedHours,
           percentage,
+          objectiveHours,
+          objectivePercentage,
         };
       })
       .filter(s => s.targetHours > 0)
@@ -519,13 +528,18 @@ const Progression = () => {
                       }}
                     />
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex justify-between items-center">
                     <span 
                       className="text-xs font-medium"
                       style={{ color: stat.color }}
                     >
-                      {stat.percentage}%
+                      {stat.percentage}% du planifié
                     </span>
+                    {stat.objectivePercentage !== null && (
+                      <span className="text-xs text-muted-foreground">
+                        {stat.objectivePercentage}% de l'objectif ({stat.objectiveHours}h)
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
