@@ -141,29 +141,37 @@ const Progression = () => {
 
   const calculateCumulativeStats = (
     subjectsData: Subject[], 
-    doneSessions: { subject_id: string; start_time: string; end_time: string; status: string }[]
+    allSessions: { subject_id: string; start_time: string; end_time: string; status: string }[]
   ) => {
     const stats: CumulativeSubjectStats[] = subjectsData
-      .filter(s => s.target_hours && s.target_hours > 0)
       .map(subject => {
-        const subjectSessions = doneSessions.filter(s => s.subject_id === subject.id);
+        const subjectSessions = allSessions.filter(s => s.subject_id === subject.id);
+        
         let doneHours = 0;
+        let totalPlannedHours = 0;
+        
         subjectSessions.forEach(s => {
-          doneHours += calculateSessionDuration(s.start_time, s.end_time);
+          const duration = calculateSessionDuration(s.start_time, s.end_time);
+          totalPlannedHours += duration;
+          if (s.status === 'done') {
+            doneHours += duration;
+          }
         });
+        
         doneHours = Math.round(doneHours * 10) / 10;
-        const targetHours = subject.target_hours || 0;
-        const percentage = targetHours > 0 ? Math.min(100, Math.round((doneHours / targetHours) * 100)) : 0;
+        totalPlannedHours = Math.round(totalPlannedHours * 10) / 10;
+        const percentage = totalPlannedHours > 0 ? Math.min(100, Math.round((doneHours / totalPlannedHours) * 100)) : 0;
         
         return {
           subjectId: subject.id,
           subjectName: subject.name,
           color: subject.color || '#FFC107',
           doneHours,
-          targetHours,
+          targetHours: totalPlannedHours,
           percentage,
         };
       })
+      .filter(s => s.targetHours > 0)
       .sort((a, b) => b.percentage - a.percentage);
 
     setCumulativeStats(stats);
@@ -196,15 +204,14 @@ const Progression = () => {
       const sessions = sessionsData || [];
       setAllSessions(sessions);
 
-      // Fetch ALL done sessions for cumulative stats (no date filter)
-      const { data: allDoneSessions } = await supabase
+      // Fetch ALL sessions for cumulative stats (no date filter)
+      const { data: allCumulativeSessions } = await supabase
         .from('revision_sessions')
         .select('subject_id, start_time, end_time, status')
-        .eq('user_id', user.id)
-        .eq('status', 'done');
+        .eq('user_id', user.id);
 
       // Calculate cumulative stats per subject
-      calculateCumulativeStats(subjectsData || [], allDoneSessions || []);
+      calculateCumulativeStats(subjectsData || [], allCumulativeSessions || []);
 
       // Current week stats
       const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
