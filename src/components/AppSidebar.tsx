@@ -23,7 +23,7 @@ const NAV_ITEMS = [
 ];
 
 const TRAVAIL_ITEMS = [
-  { path: '/pomodoro', label: 'Pomodoro', icon: Timer, requiresSubscription: false, requiresMajor: false },
+  { path: '/pomodoro', label: 'Pomodoro', icon: Timer, requiresSubscription: true, requiresMajor: false },
 ];
 
 interface AppSidebarProps {
