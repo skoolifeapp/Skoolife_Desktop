@@ -166,7 +166,7 @@ const Progression = () => {
         
         const objectiveHours = subject.target_hours;
         const objectivePercentage = objectiveHours && objectiveHours > 0 
-          ? Math.min(100, Math.round((doneHours / objectiveHours) * 100)) 
+          ? Math.min(100, Math.round((totalPlannedHours / objectiveHours) * 100)) 
           : null;
         
         return {
