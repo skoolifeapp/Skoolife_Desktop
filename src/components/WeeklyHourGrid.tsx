@@ -818,13 +818,14 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                               e.stopPropagation();
                               onSessionMarkDone(session.id);
                             }}
-                            className="absolute top-1 right-1 w-4 h-4 rounded-full bg-green-500/20 hover:bg-green-500/40 flex items-center justify-center transition-colors z-30"
+                            className="absolute top-1 w-4 h-4 rounded-full flex items-center justify-center transition-colors z-30 hover:opacity-80"
                             title="Marquer comme terminé"
                             style={{
-                              right: session.subject?.name && (subjectFileCounts?.[session.subject.name] ?? 0) > 0 ? '18px' : '4px'
+                              right: session.subject?.name && (subjectFileCounts?.[session.subject.name] ?? 0) > 0 ? '18px' : '4px',
+                              backgroundColor: session.subject?.color ? `${session.subject.color}40` : 'rgba(0,0,0,0.1)'
                             }}
                           >
-                            <Check className="w-2.5 h-2.5 text-green-600 dark:text-green-400" />
+                            <Check className="w-2.5 h-2.5" style={{ color: session.subject?.color || 'currentColor' }} />
                           </button>
                         )}
                         {/* File indicator for sessions with files for this subject */}
