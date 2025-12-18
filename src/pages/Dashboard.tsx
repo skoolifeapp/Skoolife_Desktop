@@ -985,8 +985,7 @@ const Dashboard = () => {
               )}
               onClick={() => hasActiveSubscription ? setAddEventDialogOpen(true) : setUpgradeDialogOpen(true)}
             >
-              {!hasActiveSubscription && <Lock className="w-3 h-3 mr-1" />}
-              <Plus className="w-4 h-4" />
+              {hasActiveSubscription ? <Plus className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
               Ajouter un évènement
             </Button>
             <Button 
