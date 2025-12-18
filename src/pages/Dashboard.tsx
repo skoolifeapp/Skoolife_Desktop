@@ -36,6 +36,7 @@ import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 
 import { InvitedSessionDialog } from '@/components/InvitedSessionDialog';
 import SupportButton from '@/components/SupportButton';
+import { UpgradeDialog } from '@/components/UpgradeDialog';
 
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
@@ -69,6 +70,7 @@ const Dashboard = () => {
     meeting_link: string | null;
   }>>({});
   const [subjectFileCounts, setSubjectFileCounts] = useState<Record<string, number>>({});
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   
   const { user, signOut, isSubscribed, subscriptionLoading, subscriptionTier } = useAuth();
   const navigate = useNavigate();
@@ -974,64 +976,66 @@ const Dashboard = () => {
             Semaine du {format(weekStart, 'dd MMM', { locale: fr })}
           </h2>
           <div className="flex items-center gap-2">
-            {!isFreeUser && (
-              <>
-                <Button 
-                  id="add-event-btn"
-                  size="sm"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                  onClick={() => setAddEventDialogOpen(true)}
-                >
-                  <Plus className="w-4 h-4" />
-                  Ajouter un évènement
-                </Button>
-                <Button 
-                  id="import-calendar-btn"
-                  variant="outline" 
-                  size="icon"
-                  className="h-9 w-9"
-                  onClick={() => setImportDialogOpen(true)}
-                  title="Importer calendrier (.ics)"
-                >
-                  <Upload className="w-4 h-4" />
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
-                      disabled={calendarEvents.length === 0}
+            <Button 
+              id="add-event-btn"
+              size="sm"
+              className={cn(
+                "bg-primary text-primary-foreground hover:bg-primary/90",
+                !hasActiveSubscription && "opacity-50 cursor-not-allowed"
+              )}
+              onClick={() => hasActiveSubscription ? setAddEventDialogOpen(true) : setUpgradeDialogOpen(true)}
+            >
+              {!hasActiveSubscription && <Lock className="w-3 h-3 mr-1" />}
+              <Plus className="w-4 h-4" />
+              Ajouter un évènement
+            </Button>
+            <Button 
+              id="import-calendar-btn"
+              variant="outline" 
+              size="icon"
+              className={cn("h-9 w-9", !hasActiveSubscription && "opacity-50 cursor-not-allowed")}
+              onClick={() => hasActiveSubscription ? setImportDialogOpen(true) : setUpgradeDialogOpen(true)}
+              title="Importer calendrier (.ics)"
+            >
+              {!hasActiveSubscription ? <Lock className="w-4 h-4" /> : <Upload className="w-4 h-4" />}
+            </Button>
+            {hasActiveSubscription && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
+                    disabled={calendarEvents.length === 0}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Supprimer tous les événements ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action supprimera définitivement tous les {calendarEvents.length} événements de ton calendrier. 
+                      Cette action est irréversible.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDeleteAllEvents}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      disabled={deletingEvents}
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Supprimer tous les événements ?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Cette action supprimera définitivement tous les {calendarEvents.length} événements de ton calendrier. 
-                        Cette action est irréversible.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Annuler</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={handleDeleteAllEvents}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        disabled={deletingEvents}
-                      >
-                        {deletingEvents ? (
-                          <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        ) : (
-                          <Trash2 className="w-4 h-4 mr-2" />
-                        )}
-                        Supprimer tout
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </>
+                      {deletingEvents ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <Trash2 className="w-4 h-4 mr-2" />
+                      )}
+                      Supprimer tout
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
             <Button 
               variant="outline" 
@@ -1163,26 +1167,25 @@ const Dashboard = () => {
               </Card>
             )}
 
-            {/* Actions - only for subscribed users */}
-            {!isFreeUser && (
-              <div className="space-y-3">
-                <Button 
-                  id="generate-planning-btn"
-                  variant="hero" 
-                  size="lg" 
-                  className="w-full"
-                  onClick={generatePlanning}
-                  disabled={generating || isPastWeek}
-                >
-                  {generating ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                  )}
-                  Générer mon planning
-                </Button>
-              </div>
-            )}
+            {/* Actions */}
+            <div className="space-y-3">
+              <Button 
+                id="generate-planning-btn"
+                variant="hero" 
+                size="lg" 
+                className={cn("w-full", !hasActiveSubscription && "opacity-50")}
+                onClick={() => hasActiveSubscription ? generatePlanning() : setUpgradeDialogOpen(true)}
+                disabled={generating || isPastWeek}
+              >
+                {!hasActiveSubscription && <Lock className="w-4 h-4 mr-2" />}
+                {generating ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  !hasActiveSubscription ? null : <RefreshCw className="w-4 h-4 mr-2" />
+                )}
+                Générer mon planning
+              </Button>
+            </div>
           </aside>
 
           {/* Main content */}
@@ -1309,6 +1312,13 @@ const Dashboard = () => {
           localStorage.removeItem(`tutorial_seen_${user?.id}`);
           setShowTutorial(true);
         }}
+      />
+
+      {/* Upgrade Dialog */}
+      <UpgradeDialog
+        open={upgradeDialogOpen}
+        onOpenChange={setUpgradeDialogOpen}
+        featureName="les fonctionnalités de planification"
       />
     </>
   );
