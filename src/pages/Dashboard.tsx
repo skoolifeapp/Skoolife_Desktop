@@ -996,7 +996,7 @@ const Dashboard = () => {
               onClick={() => hasActiveSubscription ? setImportDialogOpen(true) : setUpgradeDialogOpen(true)}
               title="Importer calendrier (.ics)"
             >
-              {!hasActiveSubscription ? <Lock className="w-4 h-4" /> : <Upload className="w-4 h-4" />}
+              <Upload className="w-4 h-4" />
             </Button>
             {hasActiveSubscription && (
               <AlertDialog>
