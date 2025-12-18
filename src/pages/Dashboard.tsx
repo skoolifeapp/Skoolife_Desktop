@@ -1213,6 +1213,7 @@ const Dashboard = () => {
               onEventMove={isFreeUser ? undefined : handleEventMove}
               onSessionResize={isFreeUser ? undefined : handleSessionResize}
               onEventResize={isFreeUser ? undefined : handleEventResize}
+              onSessionMarkDone={isFreeUser ? undefined : (sessionId) => handleSessionStatusUpdate(sessionId, 'done')}
             />
           </div>
         </div>

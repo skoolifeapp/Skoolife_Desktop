@@ -2,7 +2,7 @@ import { format, isSameDay, parseISO, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEffect, useRef, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar, Users, MapPin, Video, ExternalLink, Paperclip } from 'lucide-react';
+import { Calendar, Users, MapPin, Video, ExternalLink, Paperclip, Check } from 'lucide-react';
 import type { RevisionSession, CalendarEvent, Subject } from '@/types/planning';
 
 export interface SessionInvitee {
@@ -51,6 +51,7 @@ interface WeeklyHourGridProps {
   onGridClick?: (data: GridClickData) => void;
   onSessionMove?: (sessionId: string, data: DragDropData) => void;
   onEventMove?: (eventId: string, data: DragDropData) => void;
+  onSessionMarkDone?: (sessionId: string) => void;
 }
 
 // Grid configuration - Full 24h display
@@ -160,7 +161,7 @@ export interface ResizeData {
   endTime?: string;
 }
 
-const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessionInvites = {}, subjectFileCounts = {}, isPastWeek = false, onSessionClick, onEventClick, onGridClick, onSessionMove, onEventMove, onSessionResize, onEventResize }: WeeklyHourGridProps & {
+const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessionInvites = {}, subjectFileCounts = {}, isPastWeek = false, onSessionClick, onEventClick, onGridClick, onSessionMove, onEventMove, onSessionResize, onEventResize, onSessionMarkDone }: WeeklyHourGridProps & {
   onSessionResize?: (sessionId: string, data: ResizeData) => void;
   onEventResize?: (eventId: string, data: ResizeData) => void;
 }) => {
@@ -809,6 +810,22 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                             style={{ backgroundColor: `${borderColor}50` }}
                             onMouseDown={(e) => handleResizeStart(e, 'session', session.id, block.startMinutes, block.endMinutes, 'top')}
                           />
+                        )}
+                        {/* Quick mark done button - only for own sessions not done/skipped */}
+                        {!isInvited && !isDone && !isSkipped && onSessionMarkDone && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSessionMarkDone(session.id);
+                            }}
+                            className="absolute top-1 right-1 w-4 h-4 rounded-full bg-green-500/20 hover:bg-green-500/40 flex items-center justify-center transition-colors z-30"
+                            title="Marquer comme terminé"
+                            style={{
+                              right: session.subject?.name && (subjectFileCounts?.[session.subject.name] ?? 0) > 0 ? '18px' : '4px'
+                            }}
+                          >
+                            <Check className="w-2.5 h-2.5 text-green-600 dark:text-green-400" />
+                          </button>
                         )}
                         {/* File indicator for sessions with files for this subject */}
                         {!isInvited && session.subject?.name && (subjectFileCounts?.[session.subject.name] ?? 0) > 0 && (
