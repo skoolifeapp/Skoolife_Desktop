@@ -10,9 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, GraduationCap, Lock, Crown, FileDown
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, GraduationCap, Lock, Crown
 } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -721,37 +720,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleExportPDF = () => {
-    const gridElement = document.querySelector('.weekly-hour-grid');
-    if (!gridElement) {
-      toast.error('Impossible de générer le PDF');
-      return;
-    }
-
-    const weekLabel = format(weekStart, "'Semaine du' dd MMMM yyyy", { locale: fr });
-    
-    const opt = {
-      margin: 10,
-      filename: `planning-${format(weekStart, 'yyyy-MM-dd')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-    };
-
-    // Create a wrapper with title for export
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = `
-      <div style="padding: 20px; font-family: system-ui, sans-serif;">
-        <h1 style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">${weekLabel}</h1>
-      </div>
-    `;
-    wrapper.querySelector('div')?.appendChild(gridElement.cloneNode(true));
-
-    html2pdf().set(opt).from(wrapper).save().then(() => {
-      toast.success('PDF exporté avec succès');
-    });
-  };
-
   const handleGridClick = (data: GridClickData) => {
     setGridClickData(data);
     setAddEventDialogOpen(true);
@@ -1030,15 +998,6 @@ const Dashboard = () => {
             >
               <Upload className="w-4 h-4" />
             </Button>
-            <Button 
-              variant="outline" 
-              size="icon"
-              className="h-9 w-9"
-              onClick={handleExportPDF}
-              title="Exporter en PDF"
-            >
-              <FileDown className="w-4 h-4" />
-            </Button>
             {hasActiveSubscription && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -1231,33 +1190,31 @@ const Dashboard = () => {
           {/* Main content */}
           <div className={cn("space-y-4", isPastWeek && "opacity-60 pointer-events-none")}>
             {/* Week grid */}
-            <div className="weekly-hour-grid">
-              <WeeklyHourGrid
-                weekDays={weekDays}
-                sessions={isFreeUser ? sessions.filter(s => s.isInvitedSession) : sessions}
-                calendarEvents={isFreeUser ? [] : calendarEvents}
-                exams={isFreeUser ? [] : subjects
-                  .filter(s => s.exam_date && s.status !== 'archived')
-                  .map(s => ({
-                    id: s.id,
-                    name: s.name,
-                    color: s.color || '#FFC107',
-                    exam_date: s.exam_date!
-                  }))
-                }
-                sessionInvites={sessionInvites}
-                subjectFileCounts={subjectFileCounts}
-                isPastWeek={isPastWeek}
-                onSessionClick={handleSessionClick}
-                onEventClick={isFreeUser ? undefined : setSelectedEvent}
-                onGridClick={isFreeUser ? undefined : handleGridClick}
-                onSessionMove={isFreeUser ? undefined : handleSessionMove}
-                onEventMove={isFreeUser ? undefined : handleEventMove}
-                onSessionResize={isFreeUser ? undefined : handleSessionResize}
-                onEventResize={isFreeUser ? undefined : handleEventResize}
-                onSessionMarkDone={isFreeUser ? undefined : (sessionId) => handleSessionStatusUpdate(sessionId, 'done')}
-              />
-            </div>
+            <WeeklyHourGrid
+              weekDays={weekDays}
+              sessions={isFreeUser ? sessions.filter(s => s.isInvitedSession) : sessions}
+              calendarEvents={isFreeUser ? [] : calendarEvents}
+              exams={isFreeUser ? [] : subjects
+                .filter(s => s.exam_date && s.status !== 'archived')
+                .map(s => ({
+                  id: s.id,
+                  name: s.name,
+                  color: s.color || '#FFC107',
+                  exam_date: s.exam_date!
+                }))
+              }
+              sessionInvites={sessionInvites}
+              subjectFileCounts={subjectFileCounts}
+              isPastWeek={isPastWeek}
+              onSessionClick={handleSessionClick}
+              onEventClick={isFreeUser ? undefined : setSelectedEvent}
+              onGridClick={isFreeUser ? undefined : handleGridClick}
+              onSessionMove={isFreeUser ? undefined : handleSessionMove}
+              onEventMove={isFreeUser ? undefined : handleEventMove}
+              onSessionResize={isFreeUser ? undefined : handleSessionResize}
+              onEventResize={isFreeUser ? undefined : handleEventResize}
+              onSessionMarkDone={isFreeUser ? undefined : (sessionId) => handleSessionStatusUpdate(sessionId, 'done')}
+            />
           </div>
         </div>
       </div>
