@@ -55,9 +55,10 @@ interface WeeklyHourGridProps {
   onSessionMarkDone?: (sessionId: string) => void;
 }
 
-// Grid configuration - Dynamic display based on events
-const DEFAULT_START_HOUR = 8;
-const DEFAULT_END_HOUR = 20;
+// Grid configuration - Fixed 24h display (0h-24h)
+const FIXED_START_HOUR = 0;
+const FIXED_END_HOUR = 24;
+const DEFAULT_SCROLL_HOUR = 7; // Auto-scroll to 7h on load
 const HOUR_HEIGHT = 60; // pixels per hour
 
 // Types for overlap calculation
@@ -172,39 +173,22 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
   const [resizePreview, setResizePreview] = useState<{ id: string; newStartTime?: string; newEndTime?: string; top?: number; height: number } | null>(null);
   const justResizedRef = useRef(false);
 
-  // Calculate dynamic time range based on events/sessions
+  // Fixed 24h time range (0h-24h)
   const { START_HOUR, END_HOUR, HOURS } = useMemo(() => {
-    let minHour = DEFAULT_START_HOUR;
-    let maxHour = DEFAULT_END_HOUR;
-
-    // Check sessions
-    sessions.forEach(session => {
-      const [sh] = session.start_time.split(':').map(Number);
-      const [eh, em] = session.end_time.split(':').map(Number);
-      const endHour = em > 0 ? eh + 1 : eh;
-      minHour = Math.min(minHour, sh);
-      maxHour = Math.max(maxHour, endHour);
-    });
-
-    // Check calendar events
-    calendarEvents.forEach(event => {
-      const startParsed = parseSmartDateTime(event.start_datetime);
-      const endParsed = parseSmartDateTime(event.end_datetime);
-      const endHour = endParsed.minutes > 0 ? endParsed.hours + 1 : endParsed.hours;
-      minHour = Math.min(minHour, startParsed.hours);
-      maxHour = Math.max(maxHour, endHour);
-    });
-
-    // Add 1 hour padding
-    const finalStartHour = Math.max(0, minHour - 1);
-    const finalEndHour = Math.min(24, maxHour + 1);
-
     return {
-      START_HOUR: finalStartHour,
-      END_HOUR: finalEndHour,
-      HOURS: Array.from({ length: finalEndHour - finalStartHour }, (_, i) => finalStartHour + i)
+      START_HOUR: FIXED_START_HOUR,
+      END_HOUR: FIXED_END_HOUR,
+      HOURS: Array.from({ length: FIXED_END_HOUR - FIXED_START_HOUR }, (_, i) => FIXED_START_HOUR + i)
     };
-  }, [sessions, calendarEvents]);
+  }, []);
+
+  // Auto-scroll to 7h on mount
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const scrollPosition = DEFAULT_SCROLL_HOUR * HOUR_HEIGHT;
+      scrollContainerRef.current.scrollTop = scrollPosition;
+    }
+  }, []);
 
   // Update current time every minute
   useEffect(() => {
