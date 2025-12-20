@@ -62,41 +62,43 @@ const Index = () => {
           <div className="absolute bottom-20 left-1/3 w-40 md:w-64 h-40 md:h-64 bg-primary/10 rounded-full blur-3xl" />
         </div>
 
-        <div className="relative max-w-6xl mx-auto px-4 pt-8 md:pt-16 pb-12 md:pb-20">
-          {/* Hero Section with Text + 3D Dashboard */}
-          <div className="flex flex-col lg:flex-row items-center gap-6 md:gap-8 lg:gap-12">
-            {/* Left - Text Content */}
-            <div className="flex-1 text-center lg:text-left">
-              {/* Main heading */}
-              <div className="space-y-4 md:space-y-6 animate-slide-up">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight font-heading">
-                  Tes révisions,
-                  <br />
-                  <span className="gradient-text-animated font-heading">
-                    enfin organisées
-                  </span>
-                </h1>
-                <p className="max-w-xl text-base md:text-lg lg:text-xl text-muted-foreground mx-auto lg:mx-0">
-                  Skoolife génère automatiquement ton planning de révisions personnalisé 
-                  en fonction de tes examens, ton emploi du temps et ton rythme.
-                </p>
-              </div>
+        {/* Hero Section - Centered Text */}
+        <div className="relative max-w-4xl mx-auto px-4 pt-12 md:pt-20 pb-8 md:pb-16 text-center">
+          {/* Main heading */}
+          <div className="space-y-4 md:space-y-6 animate-slide-up">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight font-heading">
+              Tes révisions,
+              <br />
+              <span className="gradient-text-animated font-heading">
+                enfin organisées
+              </span>
+            </h1>
+            <p className="max-w-2xl text-base md:text-lg lg:text-xl text-muted-foreground mx-auto">
+              Skoolife génère automatiquement ton planning de révisions personnalisé 
+              en fonction de tes examens, ton emploi du temps et ton rythme.
+            </p>
+          </div>
 
-              {/* CTA */}
-              <div className="flex flex-col items-center lg:items-start gap-3 mt-6 md:mt-10 animate-slide-up">
-                <Link to="/auth?mode=signup" className="w-full sm:w-auto">
-                  <Button variant="hero" size="lg" className="w-full sm:w-auto md:text-base">
-                    Commencer gratuitement
-                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
-                  </Button>
-                </Link>
-              </div>
-            </div>
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 md:mt-10 animate-slide-up">
+            <Link to="/auth?mode=signup">
+              <Button variant="hero" size="lg" className="md:text-base px-8">
+                Commencer gratuitement
+                <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+              </Button>
+            </Link>
+          </div>
 
-            {/* Right - Stacked Cards */}
-            <div className="flex-1 w-full lg:w-auto animate-slide-up mt-8 lg:mt-0">
-              <StackedCardsLayout />
-            </div>
+          {/* Free text */}
+          <p className="text-sm text-muted-foreground mt-4 animate-slide-up">
+            Gratuit pendant 7 jours.
+          </p>
+        </div>
+
+        {/* Dashboard Preview - Rising from bottom */}
+        <div className="relative max-w-6xl mx-auto px-4">
+          <div className="relative animate-slide-up" style={{ animationDelay: '200ms' }}>
+            <StackedCardsLayout />
           </div>
         </div>
 
