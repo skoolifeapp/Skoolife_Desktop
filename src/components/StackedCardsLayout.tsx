@@ -48,30 +48,36 @@ const StackedCardsLayout = () => {
   const getCardStyle = (index: number) => {
     const position = (index - activeIndex + cards.length) % cards.length;
     
-    // Cards stack BEHIND (negative Y = up)
+    // Cards stack BEHIND (negative Y = up) - 5 cards
     if (position === 0) {
       return {
-        zIndex: 40,
+        zIndex: 50,
         transform: 'translateY(0) scale(1)',
         opacity: 1,
       };
     } else if (position === 1) {
       return {
-        zIndex: 30,
-        transform: 'translateY(-15px) scale(0.97)',
-        opacity: 0.85,
+        zIndex: 40,
+        transform: 'translateY(-12px) scale(0.975)',
+        opacity: 0.88,
       };
     } else if (position === 2) {
       return {
+        zIndex: 30,
+        transform: 'translateY(-24px) scale(0.95)',
+        opacity: 0.72,
+      };
+    } else if (position === 3) {
+      return {
         zIndex: 20,
-        transform: 'translateY(-30px) scale(0.94)',
-        opacity: 0.65,
+        transform: 'translateY(-36px) scale(0.925)',
+        opacity: 0.55,
       };
     } else {
       return {
         zIndex: 10,
-        transform: 'translateY(-45px) scale(0.91)',
-        opacity: 0.45,
+        transform: 'translateY(-48px) scale(0.9)',
+        opacity: 0.38,
       };
     }
   };
