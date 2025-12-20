@@ -8,14 +8,14 @@ import {
   Phone, 
   Users,
   Loader2,
-  AlertCircle,
-  X
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDailyCall } from '@/hooks/useDailyCall';
 import VideoTile from '@/components/VideoTile';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import logo from '@/assets/logo.png';
 
 interface VideoCallRoomProps {
   roomUrl: string;
@@ -77,8 +77,9 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
     return (
       <div className="fixed inset-0 z-50 bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
-          <p className="text-lg font-medium">Connexion à la session...</p>
+          <img src={logo} alt="Skoolife" className="w-16 h-16 mx-auto" />
+          <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto" />
+          <p className="text-lg font-semibold text-foreground">Connexion à la session...</p>
           <p className="text-sm text-muted-foreground">Préparation de ta caméra et ton micro</p>
         </div>
       </div>
@@ -91,7 +92,7 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
       <div className="fixed inset-0 z-50 bg-background flex items-center justify-center">
         <div className="text-center space-y-4 max-w-md px-4">
           <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
-          <p className="text-lg font-medium">Erreur de connexion</p>
+          <p className="text-lg font-semibold text-foreground">Erreur de connexion</p>
           <p className="text-sm text-muted-foreground">{error}</p>
           <Button onClick={onLeave} variant="outline">
             Retour
@@ -104,40 +105,37 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   // Calculate grid layout based on participant count
   const getGridClass = () => {
     const count = participants.length;
-    if (count === 1) return 'grid-cols-1 max-w-2xl mx-auto';
-    if (count === 2) return 'grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto';
-    if (count <= 4) return 'grid-cols-2 max-w-4xl mx-auto';
-    if (count <= 6) return 'grid-cols-2 md:grid-cols-3 max-w-5xl mx-auto';
-    return 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 max-w-6xl mx-auto';
+    if (count === 1) return 'grid-cols-1';
+    if (count === 2) return 'grid-cols-1 lg:grid-cols-2';
+    if (count <= 4) return 'grid-cols-2';
+    if (count <= 6) return 'grid-cols-2 lg:grid-cols-3';
+    return 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#1a1a2e] flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-white font-medium">
-            {sessionTitle || 'Session de révision'}
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
+      {/* Header - Skoolife branded */}
+      <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
+        <div className="flex items-center gap-4">
+          <img src={logo} alt="Skoolife" className="w-8 h-8" />
+          <div className="flex items-center gap-3">
+            <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+            <span className="font-semibold text-foreground">
+              {sessionTitle || 'Session de révision'}
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 px-4 py-2 bg-secondary/50 rounded-full">
+          <Users className="w-4 h-4 text-primary" />
+          <span className="text-sm font-medium text-foreground">
+            {participants.length} participant{participants.length > 1 ? 's' : ''}
           </span>
         </div>
-        <div className="flex items-center gap-2 text-white/70">
-          <Users className="w-4 h-4" />
-          <span className="text-sm">{participants.length} participant{participants.length > 1 ? 's' : ''}</span>
-        </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={handleLeave}
-          className="text-white/70 hover:text-white hover:bg-white/10"
-        >
-          <X className="w-5 h-5" />
-        </Button>
-      </div>
+      </header>
 
-      {/* Video Grid */}
-      <div className="flex-1 p-4 overflow-auto">
-        <div className={`grid gap-4 ${getGridClass()}`}>
+      {/* Video Grid - Full height */}
+      <main className="flex-1 p-6 overflow-auto bg-muted/30">
+        <div className={`grid gap-4 h-full ${getGridClass()}`}>
           {participants.map((participant) => (
             <VideoTile 
               key={participant.id} 
@@ -149,22 +147,26 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
 
         {participants.length === 0 && (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center text-white/60">
-              <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
-              <p>En attente des autres participants...</p>
+            <div className="text-center space-y-4">
+              <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
+                <Users className="w-10 h-10 text-primary" />
+              </div>
+              <p className="text-lg font-medium text-foreground">En attente des autres participants...</p>
+              <p className="text-sm text-muted-foreground">Partage le lien de la session pour inviter tes camarades</p>
             </div>
           </div>
         )}
-      </div>
+      </main>
 
-      {/* Controls Bar */}
-      <div className="flex items-center justify-center gap-3 px-4 py-4 border-t border-white/10 bg-black/20">
+      {/* Controls Bar - Skoolife styled */}
+      <footer className="flex items-center justify-center gap-4 px-6 py-5 border-t border-border bg-card">
         {/* Mic Toggle */}
         <Button
           variant={isMicOn ? 'secondary' : 'destructive'}
           size="lg"
           onClick={toggleMic}
-          className="rounded-full w-14 h-14"
+          className="rounded-full w-16 h-16 shadow-md transition-all hover:scale-105"
+          title={isMicOn ? 'Couper le micro' : 'Activer le micro'}
         >
           {isMicOn ? (
             <Mic className="w-6 h-6" />
@@ -178,7 +180,8 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
           variant={isCameraOn ? 'secondary' : 'destructive'}
           size="lg"
           onClick={toggleCamera}
-          className="rounded-full w-14 h-14"
+          className="rounded-full w-16 h-16 shadow-md transition-all hover:scale-105"
+          title={isCameraOn ? 'Couper la caméra' : 'Activer la caméra'}
         >
           {isCameraOn ? (
             <Video className="w-6 h-6" />
@@ -192,7 +195,10 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
           variant={isScreenSharing ? 'default' : 'secondary'}
           size="lg"
           onClick={toggleScreenShare}
-          className="rounded-full w-14 h-14"
+          className={`rounded-full w-16 h-16 shadow-md transition-all hover:scale-105 ${
+            isScreenSharing ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2' : ''
+          }`}
+          title={isScreenSharing ? 'Arrêter le partage' : 'Partager l\'écran'}
         >
           <MonitorUp className="w-6 h-6" />
         </Button>
@@ -202,11 +208,12 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
           variant="destructive"
           size="lg"
           onClick={handleLeave}
-          className="rounded-full w-14 h-14 bg-red-600 hover:bg-red-700"
+          className="rounded-full w-16 h-16 shadow-md transition-all hover:scale-105 ml-4"
+          title="Quitter l'appel"
         >
           <Phone className="w-6 h-6 rotate-[135deg]" />
         </Button>
-      </div>
+      </footer>
     </div>
   );
 };
