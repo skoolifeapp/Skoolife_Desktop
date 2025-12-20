@@ -100,10 +100,6 @@ const Pricing = () => {
       <main className="relative max-w-5xl mx-auto px-4 pt-24 md:pt-32 pb-16">
         {/* Hero */}
         <div className="text-center mb-16 animate-slide-up">
-          <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
-            <Sparkles className="w-4 h-4 mr-2" />
-            7 jours d'essai gratuit
-          </Badge>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6 font-heading">
             Choisis ta formule
           </h1>
