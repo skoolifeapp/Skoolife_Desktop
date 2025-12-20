@@ -21,13 +21,19 @@ import {
   Coffee,
   Play,
   Pause,
-  RotateCcw
+  RotateCcw,
+  Users,
+  Video,
+  Mic,
+  MicOff,
+  ExternalLink,
+  Check
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 
 // Sidebar partagée pour toutes les cartes - Design compact avec icônes uniquement
 interface SidebarProps {
-  activePage: 'calendrier' | 'progression' | 'matieres' | 'settings';
+  activePage: 'calendrier' | 'progression' | 'matieres' | 'settings' | 'collaboration';
 }
 
 const Sidebar = ({ activePage }: SidebarProps) => (
@@ -801,6 +807,148 @@ export const StaticPomodoroCard = () => (
                   Travaille 25 minutes avec concentration, puis prends 5 minutes de pause.
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// ===== COLLABORATION CARD =====
+export const StaticCollaborationCard = () => (
+  <div className="h-full flex bg-[#FFFDF8] dark:bg-card">
+    <Sidebar activePage="collaboration" />
+
+    <div className="flex-1 flex flex-col">
+      <TopBar icon={<Users className="w-4 h-4" />} label="Révise à Plusieurs" />
+
+      {/* Page Header */}
+      <div className="flex items-center gap-3 px-6 py-4">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+          <Video className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-foreground">Révise à Plusieurs</h2>
+          <p className="text-sm text-muted-foreground">Invite tes amis à réviser avec toi</p>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 flex px-6 pb-4 gap-4 overflow-hidden">
+        {/* Left - Video Grid */}
+        <div className="flex-1 flex flex-col gap-4">
+          {/* Session Header */}
+          <div className="flex items-center justify-between p-4 rounded-xl border border-border/30 bg-white dark:bg-card shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+              <span className="font-semibold text-foreground">Session en cours</span>
+            </div>
+            <span className="text-sm text-muted-foreground">Maths - Chapitre 5</span>
+          </div>
+
+          {/* Video Grid */}
+          <div className="flex-1 grid grid-cols-2 gap-3">
+            {/* Participant 1 - Toi */}
+            <div className="relative rounded-xl overflow-hidden bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
+                <span className="text-2xl font-bold text-white">T</span>
+              </div>
+              <div className="absolute bottom-3 left-3 px-2 py-1 rounded bg-black/50 text-white text-xs font-medium">
+                Toi
+              </div>
+            </div>
+
+            {/* Participant 2 - Marie */}
+            <div className="relative rounded-xl overflow-hidden bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
+                <span className="text-2xl font-bold text-white">M</span>
+              </div>
+              <div className="absolute bottom-3 left-3 px-2 py-1 rounded bg-black/50 text-white text-xs font-medium">
+                Marie
+              </div>
+            </div>
+
+            {/* Participant 3 - Lucas */}
+            <div className="relative rounded-xl overflow-hidden bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
+                <span className="text-2xl font-bold text-white">L</span>
+              </div>
+              <div className="absolute bottom-3 left-3 px-2 py-1 rounded bg-black/50 text-white text-xs font-medium">
+                Lucas
+              </div>
+            </div>
+
+            {/* Invite Button */}
+            <div className="rounded-xl border-2 border-dashed border-border/50 flex flex-col items-center justify-center gap-2 bg-muted/20 hover:bg-muted/30 cursor-pointer transition-colors">
+              <div className="w-10 h-10 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-muted-foreground" />
+              </div>
+              <span className="text-sm text-muted-foreground">Inviter</span>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center justify-center gap-3 py-3">
+            <button className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+              <Mic className="w-5 h-5" />
+            </button>
+            <button className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+              <Video className="w-5 h-5" />
+            </button>
+            <button className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-white">
+              <span className="w-5 h-5 rounded-sm bg-white" />
+            </button>
+          </div>
+        </div>
+
+        {/* Right - Info Panel */}
+        <div className="hidden md:flex w-64 flex-col gap-3 flex-shrink-0">
+          {/* Invited List */}
+          <div className="p-4 rounded-xl border border-border/30 bg-white dark:bg-card shadow-sm">
+            <div className="flex items-center gap-2 mb-3">
+              <Users className="w-4 h-4 text-muted-foreground" />
+              <span className="font-semibold text-sm text-foreground">Camarades invités</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-foreground">Ridouane Henda</span>
+                <span className="text-xs text-green-500 ml-auto">Confirmé</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-500" />
+                <span className="text-sm text-foreground">Marie Dupont</span>
+                <span className="text-xs text-green-500 ml-auto">Confirmé</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-500" />
+                <span className="text-sm text-foreground">Lucas Martin</span>
+                <span className="text-xs text-amber-500 ml-auto">En attente</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Join Link */}
+          <div className="p-4 rounded-xl border border-border/30 bg-primary/5 shadow-sm">
+            <div className="flex items-center gap-2">
+              <Video className="w-4 h-4 text-primary" />
+              <a href="#" className="text-sm font-medium text-primary underline flex items-center gap-1">
+                Rejoindre la visio
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          </div>
+
+          {/* Features */}
+          <div className="p-4 rounded-xl border border-border/30 bg-muted/30 shadow-sm space-y-3">
+            <div className="flex items-start gap-2">
+              <Check className="w-4 h-4 text-green-500 mt-0.5" />
+              <p className="text-xs text-muted-foreground">Visioconférence intégrée, pas besoin d'app externe</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <Check className="w-4 h-4 text-green-500 mt-0.5" />
+              <p className="text-xs text-muted-foreground">Partage de session en un clic via lien d'invitation</p>
             </div>
           </div>
         </div>
