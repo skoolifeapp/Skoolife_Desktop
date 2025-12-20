@@ -18,7 +18,7 @@ import {
   GraduationCap
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
-import HeroMiniDashboard3D from '@/components/HeroMiniDashboard3D';
+import StackedCardsLayout from '@/components/StackedCardsLayout';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -93,9 +93,9 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Right - 3D Mini Dashboard - Hidden on mobile, visible on md+ */}
-            <div className="hidden md:flex flex-1 w-full lg:w-auto animate-slide-up">
-              <HeroMiniDashboard3D />
+            {/* Right - Stacked Cards */}
+            <div className="flex-1 w-full lg:w-auto animate-slide-up mt-8 lg:mt-0">
+              <StackedCardsLayout />
             </div>
           </div>
         </div>
