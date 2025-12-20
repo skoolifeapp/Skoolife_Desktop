@@ -29,6 +29,8 @@ interface UseDailyCallReturn {
   toggleCamera: () => void;
   toggleMic: () => void;
   toggleScreenShare: () => Promise<void>;
+  sendAppMessage: (message: any) => void;
+  onAppMessage: ((callback: (data: any, senderId: string) => void) => void) | null;
 }
 
 const parseParticipant = (p: DailyParticipant): Omit<Participant, 'isSpeaking'> => {
@@ -188,6 +190,24 @@ export const useDailyCall = (): UseDailyCallReturn => {
     }
   }, [isScreenSharing]);
 
+  // Send app message to all participants
+  const sendAppMessage = useCallback((message: any) => {
+    if (callObjectRef.current) {
+      callObjectRef.current.sendAppMessage(message, '*');
+    }
+  }, []);
+
+  // Set up app message listener
+  const onAppMessage = useCallback((callback: (data: any, senderId: string) => void) => {
+    if (callObjectRef.current) {
+      callObjectRef.current.on('app-message', (event) => {
+        if (event) {
+          callback(event.data, event.fromId);
+        }
+      });
+    }
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -212,5 +232,7 @@ export const useDailyCall = (): UseDailyCallReturn => {
     toggleCamera,
     toggleMic,
     toggleScreenShare,
+    sendAppMessage,
+    onAppMessage: callObjectRef.current ? onAppMessage : null,
   };
 };

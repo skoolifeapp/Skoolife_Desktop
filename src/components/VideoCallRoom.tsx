@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { 
   Video, 
   VideoOff, 
@@ -9,9 +9,9 @@ import {
   Users,
   Loader2,
   AlertCircle,
-  LayoutGrid,
   PanelLeftClose,
-  PanelLeft
+  PanelLeft,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDailyCall } from '@/hooks/useDailyCall';
@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import { useLayoutSidebar } from '@/contexts/LayoutSidebarContext';
+import VideoCallChat, { ChatMessage } from '@/components/VideoCallChat';
 
 interface VideoCallRoomProps {
   roomUrl: string;
@@ -42,12 +43,17 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
     toggleCamera,
     toggleMic,
     toggleScreenShare,
+    sendAppMessage,
+    onAppMessage,
   } = useDailyCall();
 
   const { user } = useAuth();
   const [userName, setUserName] = useState<string | null>(null);
   const [isLoadingName, setIsLoadingName] = useState(true);
   const { sidebarCollapsed, toggleSidebarCollapsed } = useLayoutSidebar();
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Fetch user name
   useEffect(() => {
@@ -83,6 +89,72 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
       join(roomUrl, userName);
     }
   }, [roomUrl, userName, isLoadingName, isJoined, isJoining, join]);
+
+  // Listen for incoming chat messages
+  useEffect(() => {
+    if (onAppMessage && isJoined) {
+      onAppMessage((data, senderId) => {
+        if (data.type === 'chat-message') {
+          const newMessage: ChatMessage = {
+            id: data.id,
+            senderId: senderId,
+            senderName: data.senderName,
+            content: data.content,
+            type: data.messageType,
+            fileUrl: data.fileUrl,
+            fileName: data.fileName,
+            fileType: data.fileType,
+            timestamp: new Date(data.timestamp),
+          };
+          setChatMessages(prev => [...prev, newMessage]);
+          if (!isChatOpen) {
+            setUnreadCount(prev => prev + 1);
+          }
+        }
+      });
+    }
+  }, [onAppMessage, isJoined, isChatOpen]);
+
+  // Handle sending a chat message
+  const handleSendMessage = useCallback((content: string, type: 'text' | 'file', fileData?: { url: string; name: string; type: string }) => {
+    const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const messageData = {
+      type: 'chat-message',
+      id: messageId,
+      senderName: userName || 'Utilisateur',
+      content,
+      messageType: type,
+      fileUrl: fileData?.url,
+      fileName: fileData?.name,
+      fileType: fileData?.type,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Send to other participants
+    sendAppMessage(messageData);
+
+    // Add to local messages
+    const newMessage: ChatMessage = {
+      id: messageId,
+      senderId: user?.id || 'local',
+      senderName: userName || 'Utilisateur',
+      content,
+      type,
+      fileUrl: fileData?.url,
+      fileName: fileData?.name,
+      fileType: fileData?.type,
+      timestamp: new Date(),
+    };
+    setChatMessages(prev => [...prev, newMessage]);
+  }, [userName, sendAppMessage, user?.id]);
+
+  // Toggle chat and reset unread count
+  const toggleChat = () => {
+    setIsChatOpen(prev => !prev);
+    if (!isChatOpen) {
+      setUnreadCount(0);
+    }
+  };
 
   const handleLeave = async () => {
     await leave();
@@ -339,9 +411,18 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
 
       {/* Video Grid - Fill remaining space */}
       <main className="flex-1 p-6 min-h-0 overflow-hidden">
-        <div className="h-full rounded-2xl bg-card border border-border p-4 flex flex-col">
+        <div className="h-full rounded-2xl bg-card border border-border p-4 flex flex-col relative">
           <div className="flex-1 min-h-0 relative">
             {isPresentationMode ? renderPresentationMode() : renderGridMode()}
+            
+            {/* Chat Panel */}
+            <VideoCallChat
+              isOpen={isChatOpen}
+              onClose={() => setIsChatOpen(false)}
+              messages={chatMessages}
+              onSendMessage={handleSendMessage}
+              currentUserName={userName || 'Utilisateur'}
+            />
           </div>
           
           {/* Controls Bar - Inside the card */}
@@ -387,6 +468,24 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
               title={isScreenSharing ? 'Arrêter le partage' : 'Partager l\'écran'}
             >
               <MonitorUp className="w-5 h-5" />
+            </Button>
+
+            {/* Chat Toggle */}
+            <Button
+              variant={isChatOpen ? 'default' : 'secondary'}
+              size="lg"
+              onClick={toggleChat}
+              className={`rounded-full w-14 h-14 shadow-md transition-all hover:scale-105 relative ${
+                isChatOpen ? 'bg-primary text-primary-foreground' : ''
+              }`}
+              title="Ouvrir le chat"
+            >
+              <MessageSquare className="w-5 h-5" />
+              {unreadCount > 0 && !isChatOpen && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </Button>
 
             {/* Leave Call */}
