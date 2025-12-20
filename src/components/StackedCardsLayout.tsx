@@ -78,9 +78,9 @@ const StackedCardsLayout = () => {
   };
 
   return (
-    <div className="relative w-full max-w-5xl mx-auto pt-12">
-      {/* Cards container - extra padding at top to show stacked cards */}
-      <div className="relative h-[320px] md:h-[360px]" style={{ overflow: 'visible' }}>
+    <div className="relative w-full max-w-5xl mx-auto">
+      {/* Cards container with clipping */}
+      <div className="relative h-[360px] md:h-[400px] overflow-hidden">
         {cards.map((card, index) => {
           const style = getCardStyle(index);
           const isActive = index === activeIndex;
@@ -97,7 +97,7 @@ const StackedCardsLayout = () => {
                 transform: style.transform,
                 opacity: style.opacity,
                 height: '600px',
-                top: '40px',
+                top: '50px',
                 boxShadow: '0 -8px 30px -10px rgba(0, 0, 0, 0.15)',
               }}
             >
