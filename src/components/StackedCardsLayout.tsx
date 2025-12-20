@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Calendar, 
   BarChart3, 
@@ -27,6 +27,7 @@ interface CardData {
 
 const StackedCardsLayout = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   const cards: CardData[] = [
     {
@@ -45,6 +46,17 @@ const StackedCardsLayout = () => {
       content: <MatieresCard />,
     },
   ];
+
+  // Auto-scroll every 5 seconds
+  useEffect(() => {
+    if (isPaused) return;
+    
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % cards.length);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isPaused, cards.length]);
 
   const getCardStyle = (index: number) => {
     const position = (index - activeIndex + cards.length) % cards.length;
@@ -74,6 +86,9 @@ const StackedCardsLayout = () => {
   const handleCardClick = (index: number) => {
     if (index !== activeIndex) {
       setActiveIndex(index);
+      setIsPaused(true);
+      // Resume auto-scroll after 10 seconds of inactivity
+      setTimeout(() => setIsPaused(false), 10000);
     }
   };
 
