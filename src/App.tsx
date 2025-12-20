@@ -62,8 +62,8 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <GlobalVideoCall />
             <BrowserRouter>
+              <GlobalVideoCall />
               <PresenceProvider>
                 <Suspense fallback={<MinimalLoader />}>
                   <Routes>
