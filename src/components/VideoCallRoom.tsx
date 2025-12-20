@@ -102,7 +102,14 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
     );
   }
 
-  // Calculate grid layout based on participant count
+  // Detect if someone is screen sharing
+  const screenSharingParticipant = participants.find(p => p.screen);
+  const isPresentationMode = !!screenSharingParticipant;
+  const thumbnailParticipants = isPresentationMode 
+    ? participants.filter(p => p.id !== screenSharingParticipant?.id)
+    : [];
+
+  // Calculate grid layout based on participant count (only used when no presentation)
   const getGridClass = () => {
     const count = participants.length;
     if (count === 1) return 'grid-cols-1';
@@ -111,6 +118,59 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
     if (count <= 6) return 'grid-cols-2 lg:grid-cols-3';
     return 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
   };
+
+  // Render presentation mode layout
+  const renderPresentationMode = () => (
+    <div className="flex flex-col lg:flex-row gap-4 h-full">
+      {/* Main screen share - takes most space */}
+      <div className="flex-1 min-h-0">
+        {screenSharingParticipant && (
+          <VideoTile 
+            participant={screenSharingParticipant}
+            isLarge
+          />
+        )}
+      </div>
+      
+      {/* Thumbnail strip - camera feeds */}
+      {thumbnailParticipants.length > 0 && (
+        <div className="flex lg:flex-col gap-2 lg:w-48 overflow-auto">
+          {thumbnailParticipants.map((participant) => (
+            <div key={participant.id} className="w-32 lg:w-full h-24 lg:h-28 flex-shrink-0">
+              <VideoTile 
+                participant={participant}
+                isLarge={false}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  // Render normal grid layout
+  const renderGridMode = () => (
+    <div className={`grid gap-4 h-full ${getGridClass()}`}>
+      {participants.map((participant) => (
+        <VideoTile 
+          key={participant.id} 
+          participant={participant}
+          isLarge={participants.length <= 2}
+        />
+      ))}
+      {participants.length === 0 && (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center space-y-4">
+            <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
+              <Users className="w-10 h-10 text-primary" />
+            </div>
+            <p className="text-lg font-medium text-foreground">En attente des autres participants...</p>
+            <p className="text-sm text-muted-foreground">Partage le lien de la session pour inviter tes camarades</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden">
@@ -123,6 +183,11 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
             <span className="font-semibold text-foreground">
               {sessionTitle || 'Session de révision'}
             </span>
+            {isPresentationMode && (
+              <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs font-medium rounded-full">
+                Mode présentation
+              </span>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3 px-4 py-2 bg-secondary/50 rounded-full">
@@ -135,26 +200,7 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
 
       {/* Video Grid - Fill remaining space without scroll */}
       <main className="flex-1 p-4 min-h-0 bg-muted/30">
-        <div className={`grid gap-4 h-full ${getGridClass()}`}>
-          {participants.map((participant) => (
-            <VideoTile 
-              key={participant.id} 
-              participant={participant}
-              isLarge={participants.length <= 2}
-            />
-          ))}
-        {participants.length === 0 && (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
-                <Users className="w-10 h-10 text-primary" />
-              </div>
-              <p className="text-lg font-medium text-foreground">En attente des autres participants...</p>
-              <p className="text-sm text-muted-foreground">Partage le lien de la session pour inviter tes camarades</p>
-            </div>
-          </div>
-        )}
-        </div>
+        {isPresentationMode ? renderPresentationMode() : renderGridMode()}
       </main>
 
       {/* Controls Bar - Skoolife styled */}
