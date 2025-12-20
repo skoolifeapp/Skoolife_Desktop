@@ -28,6 +28,7 @@ const InviteAccept = lazy(() => import("./pages/InviteAccept"));
 const CancelSubscription = lazy(() => import("./pages/CancelSubscription"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const Pomodoro = lazy(() => import("./pages/Pomodoro"));
+const FeatureCalendar = lazy(() => import("./pages/FeatureCalendar"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Optimized QueryClient with caching
@@ -61,6 +62,7 @@ const App = () => (
                   <Route path="/" element={<Index />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/features/calendar" element={<FeatureCalendar />} />
                   <Route path="/post-checkout" element={<PostCheckout />} />
                   <Route path="/onboarding" element={<Onboarding />} />
                   
