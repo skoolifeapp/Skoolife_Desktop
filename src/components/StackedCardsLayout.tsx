@@ -75,9 +75,9 @@ const StackedCardsLayout = () => {
   };
 
   return (
-    <div className="relative w-full max-w-5xl mx-auto pb-8">
-      {/* Cards container with clipping */}
-      <div className="relative h-[520px] md:h-[600px] overflow-hidden">
+    <div className="relative w-full max-w-6xl mx-auto pb-8">
+      {/* Cards container */}
+      <div className="relative h-[580px] md:h-[680px]">
         {cards.map((card, index) => {
           const style = getCardStyle(index);
           const isActive = index === activeIndex;
@@ -86,16 +86,16 @@ const StackedCardsLayout = () => {
             <div
               key={card.id}
               onClick={() => handleCardClick(index)}
-              className={`absolute inset-x-0 rounded-t-xl md:rounded-t-2xl bg-white dark:bg-card border border-border/20 border-b-0 overflow-hidden
+              className={`absolute inset-x-0 rounded-xl md:rounded-2xl bg-white dark:bg-card border border-border/20 overflow-hidden
                 transition-all duration-500 ease-out
                 ${!isActive ? 'cursor-pointer hover:opacity-90' : ''}`}
               style={{
                 zIndex: style.zIndex,
                 transform: style.transform,
                 opacity: style.opacity,
-                height: '800px',
-                top: '50px',
-                boxShadow: '0 -8px 30px -10px rgba(0, 0, 0, 0.15)',
+                height: '540px',
+                top: '40px',
+                boxShadow: '0 8px 40px -10px rgba(0, 0, 0, 0.2)',
               }}
             >
               {card.content}
