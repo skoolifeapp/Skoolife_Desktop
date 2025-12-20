@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import HeroMiniDashboard3D from '@/components/HeroMiniDashboard3D';
+import { StackedCard } from '@/components/StackedCard';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -367,29 +368,29 @@ const Index = () => {
 // Components
 
 const ProblemCard = ({ emoji, title, description }: { emoji: string; title: string; description: string }) => (
-  <div className="p-4 md:p-6 rounded-xl md:rounded-2xl bg-card border border-border/50">
-    <div className="text-3xl md:text-4xl mb-3 md:mb-4">{emoji}</div>
-    <h3 className="text-base md:text-lg font-semibold mb-1.5 md:mb-2 font-heading">{title}</h3>
-    <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">{description}</p>
-  </div>
+  <StackedCard layers={2} offset={6}>
+    <div className="p-4 md:p-6">
+      <div className="text-3xl md:text-4xl mb-3 md:mb-4">{emoji}</div>
+      <h3 className="text-base md:text-lg font-semibold mb-1.5 md:mb-2 font-heading">{title}</h3>
+      <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">{description}</p>
+    </div>
+  </StackedCard>
 );
 
 const FeatureCard = ({ icon, title, description, highlight }: { icon: React.ReactNode; title: string; description: string; highlight?: boolean }) => (
-  <div className={`group p-5 md:p-8 rounded-xl md:rounded-2xl border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
-    highlight 
-      ? 'bg-primary/5 border-primary/20 hover:border-primary/40' 
-      : 'bg-card border-border hover:border-primary/20'
-  }`}>
-    <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-5 transition-colors duration-300 ${
-      highlight 
-        ? 'bg-primary/20 text-primary' 
-        : 'bg-primary/10 text-primary group-hover:bg-primary/20'
-    }`}>
-      {icon}
+  <StackedCard layers={2} offset={6} className={highlight ? 'bg-primary/5' : ''}>
+    <div className={`p-5 md:p-8 ${highlight ? 'bg-primary/5' : ''}`}>
+      <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center mb-3 md:mb-5 transition-colors duration-300 ${
+        highlight 
+          ? 'bg-primary/20 text-primary' 
+          : 'bg-primary/10 text-primary group-hover:bg-primary/20'
+      }`}>
+        {icon}
+      </div>
+      <h3 className="text-base md:text-xl font-semibold mb-2 md:mb-3 font-heading">{title}</h3>
+      <p className="text-muted-foreground text-xs md:text-base leading-relaxed">{description}</p>
     </div>
-    <h3 className="text-base md:text-xl font-semibold mb-2 md:mb-3 font-heading">{title}</h3>
-    <p className="text-muted-foreground text-xs md:text-base leading-relaxed">{description}</p>
-  </div>
+  </StackedCard>
 );
 
 const Step = ({ number, icon, title, description }: { number: number; icon: React.ReactNode; title: string; description: string }) => (
@@ -434,28 +435,26 @@ const PricingCard = ({
   features: string[];
   highlighted?: boolean;
 }) => (
-  <div className={`p-5 md:p-8 rounded-xl md:rounded-2xl border text-left ${
-    highlighted 
-      ? 'bg-primary/5 border-primary/30 ring-2 ring-primary/20' 
-      : 'bg-card border-border'
-  }`}>
-    <div className="mb-4 md:mb-6">
-      <h3 className="text-lg md:text-xl font-bold mb-1.5 md:mb-2 font-heading">{name}</h3>
-      <div className="flex items-baseline gap-1">
-        <span className="text-3xl md:text-4xl font-bold font-heading">{price}</span>
-        <span className="text-muted-foreground text-sm">{period}</span>
+  <StackedCard layers={highlighted ? 3 : 2} offset={8} className={highlighted ? 'ring-2 ring-primary/20' : ''}>
+    <div className={`p-5 md:p-8 text-left ${highlighted ? 'bg-primary/5' : ''}`}>
+      <div className="mb-4 md:mb-6">
+        <h3 className="text-lg md:text-xl font-bold mb-1.5 md:mb-2 font-heading">{name}</h3>
+        <div className="flex items-baseline gap-1">
+          <span className="text-3xl md:text-4xl font-bold font-heading">{price}</span>
+          <span className="text-muted-foreground text-sm">{period}</span>
+        </div>
+        <p className="text-xs md:text-sm text-muted-foreground mt-1.5 md:mt-2">{description}</p>
       </div>
-      <p className="text-xs md:text-sm text-muted-foreground mt-1.5 md:mt-2">{description}</p>
+      <ul className="space-y-2 md:space-y-3">
+        {features.map((feature, index) => (
+          <li key={index} className="flex items-center gap-2 md:gap-3 text-xs md:text-sm">
+            <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary flex-shrink-0" />
+            <span>{feature}</span>
+          </li>
+        ))}
+      </ul>
     </div>
-    <ul className="space-y-2 md:space-y-3">
-      {features.map((feature, index) => (
-        <li key={index} className="flex items-center gap-2 md:gap-3 text-xs md:text-sm">
-          <CheckCircle2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary flex-shrink-0" />
-          <span>{feature}</span>
-        </li>
-      ))}
-    </ul>
-  </div>
+  </StackedCard>
 );
 
 export default Index;
