@@ -1,14 +1,23 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Calendar, BarChart3, BookOpen, Settings, Timer } from 'lucide-react';
 import logo from '@/assets/logo.png';
+
+const features = [
+  { name: 'Calendrier', icon: Calendar, description: 'Planifie tes révisions' },
+  { name: 'Progression', icon: BarChart3, description: 'Suis tes progrès' },
+  { name: 'Matières', icon: BookOpen, description: 'Gère tes matières' },
+  { name: 'Paramètres', icon: Settings, description: 'Personnalise ton expérience' },
+  { name: 'Pomodoro', icon: Timer, description: 'Révise efficacement' },
+];
 
 const Navbar = () => {
   const location = useLocation();
   const isHome = location.pathname === '/';
   const isPricing = location.pathname === '/pricing';
+  const [showFeatures, setShowFeatures] = useState(false);
 
-  // Build anchor links: use hash directly on home page, otherwise prefix with /
-  const featuresLink = isHome ? '#fonctionnalites' : '/#fonctionnalites';
   const aboutLink = isHome ? '#a-propos' : '/#a-propos';
 
   return (
@@ -32,12 +41,40 @@ const Navbar = () => {
           >
             Tarifs
           </Link>
-          <a 
-            href={featuresLink} 
-            className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50"
+          
+          {/* Fonctionnalités with dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setShowFeatures(true)}
+            onMouseLeave={() => setShowFeatures(false)}
           >
-            Fonctionnalités
-          </a>
+            <button 
+              className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50"
+            >
+              Fonctionnalités
+            </button>
+            
+            {/* Dropdown menu */}
+            {showFeatures && (
+              <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-card rounded-xl border border-border shadow-xl p-2 z-50">
+                {features.map((feature) => (
+                  <div
+                    key={feature.name}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <feature.icon className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{feature.name}</p>
+                      <p className="text-xs text-muted-foreground">{feature.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
           <a 
             href={aboutLink} 
             className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50"
