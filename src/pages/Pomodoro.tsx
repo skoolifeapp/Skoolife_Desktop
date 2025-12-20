@@ -9,7 +9,7 @@ import { Timer, Play, Pause, RotateCcw, Coffee, Brain, BookOpen, Clock, Target }
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import SupportButton from '@/components/SupportButton';
+
 
 const WORK_TIME = 25 * 60;
 const SHORT_BREAK = 5 * 60;
@@ -434,7 +434,7 @@ const Pomodoro = () => {
         </div>
       </div>
 
-      <SupportButton />
+      
     </div>
   );
 };

@@ -31,7 +31,7 @@ import {
 import { toast } from 'sonner';
 import { Clock, Loader2, RotateCcw, Settings as SettingsIcon } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import SupportButton from '@/components/SupportButton';
+
 
 const DAYS_OF_WEEK = [
   { value: 1, label: 'Lun' },
@@ -405,7 +405,7 @@ const Settings = () => {
           </CardContent>
         </Card>
 
-        <SupportButton />
+        
     </div>
   );
 };

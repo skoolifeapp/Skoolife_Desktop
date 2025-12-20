@@ -9,7 +9,7 @@ import {
   Clock, CheckCircle2, TrendingUp, ChevronLeft, ChevronRight, BookOpen, Minus, Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import SupportButton from '@/components/SupportButton';
+
 
 import { format, startOfWeek, endOfWeek, subWeeks, addWeeks, isSameWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -549,8 +549,6 @@ const Progression = () => {
       )}
 
 
-      {/* Support Button */}
-      <SupportButton />
     </div>
   );
 };

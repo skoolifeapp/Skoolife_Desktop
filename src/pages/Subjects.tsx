@@ -15,7 +15,7 @@ import { fr } from 'date-fns/locale';
 import type { Subject } from '@/types/planning';
 import SubjectDrawer from '@/components/SubjectDrawer';
 
-import SupportButton from '@/components/SupportButton';
+
 
 const Subjects = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -402,8 +402,6 @@ const Subjects = () => {
         onDeleted={handleSubjectSaved}
       />
 
-      {/* Support Button */}
-      <SupportButton />
     </>
   );
 };

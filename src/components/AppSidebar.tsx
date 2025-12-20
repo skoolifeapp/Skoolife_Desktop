@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UpgradeDialog } from '@/components/UpgradeDialog';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
+import SupportDrawer from '@/components/SupportDrawer';
 import { Calendar, BarChart3, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard, ChevronDown, MoreVertical, HelpCircle, PanelLeftClose, PanelLeft, Timer } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState, useEffect } from 'react';
@@ -39,6 +40,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{ firstName: string; lastName: string; email: string } | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [supportDrawerOpen, setSupportDrawerOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, subscriptionTier, subscriptionLoading, isSubscribed, refreshSubscription, user } = useAuth();
@@ -280,22 +282,15 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
                     <CreditCard className="w-4 h-4" />
                     Mon abonnement
                   </Button>
-                  <a
-                    href="https://calendly.com/skoolife-co/30min"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start gap-2 text-sm"
+                    onClick={() => { setProfileMenuOpen(false); setSupportDrawerOpen(true); }}
                   >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start gap-2 text-sm"
-                      onClick={() => setProfileMenuOpen(false)}
-                    >
-                      <HelpCircle className="w-4 h-4" />
-                      Aide
-                    </Button>
-                  </a>
+                    <HelpCircle className="w-4 h-4" />
+                    Aide
+                  </Button>
                   <div className="border-t border-border my-1" />
                   <Button
                     variant="ghost"
@@ -367,22 +362,15 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
                       <CreditCard className="w-4 h-4" />
                       Mon abonnement
                     </Button>
-                    <a
-                      href="https://calendly.com/skoolife-co/30min"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start gap-2 text-sm"
+                      onClick={() => { setProfileMenuOpen(false); setSupportDrawerOpen(true); }}
                     >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start gap-2 text-sm"
-                        onClick={() => setProfileMenuOpen(false)}
-                      >
-                        <HelpCircle className="w-4 h-4" />
-                        Aide
-                      </Button>
-                    </a>
+                      <HelpCircle className="w-4 h-4" />
+                      Aide
+                    </Button>
                     <div className="border-t border-border my-1" />
                     <Button
                       variant="ghost"
@@ -574,6 +562,12 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
         onOpenChange={setUpgradeDialogOpen}
         featureName={lockedFeatureName}
         onUpgradeSuccess={refreshSubscription}
+      />
+
+      {/* Support Drawer */}
+      <SupportDrawer
+        open={supportDrawerOpen}
+        onOpenChange={setSupportDrawerOpen}
       />
     </div>
   );

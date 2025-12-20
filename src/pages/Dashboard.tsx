@@ -36,7 +36,6 @@ import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 
 import { InvitedSessionDialog } from '@/components/InvitedSessionDialog';
-import SupportButton from '@/components/SupportButton';
 import { UpgradeDialog } from '@/components/UpgradeDialog';
 
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
@@ -1355,13 +1354,6 @@ const Dashboard = () => {
         />
       )}
 
-      {/* Support Button */}
-      <SupportButton 
-        onShowTutorial={() => {
-          localStorage.removeItem(`tutorial_seen_${user?.id}`);
-          setShowTutorial(true);
-        }}
-      />
 
       {/* Upgrade Dialog */}
       <UpgradeDialog
