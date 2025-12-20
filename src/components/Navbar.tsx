@@ -6,7 +6,7 @@ import logo from '@/assets/logo.png';
 
 const features = [
   { name: 'Calendrier', icon: Calendar, description: 'Planifie tes révisions', path: '/features/calendar' },
-  { name: 'Progression', icon: BarChart3, description: 'Suis tes progrès', path: null },
+  { name: 'Progression', icon: BarChart3, description: 'Suis tes progrès', path: '/features/progression' },
   { name: 'Matières', icon: BookOpen, description: 'Gère tes matières', path: null },
   { name: 'Paramètres', icon: Settings, description: 'Personnalise ton expérience', path: null },
   { name: 'Pomodoro', icon: Timer, description: 'Révise efficacement', path: null },
