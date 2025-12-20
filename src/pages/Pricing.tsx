@@ -87,26 +87,56 @@ const Pricing = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="p-6 border-b border-border">
-        <Link to="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <img src={logo} alt="Skoolife" className="w-10 h-10 rounded-xl" />
-          <span className="text-xl font-bold text-foreground font-heading">Skoolife</span>
-        </Link>
+      {/* Header - Fixed navigation bar (same as landing) */}
+      <header className="fixed left-0 right-0 z-50 top-0 flex justify-center px-4 py-4">
+        <nav className="flex items-center gap-2 px-3 py-2 bg-white/95 dark:bg-card/95 backdrop-blur-md rounded-full border border-border/50 shadow-lg">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity px-2">
+            <img src={logo} alt="Skoolife" className="w-8 h-8 rounded-xl" />
+            <span className="text-lg font-bold text-foreground font-heading">Skoolife</span>
+          </Link>
+          
+          {/* Navigation Links - Hidden on mobile */}
+          <div className="hidden md:flex items-center gap-1 ml-4">
+            <Link to="/pricing" className="px-3 py-1.5 text-sm text-foreground font-medium transition-colors rounded-full bg-muted/50">
+              Tarifs
+            </Link>
+            <a href="/#fonctionnalites" className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50">
+              Fonctionnalités
+            </a>
+            <a href="/#a-propos" className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50">
+              À propos
+            </a>
+          </div>
+          
+          {/* CTA Button */}
+          <Link to="/auth" className="ml-2">
+            <Button variant="default" size="sm" className="rounded-full text-xs md:text-sm px-4">
+              Se connecter
+            </Button>
+          </Link>
+        </nav>
       </header>
 
+      {/* Background decorations */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-5 md:left-10 w-48 md:w-72 h-48 md:h-72 bg-primary/20 rounded-full blur-3xl animate-pulse-soft" />
+        <div className="absolute top-40 right-5 md:right-20 w-64 md:w-96 h-64 md:h-96 bg-accent/20 rounded-full blur-3xl animate-pulse-soft delay-1000" />
+        <div className="absolute bottom-20 left-1/3 w-40 md:w-64 h-40 md:h-64 bg-primary/10 rounded-full blur-3xl" />
+      </div>
+
       {/* Main content */}
-      <main className="max-w-5xl mx-auto px-4 py-16">
+      <main className="relative max-w-5xl mx-auto px-4 pt-24 md:pt-32 pb-16">
         {/* Hero */}
         <div className="text-center mb-16 animate-slide-up">
           <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm font-medium">
             <Sparkles className="w-4 h-4 mr-2" />
             7 jours d'essai gratuit
           </Badge>
-          <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6 font-heading">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6 font-heading">
             Choisis ta formule
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto">
             Commence ton essai gratuit de 7 jours. Annule à tout moment, sans engagement.
           </p>
         </div>
