@@ -49,6 +49,7 @@ const StackedCardsLayout = () => {
   const getCardStyle = (index: number) => {
     const position = (index - activeIndex + cards.length) % cards.length;
     
+    // Cards stack BEHIND (negative Y = up)
     if (position === 0) {
       return {
         zIndex: 30,
@@ -58,14 +59,14 @@ const StackedCardsLayout = () => {
     } else if (position === 1) {
       return {
         zIndex: 20,
-        transform: 'translateY(-16px) scale(0.97)',
-        opacity: 0.7,
+        transform: 'translateY(-20px) scale(0.96)',
+        opacity: 0.85,
       };
     } else {
       return {
         zIndex: 10,
-        transform: 'translateY(-32px) scale(0.94)',
-        opacity: 0.4,
+        transform: 'translateY(-40px) scale(0.92)',
+        opacity: 0.6,
       };
     }
   };
@@ -77,9 +78,9 @@ const StackedCardsLayout = () => {
   };
 
   return (
-    <div className="relative w-full max-w-5xl mx-auto">
-      {/* Cards container */}
-      <div className="relative h-[280px] md:h-[320px] overflow-hidden">
+    <div className="relative w-full max-w-5xl mx-auto pt-12">
+      {/* Cards container - extra padding at top to show stacked cards */}
+      <div className="relative h-[320px] md:h-[360px]" style={{ overflow: 'visible' }}>
         {cards.map((card, index) => {
           const style = getCardStyle(index);
           const isActive = index === activeIndex;
@@ -88,14 +89,16 @@ const StackedCardsLayout = () => {
             <div
               key={card.id}
               onClick={() => handleCardClick(index)}
-              className={`absolute inset-x-0 top-0 rounded-t-xl md:rounded-t-2xl bg-white dark:bg-card border border-border/20 border-b-0 overflow-hidden shadow-2xl
+              className={`absolute inset-x-0 rounded-t-xl md:rounded-t-2xl bg-white dark:bg-card border border-border/20 border-b-0 overflow-hidden
                 transition-all duration-500 ease-out
-                ${!isActive ? 'cursor-pointer' : ''}`}
+                ${!isActive ? 'cursor-pointer hover:opacity-90' : ''}`}
               style={{
                 zIndex: style.zIndex,
                 transform: style.transform,
                 opacity: style.opacity,
                 height: '600px',
+                top: '40px',
+                boxShadow: '0 -8px 30px -10px rgba(0, 0, 0, 0.15)',
               }}
             >
               {card.content}
