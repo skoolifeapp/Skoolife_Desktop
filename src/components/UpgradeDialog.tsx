@@ -28,22 +28,19 @@ export const UpgradeDialog = ({ open, onOpenChange, featureName, onUpgradeSucces
     const newWindow = window.open('about:blank', '_blank');
     
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { priceId: 'price_1Sf3tdC3rnIsVpuj9TVbB47r' }, // Major price ID
-      });
+      const { data, error } = await supabase.functions.invoke('customer-portal');
 
       if (error) throw error;
       
       if (data?.url && newWindow) {
         newWindow.location.href = data.url;
         onOpenChange(false);
-        onUpgradeSuccess?.();
       } else if (data?.url) {
         // Fallback if popup was blocked
         window.location.href = data.url;
       } else {
         if (newWindow) newWindow.close();
-        throw new Error('URL de checkout non reçue');
+        throw new Error('URL du portail non reçue');
       }
     } catch (error: any) {
       console.error('Upgrade error:', error);

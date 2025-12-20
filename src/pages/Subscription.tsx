@@ -144,13 +144,7 @@ const Subscription = () => {
     const newWindow = window.open('about:blank', '_blank');
     
     try {
-      const priceId = confirmDialog.targetTier === 'major' 
-        ? 'price_1Sf3tdC3rnIsVpuj9TVbB47r'  // Major
-        : 'price_1Sf3tHC3rnIsVpuj5m5zh0cG'; // Student
-        
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { priceId },
-      });
+      const { data, error } = await supabase.functions.invoke('customer-portal');
       
       if (error) throw error;
       
@@ -161,12 +155,12 @@ const Subscription = () => {
         window.location.href = data.url;
       } else {
         if (newWindow) newWindow.close();
-        throw new Error('URL de checkout non reçue');
+        throw new Error('URL du portail non reçue');
       }
     } catch (err: any) {
-      console.error("Error opening checkout:", err);
+      console.error("Error opening portal:", err);
       if (newWindow) newWindow.close();
-      toast.error("Erreur lors de l'ouverture du checkout", {
+      toast.error("Erreur lors de l'ouverture du portail", {
         description: err.message || "Veuillez réessayer plus tard.",
       });
     } finally {
