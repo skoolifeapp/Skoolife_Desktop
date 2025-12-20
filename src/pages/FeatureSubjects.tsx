@@ -215,14 +215,6 @@ const StaticSubjectsCard = () => (
         </div>
       </div>
     </div>
-
-    {/* Help Button */}
-    <div className="absolute bottom-4 right-4">
-      <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-lg">
-        <span className="w-4 h-4 rounded-full border-2 border-current flex items-center justify-center text-xs">?</span>
-        Besoin d'aide ?
-      </button>
-    </div>
   </div>
 );
 
