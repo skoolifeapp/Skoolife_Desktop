@@ -4,7 +4,6 @@ import { ArrowRight, Clock, CheckCircle2, TrendingUp, ChevronLeft, ChevronRight,
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import logo from '@/assets/logo.png';
-import studentAvatar from '@/assets/student-avatar.png';
 
 // Static Progression Card Component - Reproduit l'interface exacte de l'app
 const StaticProgressionCard = () => (
@@ -37,8 +36,8 @@ const StaticProgressionCard = () => (
 
       {/* User Avatar */}
       <div className="mt-auto pt-4 border-t border-primary-foreground/20 w-full flex justify-center">
-        <div className="w-10 h-10 rounded-full overflow-hidden bg-primary-foreground/30 p-1">
-          <img src={studentAvatar} alt="Étudiant" className="w-full h-full object-cover" />
+        <div className="w-10 h-10 rounded-full bg-primary-foreground/30 flex items-center justify-center text-sm font-medium">
+          S
         </div>
       </div>
     </div>
