@@ -325,7 +325,7 @@ const LandingFeatures = () => {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Matières actives</p>
-                  <p className="text-xl font-bold text-foreground">4</p>
+                  <p className="text-xl font-bold text-foreground">3</p>
                 </div>
               </div>
               <div className="bg-muted/30 rounded-xl p-4 flex items-center gap-3">
@@ -350,7 +350,7 @@ const LandingFeatures = () => {
               {[
                 { name: 'FINANCE', date: '14/01/2026', hours: '35h', color: 'bg-red-500', priority: 'Haute', priorityColor: 'bg-red-100 text-red-600' },
                 { name: 'MCG', date: '14/01/2026', hours: '25h', color: 'bg-green-500', priority: 'Haute', priorityColor: 'bg-red-100 text-red-600' },
-                { name: 'MSI', date: '16/01/2026', hours: '20h', color: 'bg-blue-500', priority: 'Moyenne', priorityColor: 'bg-red-50 text-red-400' },
+                { name: 'MSI', date: '16/01/2026', hours: '20h', color: 'bg-blue-500', priority: 'Moyenne', priorityColor: 'bg-orange-100 text-orange-600' },
               ].map((subject, i) => (
                 <div key={i} className="grid grid-cols-4 gap-2 px-4 py-3 items-center border-b border-border/50 last:border-0">
                   <div className="flex items-center gap-2">
