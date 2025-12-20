@@ -9,10 +9,10 @@ const LandingFeatures = () => {
     <section className="relative py-20 md:py-32 bg-background">
       {/* Intro Section */}
       <div className="max-w-4xl mx-auto px-4 text-center mb-20 md:mb-32">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight font-heading mb-6">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight font-heading mb-6">
           Révise plus intelligemment,
           <br />
-          <span className="text-muted-foreground">pas plus longtemps.</span>
+          <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">pas plus longtemps.</span>
         </h2>
         <p className="max-w-2xl text-base md:text-lg text-muted-foreground mx-auto">
           De la génération automatique de ton planning à l'analyse de ta progression, 
