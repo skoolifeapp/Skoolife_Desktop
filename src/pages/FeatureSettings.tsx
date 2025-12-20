@@ -54,39 +54,6 @@ const FeatureSettings = () => {
             <StaticSettingsCard />
           </div>
         </div>
-
-        {/* Features List */}
-        <div className="max-w-4xl mx-auto px-4 pb-16">
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="p-6 rounded-xl border border-border/30 bg-card/50 backdrop-blur-sm">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Clock className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Horaires flexibles</h3>
-              <p className="text-sm text-muted-foreground">
-                Définis tes heures de début et de fin pour que ton planning respecte ton rythme.
-              </p>
-            </div>
-            <div className="p-6 rounded-xl border border-border/30 bg-card/50 backdrop-blur-sm">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Calendar className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Jours préférés</h3>
-              <p className="text-sm text-muted-foreground">
-                Choisis les jours où tu préfères réviser et on s'adapte à ton planning.
-              </p>
-            </div>
-            <div className="p-6 rounded-xl border border-border/30 bg-card/50 backdrop-blur-sm">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Sliders className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Sessions sur mesure</h3>
-              <p className="text-sm text-muted-foreground">
-                Configure la durée de tes sessions et tes objectifs hebdomadaires.
-              </p>
-            </div>
-          </div>
-        </div>
       </main>
 
       <Footer />
