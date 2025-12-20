@@ -22,10 +22,6 @@ const Footer = () => {
               Communauté WhatsApp
             </a>
           </div>
-          
-          <p className="text-xs md:text-sm text-muted-foreground text-center">
-            © 2025 Skoolife. Fait avec ❤️ pour les étudiants.
-          </p>
         </div>
       </div>
     </footer>
