@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import { Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import VideoCallRoom from '@/components/VideoCallRoom';
+import { useVideoCall } from '@/contexts/VideoCallContext';
 
 interface JoinCallButtonProps {
   roomUrl: string;
@@ -18,23 +17,13 @@ const JoinCallButton = ({
   size = 'default',
   className 
 }: JoinCallButtonProps) => {
-  const [isInCall, setIsInCall] = useState(false);
-
-  if (isInCall) {
-    return (
-      <VideoCallRoom 
-        roomUrl={roomUrl}
-        sessionTitle={sessionTitle}
-        onLeave={() => setIsInCall(false)}
-      />
-    );
-  }
+  const { startCall } = useVideoCall();
 
   return (
     <Button
       variant={variant}
       size={size}
-      onClick={() => setIsInCall(true)}
+      onClick={() => startCall(roomUrl, sessionTitle)}
       className={className}
     >
       <Video className="w-4 h-4 mr-2" />

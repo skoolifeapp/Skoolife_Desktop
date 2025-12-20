@@ -148,12 +148,18 @@ export const useDailyCall = (): UseDailyCallReturn => {
 
   const toggleScreenShare = useCallback(async () => {
     if (callObjectRef.current) {
-      if (isScreenSharing) {
-        await callObjectRef.current.stopScreenShare();
+      try {
+        if (isScreenSharing) {
+          await callObjectRef.current.stopScreenShare();
+          setIsScreenSharing(false);
+        } else {
+          await callObjectRef.current.startScreenShare();
+          setIsScreenSharing(true);
+        }
+      } catch (err) {
+        console.error('Screen share error:', err);
+        // User cancelled or permission denied - don't disconnect
         setIsScreenSharing(false);
-      } else {
-        await callObjectRef.current.startScreenShare();
-        setIsScreenSharing(true);
       }
     }
   }, [isScreenSharing]);
