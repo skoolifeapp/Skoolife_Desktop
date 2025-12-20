@@ -232,6 +232,10 @@ const LandingFeatures = () => {
                 Suivi de Progression
               </h3>
             </div>
+            <p className="text-muted-foreground mb-6">
+              Visualise tes progrès en temps réel. Suis le temps passé 
+              sur chaque matière et atteins tes objectifs de révision.
+            </p>
             
             {/* Stats cards */}
             <div className="grid grid-cols-2 gap-3 mb-6">
