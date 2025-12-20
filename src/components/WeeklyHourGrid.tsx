@@ -2,7 +2,8 @@ import { format, isSameDay, parseISO, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar, Users, MapPin, Video, ExternalLink, Paperclip, Check } from 'lucide-react';
+import { Calendar, Users, MapPin, Video, Paperclip, Check } from 'lucide-react';
+import JoinCallButton from '@/components/JoinCallButton';
 import type { RevisionSession, CalendarEvent, Subject } from '@/types/planning';
 
 export interface SessionInvitee {
@@ -881,17 +882,13 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                               {session.inviterName || 'Invité'}
                             </span>
                             {session.inviteMeetingFormat === 'visio' && session.inviteMeetingLink && (
-                              <a
-                                href={session.inviteMeetingLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                              <span
                                 onClick={(e) => e.stopPropagation()}
-                                className="text-[9px] text-blue-500 hover:text-blue-600 flex items-center gap-0.5 hover:underline"
-                                title="Rejoindre la visio"
+                                className="text-[9px] text-blue-500 flex items-center gap-0.5"
+                                title="Visio disponible"
                               >
                                 <Video className="w-2.5 h-2.5 flex-shrink-0" />
-                                <ExternalLink className="w-2 h-2 flex-shrink-0" />
-                              </a>
+                              </span>
                             )}
                             {session.inviteMeetingFormat === 'presentiel' && session.inviteMeetingAddress && (
                               <span className="text-[9px] text-green-500 flex items-center gap-0.5">
@@ -915,17 +912,13 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                               </span>
                             ) : null}
                             {inviteInfo.meeting_format === 'visio' && inviteInfo.meeting_link ? (
-                              <a
-                                href={inviteInfo.meeting_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                              <span
                                 onClick={(e) => e.stopPropagation()}
-                                className="text-[9px] text-blue-500 hover:text-blue-600 flex items-center gap-0.5 hover:underline"
-                                title="Rejoindre la visio"
+                                className="text-[9px] text-blue-500 flex items-center gap-0.5"
+                                title="Visio disponible"
                               >
                                 <Video className="w-2.5 h-2.5 flex-shrink-0" />
-                                <ExternalLink className="w-2 h-2 flex-shrink-0" />
-                              </a>
+                              </span>
                             ) : inviteInfo.meeting_format && !inviteInfo.invitees?.some(i => i.accepted_by) && (
                               <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
                                 {inviteInfo.meeting_format === 'visio' ? (

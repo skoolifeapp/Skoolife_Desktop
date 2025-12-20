@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarIcon, Loader2, Trash2, Paperclip, Share2, Users, Video, MapPin, ExternalLink, Check, X } from 'lucide-react';
+import { CalendarIcon, Loader2, Trash2, Paperclip, Share2, Users, Video, MapPin, Check, X } from 'lucide-react';
+import JoinCallButton from '@/components/JoinCallButton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -372,15 +373,13 @@ const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate, onShare,
                         <>
                           <Video className="w-4 h-4 text-blue-500" />
                           {inviteInfo.meeting_link ? (
-                            <a 
-                              href={inviteInfo.meeting_link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 max-w-[200px] truncate"
-                            >
-                              Rejoindre la visio
-                              <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                            </a>
+                            <JoinCallButton
+                              roomUrl={inviteInfo.meeting_link}
+                              sessionTitle={session?.subject?.name}
+                              variant="ghost"
+                              size="sm"
+                              className="text-blue-600 dark:text-blue-400 hover:underline p-0 h-auto"
+                            />
                           ) : (
                             <span>Visio (lien à venir)</span>
                           )}
