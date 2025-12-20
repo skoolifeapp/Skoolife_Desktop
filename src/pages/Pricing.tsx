@@ -99,7 +99,7 @@ const Pricing = () => {
       {/* Main content */}
       <main className="relative max-w-5xl mx-auto px-4 pt-24 md:pt-32 pb-16">
         {/* Hero */}
-        <div className="text-center mb-16 animate-slide-up">
+        <div className="text-center mb-16">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6 font-heading">
             Choisis ta formule
           </h1>
