@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import StackedCardsLayout from '@/components/StackedCardsLayout';
+import LandingFeatures from '@/components/LandingFeatures';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -72,6 +73,9 @@ const Index = () => {
           </div>
         </div>
       </main>
+
+      {/* Features Section */}
+      <LandingFeatures />
 
       <Footer />
     </div>
