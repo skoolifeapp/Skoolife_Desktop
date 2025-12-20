@@ -18,6 +18,7 @@ import {
   BookOpen,
   Target
 } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 // Sidebar partagée pour toutes les cartes - Design compact avec icônes uniquement
 interface SidebarProps {
@@ -27,8 +28,8 @@ interface SidebarProps {
 const Sidebar = ({ activePage }: SidebarProps) => (
   <div className="hidden md:flex w-16 flex-col bg-primary text-primary-foreground items-center py-4">
     {/* Logo */}
-    <div className="w-10 h-10 rounded-xl bg-primary-foreground/90 flex items-center justify-center mb-8">
-      <span className="text-primary font-bold text-xl">S</span>
+    <div className="w-10 h-10 rounded-xl overflow-hidden mb-8">
+      <img src={logo} alt="Skoolife" className="w-full h-full object-cover" />
     </div>
 
     {/* Navigation Icons */}

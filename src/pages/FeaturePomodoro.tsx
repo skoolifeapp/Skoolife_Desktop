@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Timer, Play, Pause, RotateCcw, Coffee, Brain, BookOpen, Clock, Target, Calendar, BarChart3, GraduationCap, Settings, Bell, Sun } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import logo from '@/assets/logo.png';
 
 // Static Pomodoro Card Component - Reproduit l'interface exacte de l'app
 const StaticPomodoroCard = () => (
@@ -10,8 +11,8 @@ const StaticPomodoroCard = () => (
     {/* Yellow Sidebar - Compact */}
     <div className="hidden md:flex w-16 flex-col bg-primary text-primary-foreground items-center py-4">
       {/* Logo */}
-      <div className="w-10 h-10 rounded-xl bg-primary-foreground/90 flex items-center justify-center mb-8">
-        <span className="text-primary font-bold text-xl">S</span>
+      <div className="w-10 h-10 rounded-xl overflow-hidden mb-8">
+        <img src={logo} alt="Skoolife" className="w-full h-full object-cover" />
       </div>
 
       {/* Navigation Icons */}
