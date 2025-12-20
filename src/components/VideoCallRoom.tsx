@@ -76,9 +76,9 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   if (isJoining) {
     return (
       <div className="fixed inset-0 z-50 bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <img src={logo} alt="Skoolife" className="w-16 h-16 mx-auto" />
-          <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto" />
+        <div className="text-center space-y-4 flex flex-col items-center justify-center">
+          <img src={logo} alt="Skoolife" className="w-16 h-16 rounded-xl" />
+          <Loader2 className="w-10 h-10 text-primary animate-spin" />
           <p className="text-lg font-semibold text-foreground">Connexion à la session...</p>
           <p className="text-sm text-muted-foreground">Préparation de ta caméra et ton micro</p>
         </div>
@@ -113,11 +113,11 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden">
       {/* Header - Skoolife branded */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
+      <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-border bg-card">
         <div className="flex items-center gap-4">
-          <img src={logo} alt="Skoolife" className="w-8 h-8" />
+          <img src={logo} alt="Skoolife" className="w-8 h-8 rounded-lg" />
           <div className="flex items-center gap-3">
             <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
             <span className="font-semibold text-foreground">
@@ -133,8 +133,8 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
         </div>
       </header>
 
-      {/* Video Grid - Full height */}
-      <main className="flex-1 p-6 overflow-auto bg-muted/30">
+      {/* Video Grid - Fill remaining space without scroll */}
+      <main className="flex-1 p-4 min-h-0 bg-muted/30">
         <div className={`grid gap-4 h-full ${getGridClass()}`}>
           {participants.map((participant) => (
             <VideoTile 
@@ -143,8 +143,6 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
               isLarge={participants.length <= 2}
             />
           ))}
-        </div>
-
         {participants.length === 0 && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center space-y-4">
@@ -156,10 +154,11 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
             </div>
           </div>
         )}
+        </div>
       </main>
 
       {/* Controls Bar - Skoolife styled */}
-      <footer className="flex items-center justify-center gap-4 px-6 py-5 border-t border-border bg-card">
+      <footer className="flex-shrink-0 flex items-center justify-center gap-4 px-6 py-4 border-t border-border bg-card">
         {/* Mic Toggle */}
         <Button
           variant={isMicOn ? 'secondary' : 'destructive'}

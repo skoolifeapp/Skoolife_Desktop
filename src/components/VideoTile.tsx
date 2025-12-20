@@ -31,9 +31,7 @@ const VideoTile = ({ participant, isLarge = false }: VideoTileProps) => {
 
   return (
     <div 
-      className={`relative rounded-2xl overflow-hidden bg-card border border-border shadow-lg ${
-        isLarge ? 'aspect-video' : 'aspect-video'
-      }`}
+      className="relative rounded-2xl overflow-hidden bg-card border border-border shadow-lg h-full w-full"
     >
       {/* Video element */}
       {participant.video && participant.videoTrack ? (
