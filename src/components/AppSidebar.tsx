@@ -11,6 +11,7 @@ import SupportDrawer from '@/components/SupportDrawer';
 import { Calendar, BarChart3, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard, ChevronDown, MoreVertical, HelpCircle, PanelLeftClose, PanelLeft, Timer } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useState, useEffect } from 'react';
+import { useLayoutSidebar } from '@/contexts/LayoutSidebarContext';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
@@ -39,7 +40,7 @@ export const AppSidebar = ({ children }: AppSidebarProps) => {
   const [lockedFeatureName, setLockedFeatureName] = useState<string>('');
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [userProfile, setUserProfile] = useState<{ firstName: string; lastName: string; email: string } | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { sidebarCollapsed, setSidebarCollapsed } = useLayoutSidebar();
   const [supportDrawerOpen, setSupportDrawerOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();

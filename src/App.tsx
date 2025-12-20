@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { PresenceProvider } from "@/components/PresenceProvider";
 import { VideoCallProvider } from "@/contexts/VideoCallContext";
+import { LayoutSidebarProvider } from "@/contexts/LayoutSidebarContext";
 import { AppLayout } from "@/components/AppLayout";
 import GlobalVideoCall from "@/components/GlobalVideoCall";
 
@@ -63,43 +64,45 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <GlobalVideoCall />
-              <PresenceProvider>
-                <Suspense fallback={<MinimalLoader />}>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/pricing" element={<Pricing />} />
-                    <Route path="/features/calendar" element={<FeatureCalendar />} />
-                    <Route path="/features/progression" element={<FeatureProgression />} />
-                    <Route path="/features/subjects" element={<FeatureSubjects />} />
-                    <Route path="/features/pomodoro" element={<FeaturePomodoro />} />
-                    <Route path="/features/settings" element={<FeatureSettings />} />
-                    <Route path="/post-checkout" element={<PostCheckout />} />
-                    <Route path="/onboarding" element={<Onboarding />} />
-                    
-                    {/* App routes with persistent sidebar - no Suspense here, handled in AppLayout */}
-                    <Route element={<AppLayout />}>
-                      <Route path="/app" element={<Dashboard />} />
-                      <Route path="/settings" element={<Settings />} />
-                      <Route path="/progression" element={<Progression />} />
-                      <Route path="/subjects" element={<Subjects />} />
-                      <Route path="/profile" element={<Profile />} />
-                      <Route path="/subscription" element={<Subscription />} />
+              <LayoutSidebarProvider>
+                <GlobalVideoCall />
+                <PresenceProvider>
+                  <Suspense fallback={<MinimalLoader />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/pricing" element={<Pricing />} />
+                      <Route path="/features/calendar" element={<FeatureCalendar />} />
+                      <Route path="/features/progression" element={<FeatureProgression />} />
+                      <Route path="/features/subjects" element={<FeatureSubjects />} />
+                      <Route path="/features/pomodoro" element={<FeaturePomodoro />} />
+                      <Route path="/features/settings" element={<FeatureSettings />} />
+                      <Route path="/post-checkout" element={<PostCheckout />} />
+                      <Route path="/onboarding" element={<Onboarding />} />
+
+                      {/* App routes with persistent sidebar - no Suspense here, handled in AppLayout */}
+                      <Route element={<AppLayout />}>
+                        <Route path="/app" element={<Dashboard />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/progression" element={<Progression />} />
+                        <Route path="/subjects" element={<Subjects />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/subscription" element={<Subscription />} />
+                        <Route path="/cancel" element={<CancelSubscription />} />
+                        <Route path="/pomodoro" element={<Pomodoro />} />
+                      </Route>
+
+                      <Route path="/admin" element={<Admin />} />
+                      <Route path="/admin/users" element={<AdminUsers />} />
+                      <Route path="/admin/stats" element={<AdminStats />} />
+                      <Route path="/invite/:token" element={<Invite />} />
+                      <Route path="/invite-accept/:token" element={<InviteAccept />} />
                       <Route path="/cancel" element={<CancelSubscription />} />
-                      <Route path="/pomodoro" element={<Pomodoro />} />
-                    </Route>
-                    
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/admin/users" element={<AdminUsers />} />
-                    <Route path="/admin/stats" element={<AdminStats />} />
-                    <Route path="/invite/:token" element={<Invite />} />
-                    <Route path="/invite-accept/:token" element={<InviteAccept />} />
-                    <Route path="/cancel" element={<CancelSubscription />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </Suspense>
-              </PresenceProvider>
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
+                </PresenceProvider>
+              </LayoutSidebarProvider>
             </BrowserRouter>
           </TooltipProvider>
         </VideoCallProvider>

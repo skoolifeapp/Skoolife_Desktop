@@ -20,7 +20,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useLayoutSidebar } from '@/contexts/LayoutSidebarContext';
 
 interface VideoCallRoomProps {
   roomUrl: string;
@@ -46,7 +46,7 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
 
   const { user } = useAuth();
   const [userName, setUserName] = useState('Utilisateur');
-  const { open: sidebarVisible, toggleSidebar } = useSidebar();
+  const { sidebarCollapsed, toggleSidebarCollapsed } = useLayoutSidebar();
 
   // Fetch user name
   useEffect(() => {
@@ -81,7 +81,7 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   // Loading state - same layout as app content area
   if (isJoining) {
     return (
-      <div className={`fixed inset-0 z-50 bg-background transition-all duration-300 ${sidebarVisible ? 'lg:pl-56' : ''}`}>
+      <div className={`fixed inset-0 z-50 bg-background transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-56'}`}>
         {/* Header matching app */}
         <header className="sticky top-0 z-40 bg-card border-b border-border">
           <div className="flex items-center justify-between px-6 py-4">
@@ -90,9 +90,9 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={toggleSidebar}
+                onClick={toggleSidebarCollapsed}
               >
-                {sidebarVisible ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeft className="w-5 h-5" />}
+                {sidebarCollapsed ? <PanelLeft className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
               </Button>
               <span className="text-lg">/</span>
               <span className="font-semibold text-foreground">Session Visio</span>
@@ -119,7 +119,7 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   // Error state
   if (error) {
     return (
-      <div className={`fixed inset-0 z-50 bg-background transition-all duration-300 ${sidebarVisible ? 'lg:pl-56' : ''}`}>
+      <div className={`fixed inset-0 z-50 bg-background transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-56'}`}>
         {/* Header matching app */}
         <header className="sticky top-0 z-40 bg-card border-b border-border">
           <div className="flex items-center justify-between px-6 py-4">
@@ -128,9 +128,9 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8"
-                onClick={toggleSidebar}
+                onClick={toggleSidebarCollapsed}
               >
-                {sidebarVisible ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeft className="w-5 h-5" />}
+                {sidebarCollapsed ? <PanelLeft className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
               </Button>
               <span className="text-lg">/</span>
               <span className="font-semibold text-foreground">Session Visio</span>
@@ -266,7 +266,7 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   );
 
   return (
-    <div className={`fixed inset-0 z-50 bg-background flex flex-col overflow-hidden transition-all duration-300 ${sidebarVisible ? 'lg:pl-56' : ''}`}>
+    <div className={`fixed inset-0 z-50 bg-background flex flex-col overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-56'}`}>
       {/* Header matching app style - like Progression page */}
       <header className="flex-shrink-0 bg-card border-b border-border">
         <div className="flex items-center justify-between px-6 py-4">
@@ -275,10 +275,10 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
               variant="ghost"
               size="icon"
               className="h-8 w-8 hidden lg:flex"
-              onClick={toggleSidebar}
-              title={sidebarVisible ? 'Masquer la sidebar' : 'Afficher la sidebar'}
+              onClick={toggleSidebarCollapsed}
+              title={sidebarCollapsed ? 'Agrandir la sidebar' : 'Réduire la sidebar'}
             >
-              {sidebarVisible ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeft className="w-5 h-5" />}
+              {sidebarCollapsed ? <PanelLeft className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
             </Button>
             <span className="text-lg">/</span>
             <span className="font-semibold text-foreground">
