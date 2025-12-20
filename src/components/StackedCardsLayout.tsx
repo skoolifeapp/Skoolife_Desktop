@@ -87,7 +87,6 @@ const StackedCardsLayout = () => {
               key={card.id}
               onClick={() => handleCardClick(index)}
               className={`absolute inset-x-0 rounded-t-xl md:rounded-t-2xl bg-white dark:bg-card border border-border/20 border-b-0 overflow-hidden
-                transition-all duration-500 ease-out
                 ${!isActive ? 'cursor-pointer hover:opacity-90' : ''}`}
               style={{
                 zIndex: style.zIndex,
