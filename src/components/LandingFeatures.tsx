@@ -1,4 +1,4 @@
-import { Check, Calendar, Brain, Clock, Target, Timer, Play, Pause, RotateCcw, Coffee, BookOpen, BarChart3, GraduationCap, Settings, Bell, Sun } from 'lucide-react';
+import { Check, Calendar, Brain, Clock, Target, Timer, Play, Pause, RotateCcw, Coffee, BookOpen, BarChart3, GraduationCap, Settings, Bell, Sun, CheckCircle2, RefreshCw, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -24,127 +24,191 @@ const LandingFeatures = () => {
       <div className="max-w-6xl mx-auto px-4 mb-20 md:mb-32">
         <div className="bg-card rounded-2xl border border-border overflow-hidden">
           <div className="grid md:grid-cols-2 gap-0">
-            {/* Screenshot side */}
+            {/* Screenshot side - Weekly Calendar with mock data */}
             <div className="p-6 md:p-8 bg-muted/30">
-              <div className="rounded-xl overflow-hidden border border-border shadow-lg bg-card flex flex-col h-full">
-                {/* Calendar header */}
-                <div className="flex items-center justify-between p-4 border-b border-border">
-                  <h4 className="text-lg font-bold text-foreground">Décembre 2025</h4>
-                  <div className="flex items-center gap-2">
-                    <button className="w-8 h-8 rounded-lg border border-primary/30 text-primary flex items-center justify-center hover:bg-primary/10 transition-colors">
-                      <span className="text-sm">‹</span>
-                    </button>
-                    <button className="px-3 py-1.5 rounded-lg border border-primary/30 text-primary text-xs font-medium hover:bg-primary/10 transition-colors">
-                      Aujourd'hui
-                    </button>
-                    <button className="w-8 h-8 rounded-lg border border-primary/30 text-primary flex items-center justify-center hover:bg-primary/10 transition-colors">
-                      <span className="text-sm">›</span>
-                    </button>
+              <div className="rounded-xl overflow-hidden border border-border shadow-lg bg-[#FFFDF8] dark:bg-card flex flex-col h-full">
+                {/* Top Bar */}
+                <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                    <Calendar className="w-3 h-3" />
+                    <span className="text-xs font-medium text-foreground">Calendrier</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Bell className="w-3 h-3 text-muted-foreground" />
+                    <Sun className="w-3 h-3 text-muted-foreground" />
                   </div>
                 </div>
-                
-                {/* Days header */}
-                <div className="grid grid-cols-7 border-b border-border">
-                  {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => (
-                    <div key={day} className="py-2 text-center text-xs font-medium text-muted-foreground border-r border-border last:border-r-0">
-                      {day}
-                    </div>
-                  ))}
+
+                {/* Header */}
+                <div className="flex items-center justify-between px-3 py-2">
+                  <h4 className="text-sm font-bold text-foreground">Semaine du 22 déc.</h4>
+                  <button className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium">
+                    <Plus className="w-3 h-3" />
+                    Ajouter
+                  </button>
                 </div>
-                
-                {/* Calendar grid */}
-                <div className="grid grid-cols-7 flex-1">
-                  {/* Week 1 */}
-                  {[
-                    { day: 1, events: [] },
-                    { day: 2, events: [] },
-                    { day: 3, events: [] },
-                    { day: 4, events: [{ color: 'bg-indigo-500', title: 'TEC 535 Manage...' }, { color: 'bg-indigo-500', title: 'TEC 535 Manage...' }] },
-                    { day: 5, events: [{ color: 'bg-indigo-500', title: 'TEC 536 Anglais d...' }] },
-                    { day: 6, events: [] },
-                    { day: 7, events: [] },
-                  ].map((item, i) => (
-                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border relative">
-                      <span className="text-xs font-medium text-foreground">{item.day}</span>
-                      <div className="mt-1 space-y-1">
-                        {item.events.slice(0, 2).map((event, j) => (
-                          <div key={j} className={`text-[10px] px-1.5 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
-                            {event.title}
+
+                {/* Content Grid */}
+                <div className="flex-1 flex px-3 pb-3 gap-2 overflow-hidden">
+                  {/* Left Sidebar */}
+                  <div className="w-28 flex-shrink-0 flex flex-col gap-2">
+                    {/* Stats Card */}
+                    <div className="p-2 rounded-lg border border-border/30 bg-white dark:bg-card">
+                      <p className="text-[10px] font-semibold text-foreground mb-1.5">Cette semaine</p>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center">
+                            <Clock className="w-2.5 h-2.5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-foreground leading-tight">18h</p>
+                            <p className="text-[8px] text-muted-foreground">planifiées</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-foreground leading-tight">0</p>
+                            <p className="text-[8px] text-muted-foreground">terminées</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Exams */}
+                    <div className="p-2 rounded-lg border border-border/30 bg-white dark:bg-card flex-1">
+                      <p className="text-[10px] font-semibold text-foreground mb-1.5 flex items-center gap-1">
+                        <Settings className="w-2.5 h-2.5 text-muted-foreground" />
+                        Examens
+                      </p>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                          <span className="text-[8px] text-foreground">FINANCE</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                          <span className="text-[8px] text-foreground">MCG</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                          <span className="text-[8px] text-foreground">MSI</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Generate Button */}
+                    <button className="w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-primary text-primary-foreground text-[10px] font-medium">
+                      <RefreshCw className="w-2.5 h-2.5" />
+                      Générer
+                    </button>
+                  </div>
+
+                  {/* Calendar Grid */}
+                  <div className="flex-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-card overflow-hidden flex flex-col">
+                    {/* Days Header */}
+                    <div className="grid grid-cols-[24px_repeat(7,1fr)] border-b border-gray-200 dark:border-gray-700">
+                      <div></div>
+                      {[
+                        { day: 'L', num: '22' },
+                        { day: 'M', num: '23' },
+                        { day: 'M', num: '24' },
+                        { day: 'J', num: '25' },
+                        { day: 'V', num: '26' },
+                        { day: 'S', num: '27' },
+                        { day: 'D', num: '28' },
+                      ].map((d, i) => (
+                        <div key={i} className="py-1 text-center border-l border-gray-200 dark:border-gray-700">
+                          <p className="text-[8px] text-muted-foreground">{d.day}</p>
+                          <p className="text-[10px] font-semibold text-foreground">{d.num}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Time Grid */}
+                    <div className="relative flex-1 min-h-[200px]">
+                      <div className="absolute inset-0 flex flex-col">
+                        {['8:00', '10:00', '12:00', '14:00', '16:00'].map((time, i) => (
+                          <div key={i} className="flex-1 flex border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                            <div className="w-6 text-right pr-1 pt-0.5 text-[7px] text-muted-foreground">{time}</div>
+                            <div className="flex-1 grid grid-cols-7">
+                              {[0, 1, 2, 3, 4, 5, 6].map((col) => (
+                                <div key={col} className="border-l border-gray-200 dark:border-gray-700" />
+                              ))}
+                            </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  ))}
-                  
-                  {/* Week 2 */}
-                  {[
-                    { day: 8, events: [] },
-                    { day: 9, events: [] },
-                    { day: 10, events: [{ color: 'bg-indigo-500', title: 'TEC 532 Finance...' }, { color: 'bg-indigo-500', title: 'TEC 532 Finance...' }] },
-                    { day: 11, events: [{ color: 'bg-indigo-500', title: 'TEC 533 Manage...' }, { color: 'bg-indigo-500', title: 'TEC 533 Manage...' }] },
-                    { day: 12, events: [{ color: 'bg-indigo-500', title: 'TEC 532 Finance...' }, { color: 'bg-indigo-500', title: 'TEC 536 Anglais d...' }] },
-                    { day: 13, events: [] },
-                    { day: 14, events: [] },
-                  ].map((item, i) => (
-                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border relative">
-                      <span className="text-xs font-medium text-foreground">{item.day}</span>
-                      <div className="mt-1 space-y-1">
-                        {item.events.slice(0, 2).map((event, j) => (
-                          <div key={j} className={`text-[10px] px-1.5 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
-                            {event.title}
+                      
+                      {/* Events overlay */}
+                      <div className="absolute inset-0 ml-6">
+                        {/* Alternance - Lun, Mar, Mer */}
+                        {[0, 1, 2].map((day) => (
+                          <div 
+                            key={day}
+                            className="absolute rounded bg-blue-100 dark:bg-blue-900/40 p-0.5"
+                            style={{ left: `calc((${day} * 100% / 7) + 1px)`, width: `calc(100% / 7 - 2px)`, top: '20%', height: '60%' }}
+                          >
+                            <p className="text-[7px] font-semibold text-blue-700 dark:text-blue-300 truncate">Alternance</p>
                           </div>
                         ))}
+                        {/* Alternance - Ven */}
+                        <div 
+                          className="absolute rounded bg-blue-100 dark:bg-blue-900/40 p-0.5"
+                          style={{ left: `calc((4 * 100% / 7) + 1px)`, width: `calc(100% / 7 - 2px)`, top: '20%', height: '40%' }}
+                        >
+                          <p className="text-[7px] font-semibold text-blue-700 dark:text-blue-300 truncate">Alternance</p>
+                        </div>
+                        {/* FINANCE - Jeu */}
+                        <div 
+                          className="absolute rounded bg-red-100 dark:bg-red-900/40 p-0.5 flex items-start justify-between"
+                          style={{ left: `calc((3 * 100% / 7) + 1px)`, width: `calc(100% / 7 - 2px)`, top: '60%', height: '20%' }}
+                        >
+                          <p className="text-[7px] font-semibold text-red-600 dark:text-red-300 truncate">FINANCE</p>
+                          <CheckCircle2 className="w-2 h-2 text-red-400 flex-shrink-0" />
+                        </div>
+                        {/* FINANCE - Sam (3 sessions) */}
+                        <div 
+                          className="absolute rounded bg-red-100 dark:bg-red-900/40 p-0.5 flex items-start justify-between"
+                          style={{ left: `calc((5 * 100% / 7) + 1px)`, width: `calc(100% / 7 - 2px)`, top: '0%', height: '15%' }}
+                        >
+                          <p className="text-[7px] font-semibold text-red-600 dark:text-red-300 truncate">FINANCE</p>
+                          <CheckCircle2 className="w-2 h-2 text-red-400 flex-shrink-0" />
+                        </div>
+                        <div 
+                          className="absolute rounded bg-red-100 dark:bg-red-900/40 p-0.5 flex items-start justify-between"
+                          style={{ left: `calc((5 * 100% / 7) + 1px)`, width: `calc(100% / 7 - 2px)`, top: '20%', height: '15%' }}
+                        >
+                          <p className="text-[7px] font-semibold text-red-600 dark:text-red-300 truncate">FINANCE</p>
+                          <CheckCircle2 className="w-2 h-2 text-red-400 flex-shrink-0" />
+                        </div>
+                        <div 
+                          className="absolute rounded bg-red-100 dark:bg-red-900/40 p-0.5 flex items-start justify-between"
+                          style={{ left: `calc((5 * 100% / 7) + 1px)`, width: `calc(100% / 7 - 2px)`, top: '60%', height: '20%' }}
+                        >
+                          <p className="text-[7px] font-semibold text-red-600 dark:text-red-300 truncate">FINANCE</p>
+                          <CheckCircle2 className="w-2 h-2 text-red-400 flex-shrink-0" />
+                        </div>
+                        {/* Cours de piano - Dim */}
+                        <div 
+                          className="absolute rounded bg-amber-100 dark:bg-amber-900/40 p-0.5"
+                          style={{ left: `calc((6 * 100% / 7) + 1px)`, width: `calc(100% / 7 - 2px)`, top: '10%', height: '25%' }}
+                        >
+                          <p className="text-[7px] font-semibold text-amber-700 dark:text-amber-300 truncate">Piano</p>
+                        </div>
+                        {/* FINANCE - Dim */}
+                        <div 
+                          className="absolute rounded bg-red-100 dark:bg-red-900/40 p-0.5 flex items-start justify-between"
+                          style={{ left: `calc((6 * 100% / 7) + 1px)`, width: `calc(100% / 7 - 2px)`, top: '60%', height: '20%' }}
+                        >
+                          <p className="text-[7px] font-semibold text-red-600 dark:text-red-300 truncate">FINANCE</p>
+                          <CheckCircle2 className="w-2 h-2 text-red-400 flex-shrink-0" />
+                        </div>
                       </div>
                     </div>
-                  ))}
-                  
-                  {/* Week 3 */}
-                  {[
-                    { day: 15, events: [] },
-                    { day: 16, events: [] },
-                    { day: 17, events: [] },
-                    { day: 18, events: [{ color: 'bg-indigo-500', title: 'TEC 535 Manage...' }, { color: 'bg-indigo-500', title: 'TEC 535 Manage...' }] },
-                    { day: 19, events: [{ color: 'bg-blue-500', title: 'MSI' }] },
-                    { day: 20, events: [{ color: 'bg-red-500', title: 'FINANCE' }, { color: 'bg-blue-500', title: 'MSI' }], isToday: true, extra: 1 },
-                    { day: 21, events: [{ color: 'bg-green-500', title: "Cours d'arabe" }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 1 },
-                  ].map((item, i) => (
-                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border relative">
-                      <span className={`text-xs font-medium ${item.isToday ? 'bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center' : 'text-foreground'}`}>
-                        {item.day}
-                      </span>
-                      <div className="mt-1 space-y-1">
-                        {item.events.slice(0, 2).map((event, j) => (
-                          <div key={j} className={`text-[10px] px-1.5 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
-                            {event.title}
-                          </div>
-                        ))}
-                        {item.extra && <span className="text-[9px] text-muted-foreground">+{item.extra} autres</span>}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Week 4 */}
-                  {[
-                    { day: 22, events: [{ color: 'bg-blue-500', title: 'Neosilver' }] },
-                    { day: 23, events: [{ color: 'bg-blue-500', title: 'Neosilver' }] },
-                    { day: 24, events: [{ color: 'bg-blue-500', title: 'Neosilver' }] },
-                    { day: 25, events: [{ color: 'bg-red-500', title: 'FINANCE' }] },
-                    { day: 26, events: [{ color: 'bg-blue-500', title: 'Neosilver' }, { color: 'bg-amber-500', title: 'FINANCE' }], extra: 1 },
-                    { day: 27, events: [{ color: 'bg-red-500', title: 'FINANCE' }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 1 },
-                    { day: 28, events: [{ color: 'bg-green-500', title: "Cours d'arabe" }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 2 },
-                  ].map((item, i) => (
-                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border relative">
-                      <span className="text-xs font-medium text-foreground">{item.day}</span>
-                      <div className="mt-1 space-y-1">
-                        {item.events.slice(0, 2).map((event, j) => (
-                          <div key={j} className={`text-[10px] px-1.5 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
-                            {event.title}
-                          </div>
-                        ))}
-                        {item.extra && <span className="text-[9px] text-muted-foreground">+{item.extra} autres</span>}
-                      </div>
-                    </div>
-                  ))}
+                  </div>
                 </div>
               </div>
             </div>
