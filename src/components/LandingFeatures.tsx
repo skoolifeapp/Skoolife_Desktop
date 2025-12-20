@@ -224,7 +224,7 @@ const LandingFeatures = () => {
         <div className="grid md:grid-cols-2 gap-6">
           {/* Suivi de progression */}
           <div className="bg-card rounded-2xl border border-border p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Target className="w-5 h-5 text-primary" />
               </div>
@@ -232,29 +232,69 @@ const LandingFeatures = () => {
                 Suivi de Progression
               </h3>
             </div>
-            <p className="text-muted-foreground mb-6">
-              Visualise tes progrès en temps réel. Suis le temps passé 
-              sur chaque matière et atteins tes objectifs de révision.
-            </p>
-            <div className="space-y-3">
-              {[
-                { name: 'Mathématiques', progress: 85, color: 'bg-blue-400' },
-                { name: 'Physique', progress: 65, color: 'bg-green-400' },
-                { name: 'Chimie', progress: 45, color: 'bg-purple-400' },
-              ].map((subject, i) => (
-                <div key={i}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-foreground font-medium">{subject.name}</span>
-                    <span className="text-muted-foreground">{subject.progress}%</span>
-                  </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full ${subject.color} rounded-full transition-all duration-500`}
-                      style={{ width: `${subject.progress}%` }}
-                    />
+            
+            {/* Stats cards */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="bg-muted/30 rounded-xl p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Heures d'étude</p>
+                  <p className="text-xl font-bold text-foreground">4h</p>
+                </div>
+              </div>
+              <div className="bg-muted/30 rounded-xl p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center">
+                  <Check className="w-5 h-5 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Taux de complétion</p>
+                  <p className="text-xl font-bold text-foreground">40%</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Progress by subject */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Brain className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">Progrès par Matière</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {/* MSI Card */}
+                <div className="bg-blue-50 dark:bg-blue-950/30 rounded-xl p-4 border-l-4 border-blue-500 relative">
+                  <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-blue-500" />
+                  <span className="inline-block text-xs font-bold px-2 py-0.5 rounded bg-blue-500 text-white mb-2">MSI</span>
+                  <p className="text-lg font-bold text-foreground mb-2">MSI</p>
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      <span>3h</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Brain className="w-3 h-3" />
+                      <span>2</span>
+                    </div>
                   </div>
                 </div>
-              ))}
+                {/* Finance Card */}
+                <div className="bg-red-50 dark:bg-red-950/30 rounded-xl p-4 border-l-4 border-red-500 relative">
+                  <div className="absolute top-3 right-3 w-2 h-2 rounded-full bg-red-500" />
+                  <span className="inline-block text-xs font-bold px-2 py-0.5 rounded bg-red-500 text-white mb-2">FIN</span>
+                  <p className="text-lg font-bold text-foreground mb-2">FINANCE</p>
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      <span>1h</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Brain className="w-3 h-3" />
+                      <span>1</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
