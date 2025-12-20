@@ -28,16 +28,23 @@ interface UseDailyCallReturn {
   toggleScreenShare: () => Promise<void>;
 }
 
-const parseParticipant = (p: DailyParticipant): Participant => ({
-  id: p.session_id,
-  name: p.user_name || 'Participant',
-  isLocal: p.local,
-  videoTrack: p.tracks?.video?.persistentTrack || null,
-  audioTrack: p.tracks?.audio?.persistentTrack || null,
-  video: p.video,
-  audio: p.audio,
-  screen: p.screen,
-});
+const parseParticipant = (p: DailyParticipant): Participant => {
+  const cameraTrack = p.tracks?.video?.persistentTrack || null;
+  const screenTrack = ((p.tracks as any)?.screenVideo?.persistentTrack as MediaStreamTrack | undefined) || null;
+  const videoTrack = p.screen && screenTrack ? screenTrack : cameraTrack;
+
+  return {
+    id: p.session_id,
+    name: p.user_name || 'Participant',
+    isLocal: p.local,
+    videoTrack,
+    audioTrack: p.tracks?.audio?.persistentTrack || null,
+    // When screen sharing, we always consider there is a "video" track to display
+    video: p.screen ? true : p.video,
+    audio: p.audio,
+    screen: p.screen,
+  };
+};
 
 export const useDailyCall = (): UseDailyCallReturn => {
   const [callObject, setCallObject] = useState<DailyCall | null>(null);
