@@ -19,61 +19,41 @@ import {
   Target
 } from 'lucide-react';
 
-// Sidebar partagée pour toutes les cartes
+// Sidebar partagée pour toutes les cartes - Design compact avec icônes uniquement
 interface SidebarProps {
   activePage: 'calendrier' | 'progression' | 'matieres';
 }
 
 const Sidebar = ({ activePage }: SidebarProps) => (
-  <div className="hidden md:flex w-56 flex-col bg-primary/90 text-primary-foreground">
+  <div className="hidden md:flex w-16 flex-col bg-primary text-primary-foreground items-center py-4">
     {/* Logo */}
-    <div className="flex items-center gap-2 px-4 py-4">
-      <div className="w-8 h-8 rounded-lg bg-primary-foreground flex items-center justify-center">
-        <span className="text-primary font-bold text-lg">S</span>
-      </div>
-      <span className="font-bold text-lg">Skoolife</span>
+    <div className="w-10 h-10 rounded-xl bg-primary-foreground/90 flex items-center justify-center mb-8">
+      <span className="text-primary font-bold text-xl">S</span>
     </div>
 
-    {/* Navigation */}
-    <div className="flex-1 px-3 py-2">
-      <p className="text-xs uppercase tracking-wider opacity-70 mb-2 px-2">Navigation</p>
-      
-      <div className="space-y-1">
-        <div className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm ${activePage === 'calendrier' ? 'bg-primary-foreground/20 font-medium' : 'hover:bg-primary-foreground/10 opacity-90'}`}>
-          <Calendar className="w-4 h-4" />
-          Calendrier
-        </div>
-        <div className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm ${activePage === 'progression' ? 'bg-primary-foreground/20 font-medium' : 'hover:bg-primary-foreground/10 opacity-90'}`}>
-          <BarChart3 className="w-4 h-4" />
-          Progression
-        </div>
-        <div className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm ${activePage === 'matieres' ? 'bg-primary-foreground/20 font-medium' : 'hover:bg-primary-foreground/10 opacity-90'}`}>
-          <GraduationCap className="w-4 h-4" />
-          Matières
-        </div>
-        <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-primary-foreground/10 text-sm opacity-90">
-          <Settings className="w-4 h-4" />
-          Paramètres
-        </div>
+    {/* Navigation Icons */}
+    <div className="flex-1 flex flex-col items-center gap-4">
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${activePage === 'calendrier' ? 'bg-primary-foreground/20' : 'hover:bg-primary-foreground/10'}`}>
+        <Calendar className="w-5 h-5" />
       </div>
-
-      <p className="text-xs uppercase tracking-wider opacity-70 mt-6 mb-2 px-2">Travail</p>
-      <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-primary-foreground/10 text-sm opacity-90">
-        <Timer className="w-4 h-4" />
-        Pomodoro
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${activePage === 'progression' ? 'bg-primary-foreground/20' : 'hover:bg-primary-foreground/10'}`}>
+        <BarChart3 className="w-5 h-5" />
+      </div>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${activePage === 'matieres' ? 'bg-primary-foreground/20' : 'hover:bg-primary-foreground/10'}`}>
+        <GraduationCap className="w-5 h-5" />
+      </div>
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-primary-foreground/10">
+        <Settings className="w-5 h-5" />
+      </div>
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-primary-foreground/10">
+        <Timer className="w-5 h-5" />
       </div>
     </div>
 
-    {/* User */}
-    <div className="px-3 py-3 border-t border-primary-foreground/20">
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-primary-foreground/30 flex items-center justify-center text-sm font-medium">
-          S
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">Soukaïna Jam...</p>
-          <p className="text-xs opacity-70 truncate">amassine.soukai...</p>
-        </div>
+    {/* User Avatar */}
+    <div className="mt-auto pt-4 border-t border-primary-foreground/20 w-full flex justify-center">
+      <div className="w-10 h-10 rounded-full bg-primary-foreground/30 flex items-center justify-center text-sm font-medium">
+        S
       </div>
     </div>
   </div>
