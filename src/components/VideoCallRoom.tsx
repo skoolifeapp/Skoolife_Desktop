@@ -45,7 +45,8 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   } = useDailyCall();
 
   const { user } = useAuth();
-  const [userName, setUserName] = useState('Utilisateur');
+  const [userName, setUserName] = useState<string | null>(null);
+  const [isLoadingName, setIsLoadingName] = useState(true);
   const { sidebarCollapsed, toggleSidebarCollapsed } = useLayoutSidebar();
 
   // Fetch user name
@@ -54,24 +55,34 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
       if (user) {
         const { data } = await supabase
           .from('profiles')
-          .select('first_name')
+          .select('first_name, last_name')
           .eq('id', user.id)
           .single();
         
         if (data?.first_name) {
-          setUserName(data.first_name);
+          const fullName = data.last_name 
+            ? `${data.first_name} ${data.last_name.charAt(0)}.` 
+            : data.first_name;
+          setUserName(fullName);
+        } else {
+          // Fallback to email prefix if no name
+          const emailName = user.email?.split('@')[0] || 'Utilisateur';
+          setUserName(emailName);
         }
+      } else {
+        setUserName('Invité');
       }
+      setIsLoadingName(false);
     };
     fetchUserName();
   }, [user]);
 
-  // Auto-join when component mounts
+  // Auto-join when component mounts AND name is loaded
   useEffect(() => {
-    if (roomUrl && userName && !isJoined && !isJoining) {
+    if (roomUrl && userName && !isLoadingName && !isJoined && !isJoining) {
       join(roomUrl, userName);
     }
-  }, [roomUrl, userName, isJoined, isJoining, join]);
+  }, [roomUrl, userName, isLoadingName, isJoined, isJoining, join]);
 
   const handleLeave = async () => {
     await leave();
