@@ -67,7 +67,6 @@ const VideoTile = ({ participant, isLarge = false }: VideoTileProps) => {
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${participant.isSpeaking ? 'bg-primary animate-pulse' : 'bg-green-500'}`} />
             <span className="text-white text-sm font-semibold truncate drop-shadow-md">
               {participant.name} {participant.isLocal && '(Toi)'}
             </span>
