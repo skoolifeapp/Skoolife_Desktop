@@ -8,14 +8,17 @@ import {
   Phone, 
   Users,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  LayoutGrid,
+  Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDailyCall } from '@/hooks/useDailyCall';
 import VideoTile from '@/components/VideoTile';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import logo from '@/assets/logo.png';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 
 interface VideoCallRoomProps {
   roomUrl: string;
@@ -72,15 +75,32 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
     onLeave();
   };
 
-  // Loading state
+  // Loading state - same layout as app content area
   if (isJoining) {
     return (
-      <div className="fixed inset-0 z-50 bg-background flex items-center justify-center">
-        <div className="text-center space-y-4 flex flex-col items-center justify-center">
-          <img src={logo} alt="Skoolife" className="w-16 h-16 rounded-xl" />
-          <Loader2 className="w-10 h-10 text-primary animate-spin" />
-          <p className="text-lg font-semibold text-foreground">Connexion à la session...</p>
-          <p className="text-sm text-muted-foreground">Préparation de ta caméra et ton micro</p>
+      <div className="fixed inset-0 z-50 bg-background lg:pl-56">
+        {/* Header matching app */}
+        <header className="sticky top-0 z-40 bg-card border-b border-border">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <LayoutGrid className="w-5 h-5" />
+              <span className="text-lg">/</span>
+              <span className="font-semibold text-foreground">Session Visio</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <NotificationsDropdown />
+              <ThemeToggle />
+            </div>
+          </div>
+        </header>
+        
+        {/* Content */}
+        <div className="flex-1 flex items-center justify-center p-6" style={{ height: 'calc(100vh - 73px)' }}>
+          <div className="text-center space-y-4 flex flex-col items-center justify-center">
+            <Loader2 className="w-12 h-12 text-primary animate-spin" />
+            <p className="text-xl font-semibold text-foreground">Connexion à la session...</p>
+            <p className="text-muted-foreground">Préparation de ta caméra et ton micro</p>
+          </div>
         </div>
       </div>
     );
@@ -89,14 +109,32 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   // Error state
   if (error) {
     return (
-      <div className="fixed inset-0 z-50 bg-background flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-md px-4">
-          <AlertCircle className="w-12 h-12 text-destructive mx-auto" />
-          <p className="text-lg font-semibold text-foreground">Erreur de connexion</p>
-          <p className="text-sm text-muted-foreground">{error}</p>
-          <Button onClick={onLeave} variant="outline">
-            Retour
-          </Button>
+      <div className="fixed inset-0 z-50 bg-background lg:pl-56">
+        {/* Header matching app */}
+        <header className="sticky top-0 z-40 bg-card border-b border-border">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-3 text-muted-foreground">
+              <LayoutGrid className="w-5 h-5" />
+              <span className="text-lg">/</span>
+              <span className="font-semibold text-foreground">Session Visio</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <NotificationsDropdown />
+              <ThemeToggle />
+            </div>
+          </div>
+        </header>
+        
+        {/* Content */}
+        <div className="flex-1 flex items-center justify-center p-6" style={{ height: 'calc(100vh - 73px)' }}>
+          <div className="text-center space-y-4 max-w-md">
+            <AlertCircle className="w-16 h-16 text-destructive mx-auto" />
+            <p className="text-xl font-semibold text-foreground">Erreur de connexion</p>
+            <p className="text-muted-foreground">{error}</p>
+            <Button onClick={onLeave} variant="outline" size="lg">
+              Retour
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -159,7 +197,7 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
         />
       ))}
       {participants.length === 0 && (
-        <div className="flex items-center justify-center h-full">
+        <div className="flex items-center justify-center h-full col-span-full">
           <div className="text-center space-y-4">
             <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
               <Users className="w-10 h-10 text-primary" />
@@ -173,92 +211,100 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden">
-      {/* Header - Skoolife branded */}
-      <header className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-b border-border bg-card">
-        <div className="flex items-center gap-4">
-          <img src={logo} alt="Skoolife" className="w-8 h-8 rounded-lg" />
-          <div className="flex items-center gap-3">
-            <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+    <div className="fixed inset-0 z-50 bg-background lg:pl-56 flex flex-col overflow-hidden">
+      {/* Header matching app style - like Progression page */}
+      <header className="flex-shrink-0 bg-card border-b border-border">
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3 text-muted-foreground">
+            <Video className="w-5 h-5 text-primary" />
+            <span className="text-lg">/</span>
             <span className="font-semibold text-foreground">
-              {sessionTitle || 'Session de révision'}
+              {sessionTitle || 'Session Visio'}
             </span>
             {isPresentationMode && (
-              <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs font-medium rounded-full">
+              <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs font-medium rounded-full ml-2">
                 Mode présentation
               </span>
             )}
           </div>
-        </div>
-        <div className="flex items-center gap-3 px-4 py-2 bg-secondary/50 rounded-full">
-          <Users className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium text-foreground">
-            {participants.length} participant{participants.length > 1 ? 's' : ''}
-          </span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 text-green-600 rounded-full">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-sm font-medium">
+                {participants.length} participant{participants.length > 1 ? 's' : ''}
+              </span>
+            </div>
+            <NotificationsDropdown />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
-      {/* Video Grid - Fill remaining space without scroll */}
-      <main className="flex-1 p-4 min-h-0 bg-muted/30">
-        {isPresentationMode ? renderPresentationMode() : renderGridMode()}
+      {/* Video Grid - Fill remaining space */}
+      <main className="flex-1 p-6 min-h-0 overflow-hidden">
+        <div className="h-full rounded-2xl bg-card border border-border p-4 flex flex-col">
+          <div className="flex-1 min-h-0">
+            {isPresentationMode ? renderPresentationMode() : renderGridMode()}
+          </div>
+          
+          {/* Controls Bar - Inside the card */}
+          <div className="flex-shrink-0 flex items-center justify-center gap-3 pt-4 mt-4 border-t border-border">
+            {/* Mic Toggle */}
+            <Button
+              variant={isMicOn ? 'secondary' : 'destructive'}
+              size="lg"
+              onClick={toggleMic}
+              className="rounded-full w-14 h-14 shadow-md transition-all hover:scale-105"
+              title={isMicOn ? 'Couper le micro' : 'Activer le micro'}
+            >
+              {isMicOn ? (
+                <Mic className="w-5 h-5" />
+              ) : (
+                <MicOff className="w-5 h-5" />
+              )}
+            </Button>
+
+            {/* Camera Toggle */}
+            <Button
+              variant={isCameraOn ? 'secondary' : 'destructive'}
+              size="lg"
+              onClick={toggleCamera}
+              className="rounded-full w-14 h-14 shadow-md transition-all hover:scale-105"
+              title={isCameraOn ? 'Couper la caméra' : 'Activer la caméra'}
+            >
+              {isCameraOn ? (
+                <Video className="w-5 h-5" />
+              ) : (
+                <VideoOff className="w-5 h-5" />
+              )}
+            </Button>
+
+            {/* Screen Share */}
+            <Button
+              variant={isScreenSharing ? 'default' : 'secondary'}
+              size="lg"
+              onClick={toggleScreenShare}
+              className={`rounded-full w-14 h-14 shadow-md transition-all hover:scale-105 ${
+                isScreenSharing ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2' : ''
+              }`}
+              title={isScreenSharing ? 'Arrêter le partage' : 'Partager l\'écran'}
+            >
+              <MonitorUp className="w-5 h-5" />
+            </Button>
+
+            {/* Leave Call */}
+            <Button
+              variant="destructive"
+              size="lg"
+              onClick={handleLeave}
+              className="rounded-full w-14 h-14 shadow-md transition-all hover:scale-105 ml-4"
+              title="Quitter l'appel"
+            >
+              <Phone className="w-5 h-5 rotate-[135deg]" />
+            </Button>
+          </div>
+        </div>
       </main>
-
-      {/* Controls Bar - Skoolife styled */}
-      <footer className="flex-shrink-0 flex items-center justify-center gap-4 px-6 py-4 border-t border-border bg-card">
-        {/* Mic Toggle */}
-        <Button
-          variant={isMicOn ? 'secondary' : 'destructive'}
-          size="lg"
-          onClick={toggleMic}
-          className="rounded-full w-16 h-16 shadow-md transition-all hover:scale-105"
-          title={isMicOn ? 'Couper le micro' : 'Activer le micro'}
-        >
-          {isMicOn ? (
-            <Mic className="w-6 h-6" />
-          ) : (
-            <MicOff className="w-6 h-6" />
-          )}
-        </Button>
-
-        {/* Camera Toggle */}
-        <Button
-          variant={isCameraOn ? 'secondary' : 'destructive'}
-          size="lg"
-          onClick={toggleCamera}
-          className="rounded-full w-16 h-16 shadow-md transition-all hover:scale-105"
-          title={isCameraOn ? 'Couper la caméra' : 'Activer la caméra'}
-        >
-          {isCameraOn ? (
-            <Video className="w-6 h-6" />
-          ) : (
-            <VideoOff className="w-6 h-6" />
-          )}
-        </Button>
-
-        {/* Screen Share */}
-        <Button
-          variant={isScreenSharing ? 'default' : 'secondary'}
-          size="lg"
-          onClick={toggleScreenShare}
-          className={`rounded-full w-16 h-16 shadow-md transition-all hover:scale-105 ${
-            isScreenSharing ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2' : ''
-          }`}
-          title={isScreenSharing ? 'Arrêter le partage' : 'Partager l\'écran'}
-        >
-          <MonitorUp className="w-6 h-6" />
-        </Button>
-
-        {/* Leave Call */}
-        <Button
-          variant="destructive"
-          size="lg"
-          onClick={handleLeave}
-          className="rounded-full w-16 h-16 shadow-md transition-all hover:scale-105 ml-4"
-          title="Quitter l'appel"
-        >
-          <Phone className="w-6 h-6 rotate-[135deg]" />
-        </Button>
-      </footer>
     </div>
   );
 };
