@@ -23,21 +23,31 @@ export const UpgradeDialog = ({ open, onOpenChange, featureName, onUpgradeSucces
 
   const handleUpgrade = async () => {
     setIsLoading(true);
+    
+    // Open the window immediately on user click to avoid popup blocker
+    const newWindow = window.open('about:blank', '_blank');
+    
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { priceId: 'price_1Sf3tdC3rnIsVpuj9TVbB47r' }, // Major price ID
+      });
 
       if (error) throw error;
       
-      if (data?.url) {
-        // Open Stripe portal in new tab
-        window.open(data.url, '_blank');
-        toast.info('Modifie ton abonnement sur Stripe', {
-          description: 'Ton abonnement sera mis à jour automatiquement à ton retour.',
-        });
+      if (data?.url && newWindow) {
+        newWindow.location.href = data.url;
         onOpenChange(false);
+        onUpgradeSuccess?.();
+      } else if (data?.url) {
+        // Fallback if popup was blocked
+        window.location.href = data.url;
+      } else {
+        if (newWindow) newWindow.close();
+        throw new Error('URL de checkout non reçue');
       }
     } catch (error: any) {
       console.error('Upgrade error:', error);
+      if (newWindow) newWindow.close();
       toast.error(error.message || 'Erreur lors de la redirection vers Stripe');
     } finally {
       setIsLoading(false);

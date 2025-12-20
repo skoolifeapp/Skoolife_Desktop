@@ -139,19 +139,34 @@ const Subscription = () => {
 
   const handleSwitchPlan = async () => {
     setSwitchLoading(true);
+    
+    // Open the window immediately on user click to avoid popup blocker
+    const newWindow = window.open('about:blank', '_blank');
+    
     try {
-      const { data, error } = await supabase.functions.invoke("customer-portal");
+      const priceId = confirmDialog.targetTier === 'major' 
+        ? 'price_1Sf3tdC3rnIsVpuj9TVbB47r'  // Major
+        : 'price_1Sf3tHC3rnIsVpuj5m5zh0cG'; // Student
+        
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { priceId },
+      });
+      
       if (error) throw error;
       
-      if (data?.url) {
-        window.open(data.url, "_blank");
-        toast.info("Modifie ton abonnement sur Stripe", {
-          description: "Ton abonnement sera mis à jour automatiquement à ton retour.",
-        });
+      if (data?.url && newWindow) {
+        newWindow.location.href = data.url;
+      } else if (data?.url) {
+        // Fallback if popup was blocked
+        window.location.href = data.url;
+      } else {
+        if (newWindow) newWindow.close();
+        throw new Error('URL de checkout non reçue');
       }
     } catch (err: any) {
-      console.error("Error opening portal:", err);
-      toast.error("Erreur lors de l'ouverture du portail", {
+      console.error("Error opening checkout:", err);
+      if (newWindow) newWindow.close();
+      toast.error("Erreur lors de l'ouverture du checkout", {
         description: err.message || "Veuillez réessayer plus tard.",
       });
     } finally {
