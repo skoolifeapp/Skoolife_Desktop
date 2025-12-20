@@ -9,7 +9,7 @@ const features = [
   { name: 'Progression', icon: BarChart3, description: 'Suis tes progrès', path: '/features/progression' },
   { name: 'Matières', icon: BookOpen, description: 'Gère tes matières', path: '/features/subjects' },
   { name: 'Paramètres', icon: Settings, description: 'Personnalise ton expérience', path: null },
-  { name: 'Pomodoro', icon: Timer, description: 'Révise efficacement', path: null },
+  { name: 'Pomodoro', icon: Timer, description: 'Révise efficacement', path: '/features/pomodoro' },
 ];
 
 const Navbar = () => {
