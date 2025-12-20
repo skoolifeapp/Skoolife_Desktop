@@ -1,8 +1,8 @@
-import { Check, Calendar, Brain, Clock, Target } from 'lucide-react';
-import pomodoroScreenshot from '@/assets/pomodoro-screenshot.png';
+import { Check, Calendar, Brain, Clock, Target, Timer, Play, Pause, RotateCcw, Coffee, BookOpen, BarChart3, GraduationCap, Settings, Bell, Sun } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 const LandingFeatures = () => {
   return (
@@ -189,20 +189,9 @@ const LandingFeatures = () => {
       {/* Feature 3: Pomodoro */}
       <div className="max-w-6xl mx-auto px-4 mb-20 md:mb-32">
         <div className="bg-card rounded-2xl border border-border overflow-hidden">
-          <div className="grid md:grid-cols-5 gap-0">
-            {/* Screenshot - larger */}
-            <div className="md:col-span-3 p-4 md:p-6 bg-muted/30">
-              <div className="rounded-xl overflow-hidden border border-border shadow-lg">
-                <img 
-                  src={pomodoroScreenshot} 
-                  alt="Timer Pomodoro Skoolife" 
-                  className="w-full h-auto"
-                />
-              </div>
-            </div>
-
+          <div className="grid md:grid-cols-2 gap-0">
             {/* Text side */}
-            <div className="md:col-span-2 p-6 md:p-10 flex flex-col justify-center">
+            <div className="p-6 md:p-10 flex flex-col justify-center order-2 md:order-1">
               <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
                 Timer Pomodoro
               </h3>
@@ -214,6 +203,109 @@ const LandingFeatures = () => {
                 Le timer te guide avec des cycles de travail et de pause 
                 pour une concentration maximale.
               </p>
+            </div>
+
+            {/* Pomodoro Card mockup */}
+            <div className="p-4 md:p-6 bg-muted/30 order-1 md:order-2">
+              <div className="bg-[#FFFDF8] dark:bg-card rounded-xl border border-border/20 overflow-hidden shadow-lg">
+                {/* Top Bar */}
+                <div className="flex items-center justify-between px-4 py-2 border-b border-border/20">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Timer className="w-3 h-3" />
+                    <span className="text-xs font-medium text-foreground">Pomodoro</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="relative p-1.5 rounded-full">
+                      <Bell className="w-3 h-3 text-muted-foreground" />
+                      <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full text-[8px] text-white flex items-center justify-center">3</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Session Type Buttons */}
+                <div className="flex gap-1.5 justify-center px-4 py-3">
+                  <button className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                    <Brain className="w-3 h-3" />
+                    Focus
+                  </button>
+                  <button className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-border/50 text-muted-foreground text-xs font-medium bg-white dark:bg-card">
+                    <Coffee className="w-3 h-3" />
+                    Pause
+                  </button>
+                </div>
+
+                {/* Timer */}
+                <div className="px-4 pb-4 flex flex-col items-center">
+                  {/* Selected Session */}
+                  <div className="mb-3 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 bg-blue-100 text-blue-600">
+                    <Target className="w-3 h-3" />
+                    MSI
+                  </div>
+
+                  {/* Timer Circle */}
+                  <div className="relative w-32 h-32 mb-4">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle
+                        cx="50%"
+                        cy="50%"
+                        r="45%"
+                        stroke="currentColor"
+                        strokeWidth="6"
+                        fill="none"
+                        className="text-muted"
+                      />
+                      <circle
+                        cx="50%"
+                        cy="50%"
+                        r="45%"
+                        stroke="currentColor"
+                        strokeWidth="6"
+                        fill="none"
+                        strokeDasharray="283"
+                        strokeDashoffset="70"
+                        strokeLinecap="round"
+                        className="text-primary"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-3xl font-bold tabular-nums">18:42</span>
+                      <span className="text-xs font-medium text-primary">Focus</span>
+                    </div>
+                  </div>
+
+                  {/* Timer Controls */}
+                  <div className="flex gap-3">
+                    <button className="w-10 h-10 rounded-full border border-border/50 flex items-center justify-center text-muted-foreground bg-white dark:bg-card">
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+                    <button className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                      <Pause className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-2 gap-2 px-4 pb-4">
+                  <div className="p-3 rounded-lg border border-border/30 bg-white dark:bg-card flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Brain className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">Pomodoros</p>
+                      <p className="text-lg font-bold text-foreground">3</p>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-lg border border-border/30 bg-white dark:bg-card flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">Temps focus</p>
+                      <p className="text-lg font-bold text-foreground">75 min</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
