@@ -156,7 +156,7 @@ const StaticCalendarCard = () => (
         </div>
 
         {/* Calendar Grid */}
-        <div className="flex-1 rounded-xl border border-border/30 bg-white dark:bg-card overflow-hidden shadow-sm">
+        <div className="flex-1 rounded-xl border border-border/30 bg-white dark:bg-card overflow-hidden shadow-sm flex flex-col">
           {/* Days Header */}
           <div className="grid grid-cols-7 border-b border-border/20">
             {[
@@ -176,14 +176,14 @@ const StaticCalendarCard = () => (
           </div>
 
           {/* Time Grid */}
-          <div className="relative h-[340px] overflow-hidden">
-            <div className="h-full">
-              {['7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00'].map((time, i) => (
-                <div key={i} className="h-[42.5px] flex border-b border-border/10">
+          <div className="relative flex-1 overflow-hidden">
+            <div className="absolute inset-0 flex flex-col">
+              {['7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'].map((time, i) => (
+                <div key={i} className="flex-1 flex border-b border-border/30">
                   <div className="w-12 text-right pr-2 pt-1 text-[10px] text-muted-foreground">{time}</div>
                   <div className="flex-1 grid grid-cols-7">
                     {[0, 1, 2, 3, 4, 5, 6].map((col) => (
-                      <div key={col} className="border-r border-border/10 last:border-r-0" />
+                      <div key={col} className="border-r border-border/30 last:border-r-0" />
                     ))}
                   </div>
                 </div>

@@ -26,7 +26,7 @@ const LandingFeatures = () => {
           <div className="grid md:grid-cols-2 gap-0">
             {/* Screenshot side */}
             <div className="p-6 md:p-8 bg-muted/30">
-              <div className="rounded-xl overflow-hidden border border-border shadow-lg bg-card">
+              <div className="rounded-xl overflow-hidden border border-border shadow-lg bg-card flex flex-col h-full">
                 {/* Calendar header */}
                 <div className="flex items-center justify-between p-4 border-b border-border">
                   <h4 className="text-lg font-bold text-foreground">Décembre 2025</h4>
@@ -53,7 +53,7 @@ const LandingFeatures = () => {
                 </div>
                 
                 {/* Calendar grid */}
-                <div className="grid grid-cols-7">
+                <div className="grid grid-cols-7 flex-1">
                   {/* Week 1 */}
                   {[
                     { day: 1, events: [] },
@@ -64,7 +64,7 @@ const LandingFeatures = () => {
                     { day: 6, events: [] },
                     { day: 7, events: [] },
                   ].map((item, i) => (
-                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border last:border-r-0 relative">
+                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border relative">
                       <span className="text-xs font-medium text-foreground">{item.day}</span>
                       <div className="mt-1 space-y-1">
                         {item.events.slice(0, 2).map((event, j) => (
@@ -86,7 +86,7 @@ const LandingFeatures = () => {
                     { day: 13, events: [] },
                     { day: 14, events: [] },
                   ].map((item, i) => (
-                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border last:border-r-0 relative">
+                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border relative">
                       <span className="text-xs font-medium text-foreground">{item.day}</span>
                       <div className="mt-1 space-y-1">
                         {item.events.slice(0, 2).map((event, j) => (
@@ -108,7 +108,7 @@ const LandingFeatures = () => {
                     { day: 20, events: [{ color: 'bg-red-500', title: 'FINANCE' }, { color: 'bg-blue-500', title: 'MSI' }], isToday: true, extra: 1 },
                     { day: 21, events: [{ color: 'bg-green-500', title: "Cours d'arabe" }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 1 },
                   ].map((item, i) => (
-                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border last:border-r-0 relative">
+                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border relative">
                       <span className={`text-xs font-medium ${item.isToday ? 'bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center' : 'text-foreground'}`}>
                         {item.day}
                       </span>
@@ -133,7 +133,7 @@ const LandingFeatures = () => {
                     { day: 27, events: [{ color: 'bg-red-500', title: 'FINANCE' }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 1 },
                     { day: 28, events: [{ color: 'bg-green-500', title: "Cours d'arabe" }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 2 },
                   ].map((item, i) => (
-                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border last:border-r-0 relative">
+                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border relative">
                       <span className="text-xs font-medium text-foreground">{item.day}</span>
                       <div className="mt-1 space-y-1">
                         {item.events.slice(0, 2).map((event, j) => (
