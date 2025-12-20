@@ -266,9 +266,10 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   );
 
   return (
-    <div className={`fixed inset-0 z-50 bg-background flex flex-col overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-56'}`}>
+    <div className={`fixed inset-0 z-50 bg-sidebar flex flex-col overflow-hidden transition-all duration-300 pt-2 pr-2 pb-2 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-56'}`}>
+      <div className="flex-1 flex flex-col bg-background rounded-xl overflow-hidden">
       {/* Header matching app style - like Progression page */}
-      <header className="flex-shrink-0 bg-card border-b border-border">
+      <header className="flex-shrink-0 border-b border-border">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3 text-muted-foreground">
             <Button
@@ -368,6 +369,7 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 };
