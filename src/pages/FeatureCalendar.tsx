@@ -178,9 +178,9 @@ const StaticCalendarCard = () => (
           {/* Time Grid */}
           <div className="relative h-[340px] overflow-hidden">
             <div className="h-full">
-              {['7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00'].map((time, i) => (
-                <div key={i} className="h-[42.5px] flex border-b border-border/10">
-                  <div className="w-12 text-right pr-2 pt-1 text-[10px] text-muted-foreground">{time}</div>
+              {['7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'].map((time, i) => (
+                <div key={i} className="h-[26px] flex border-b border-border/10">
+                  <div className="w-12 text-right pr-2 pt-0.5 text-[10px] text-muted-foreground">{time}</div>
                   <div className="flex-1 grid grid-cols-7">
                     {[0, 1, 2, 3, 4, 5, 6].map((col) => (
                       <div key={col} className="border-r border-border/10 last:border-r-0" />
@@ -194,45 +194,44 @@ const StaticCalendarCard = () => (
             <div className="absolute inset-0 pl-12">
               {/* TEC 535 M... - Jeudi */}
               <div className="absolute rounded-lg bg-blue-400 p-2 text-white text-xs shadow-sm"
-                style={{ left: `calc(3 * 100% / 7 + 4px)`, width: `calc(100% / 7 - 8px)`, top: '85px', height: '145px' }}>
+                style={{ left: `calc(3 * 100% / 7 + 4px)`, width: `calc(100% / 7 - 8px)`, top: '52px', height: '91px' }}>
                 <p className="font-semibold truncate">TEC 535 M...</p>
                 <p className="opacity-80 text-[10px]">09:00 - 12:30</p>
               </div>
               
               {/* MSI - Samedi (completed) */}
               <div className="absolute rounded-lg bg-green-100 dark:bg-green-800/50 border-2 border-green-300 p-2 text-xs flex items-start justify-between shadow-sm"
-                style={{ left: `calc(5 * 100% / 7 + 4px)`, width: `calc(100% / 7 - 8px)`, top: '85px', height: '42px' }}>
+                style={{ left: `calc(5 * 100% / 7 + 4px)`, width: `calc(100% / 7 - 8px)`, top: '52px', height: '26px' }}>
                 <div>
                   <p className="font-semibold text-green-700 dark:text-green-300">MSI</p>
-                  <p className="text-green-600 text-[10px]">09:00 - 10:00</p>
                 </div>
                 <CheckCircle2 className="w-4 h-4 text-green-600" />
               </div>
               
               {/* Cours d'arabe - Dimanche */}
               <div className="absolute rounded-lg bg-amber-400 p-2 text-white text-xs shadow-sm"
-                style={{ left: `calc(6 * 100% / 7 + 4px)`, width: `calc(100% / 7 - 8px)`, top: '85px', height: '127px' }}>
+                style={{ left: `calc(6 * 100% / 7 + 4px)`, width: `calc(100% / 7 - 8px)`, top: '52px', height: '78px' }}>
                 <p className="font-semibold truncate">Cours d'ara...</p>
                 <p className="opacity-80 text-[10px]">09:00 - 12:00</p>
               </div>
 
               {/* TEC 535 M... - Jeudi afternoon */}
               <div className="absolute rounded-lg bg-blue-400 p-2 text-white text-xs shadow-sm"
-                style={{ left: `calc(3 * 100% / 7 + 4px)`, width: `calc(100% / 7 - 8px)`, top: '255px', height: '75px' }}>
+                style={{ left: `calc(3 * 100% / 7 + 4px)`, width: `calc(100% / 7 - 8px)`, top: '169px', height: '91px' }}>
                 <p className="font-semibold truncate">TEC 535 M...</p>
                 <p className="opacity-80 text-[10px]">13:30 - 17:00</p>
               </div>
 
               {/* FINANCE - Samedi afternoon */}
               <div className="absolute rounded-lg bg-orange-400 p-2 text-white text-xs shadow-sm"
-                style={{ left: `calc(5 * 100% / 7 + 4px)`, width: `calc(100% / 7 - 8px)`, top: '297px', height: '42px' }}>
+                style={{ left: `calc(5 * 100% / 7 + 4px)`, width: `calc(100% / 7 - 8px)`, top: '182px', height: '52px' }}>
                 <p className="font-semibold truncate">FINANCE</p>
                 <p className="opacity-80 text-[10px]">14:00 - 16:00</p>
               </div>
               
               {/* Current time line */}
               <div className="absolute h-0.5 bg-red-500"
-                style={{ left: `calc(5 * 100% / 7)`, width: `calc(100% / 7)`, top: '180px' }}>
+                style={{ left: `calc(5 * 100% / 7)`, width: `calc(100% / 7)`, top: '117px' }}>
                 <div className="absolute -left-1.5 -top-1.5 w-3 h-3 rounded-full bg-red-500" />
               </div>
             </div>
