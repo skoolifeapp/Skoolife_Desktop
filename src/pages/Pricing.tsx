@@ -241,39 +241,6 @@ const Pricing = () => {
           </Card>
         </div>
 
-        {/* Trust badges */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-16">
-          <div className="flex items-center justify-center gap-3 p-4 rounded-xl bg-card border border-border">
-            <Shield className="w-6 h-6 text-primary" />
-            <span className="font-medium">Paiement sécurisé</span>
-          </div>
-          <div className="flex items-center justify-center gap-3 p-4 rounded-xl bg-card border border-border">
-            <Clock className="w-6 h-6 text-primary" />
-            <span className="font-medium">Annule quand tu veux</span>
-          </div>
-          <div className="flex items-center justify-center gap-3 p-4 rounded-xl bg-card border border-border">
-            <MessageCircle className="w-6 h-6 text-primary" />
-            <span className="font-medium">Support réactif</span>
-          </div>
-        </div>
-
-        {/* FAQ / Support */}
-        <div className="text-center py-12 px-8 rounded-3xl bg-gradient-to-br from-primary/5 via-transparent to-accent/5">
-          <h2 className="text-2xl font-bold mb-4 font-heading">Une question ?</h2>
-          <p className="text-muted-foreground mb-6">
-            Notre équipe est là pour t'aider à choisir la formule adaptée à tes besoins.
-          </p>
-          <a
-            href="https://chat.whatsapp.com/KZaZ5cmGBoM60V5Qmqned5"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button variant="outline" size="lg">
-              <MessageCircle className="w-5 h-5 mr-2" />
-              Nous contacter sur WhatsApp
-            </Button>
-          </a>
-        </div>
       </main>
 
       {/* Footer */}
