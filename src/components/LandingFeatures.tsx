@@ -10,13 +10,13 @@ const LandingFeatures = () => {
       {/* Intro Section */}
       <div className="max-w-4xl mx-auto px-4 text-center mb-20 md:mb-32">
         <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight font-heading mb-6">
-          Étudie plus intelligemment,
+          Révise plus intelligemment,
           <br />
-          <span className="text-muted-foreground">pas plus difficilement.</span>
+          <span className="text-muted-foreground">pas plus longtemps.</span>
         </h2>
         <p className="max-w-2xl text-base md:text-lg text-muted-foreground mx-auto">
-          De la génération automatique de planning à l'analyse de tes progrès, 
-          Skoolife t'aide à optimiser ton temps de révision et à retenir plus efficacement.
+          De la génération automatique de ton planning à l'analyse de ta progression, 
+          Skoolife t'accompagne pour optimiser chaque minute de révision.
         </p>
       </div>
 
@@ -78,16 +78,16 @@ const LandingFeatures = () => {
             {/* Text side */}
             <div className="p-6 md:p-10 flex flex-col justify-center">
               <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                Calendrier Intelligent
+                Planning Automatique
               </h3>
               <p className="text-muted-foreground mb-6">
-                Arrête de perdre du temps sur la planification manuelle. 
-                Skoolife génère automatiquement ton planning de révisions 
-                en fonction de tes examens et de ton emploi du temps.
+                Fini les heures passées à planifier. Skoolife génère ton planning 
+                de révisions personnalisé en fonction de tes examens, 
+                ton emploi du temps et tes disponibilités.
               </p>
               <div className="flex items-center gap-2 text-foreground">
                 <Check className="w-5 h-5 text-primary" />
-                <span>Économise 10+ heures par semaine</span>
+                <span>Gagne du temps chaque semaine</span>
               </div>
             </div>
           </div>
@@ -101,21 +101,21 @@ const LandingFeatures = () => {
             {/* Text side - left on desktop */}
             <div className="p-6 md:p-10 flex flex-col justify-center order-2 md:order-1">
               <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                Apprentissage Basé sur la Science
+                La Méthode des J
               </h3>
               <p className="text-muted-foreground mb-6">
-                Basé sur la science cognitive, pas sur les tendances de productivité. 
-                Skoolife implémente des techniques d'apprentissage prouvées comme la répétition espacée, 
-                le rappel actif et la difficulté adaptive.
+                Skoolife utilise la répétition espacée, une méthode scientifiquement 
+                prouvée pour mémoriser durablement. Révise au bon moment 
+                pour ne plus jamais oublier.
               </p>
               <ul className="space-y-3">
                 <li className="flex items-start gap-2 text-muted-foreground">
                   <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                  <span>Basé sur la courbe d'oubli d'Ebbinghaus</span>
+                  <span>Basé sur la courbe de l'oubli</span>
                 </li>
                 <li className="flex items-start gap-2 text-muted-foreground">
                   <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                  <span>Intervalles de révision optimaux pour la rétention long terme</span>
+                  <span>Révisions planifiées automatiquement aux intervalles optimaux</span>
                 </li>
               </ul>
             </div>
@@ -129,7 +129,7 @@ const LandingFeatures = () => {
                     <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30" />
                     <div>
                       <h4 className="font-semibold text-foreground">Méthode des 2 semaines</h4>
-                      <p className="text-sm text-muted-foreground">Cycle de révision toutes les 2 semaines</p>
+                      <p className="text-sm text-muted-foreground">Cycle de révision sur 2 semaines</p>
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2 ml-8">Intervalles: J2 → J7 → J14</p>
@@ -146,7 +146,7 @@ const LandingFeatures = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-foreground">Méthode des J</h4>
-                      <p className="text-sm text-muted-foreground">Révision complète selon la courbe d'oubli</p>
+                      <p className="text-sm text-muted-foreground">Révision selon la courbe de l'oubli</p>
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2 ml-8">Intervalles: J0 → J1 → J3 → J7 → J15 → J30</p>
@@ -159,7 +159,7 @@ const LandingFeatures = () => {
                       <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30" />
                       <div>
                         <h4 className="font-semibold text-foreground">Révision intensive</h4>
-                        <p className="text-sm text-muted-foreground">Sessions concentrées de 90min</p>
+                        <p className="text-sm text-muted-foreground">Sessions concentrées avant les examens</p>
                       </div>
                     </div>
                     <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium">
@@ -182,7 +182,7 @@ const LandingFeatures = () => {
               <div className="rounded-xl overflow-hidden border border-border shadow-lg">
                 <img 
                   src={pomodoroScreenshot} 
-                  alt="Interface Pomodoro Skoolife" 
+                  alt="Timer Pomodoro Skoolife" 
                   className="w-full h-auto"
                 />
               </div>
@@ -191,15 +191,15 @@ const LandingFeatures = () => {
             {/* Text side */}
             <div className="md:col-span-2 p-6 md:p-10 flex flex-col justify-center">
               <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                Pomodoro
+                Timer Pomodoro
               </h3>
               <p className="text-muted-foreground mb-4">
-                Tes sessions d'étude, intelligemment orchestrées.
+                Reste concentré avec la technique Pomodoro intégrée.
               </p>
               <p className="text-sm text-muted-foreground">
-                La technique Pomodoro rencontre l'intelligence artificielle. 
-                Obtiens des sessions d'étude automatiquement planifiées autour 
-                de ton calendrier, avec un timing spécifique aux matières.
+                Lance tes sessions de révision directement depuis ton planning. 
+                Le timer te guide avec des cycles de travail et de pause 
+                pour une concentration maximale.
               </p>
             </div>
           </div>
@@ -220,8 +220,8 @@ const LandingFeatures = () => {
               </h3>
             </div>
             <p className="text-muted-foreground mb-6">
-              Visualise tes progrès en temps réel. Suis le nombre d'heures 
-              passées sur chaque matière et atteins tes objectifs.
+              Visualise tes progrès en temps réel. Suis le temps passé 
+              sur chaque matière et atteins tes objectifs de révision.
             </p>
             <div className="space-y-3">
               {[
@@ -256,8 +256,8 @@ const LandingFeatures = () => {
               </h3>
             </div>
             <p className="text-muted-foreground mb-6">
-              Organise toutes tes matières avec leurs dates d'examen, 
-              niveaux de difficulté et objectifs personnalisés.
+              Organise toutes tes matières avec leurs dates d'examen 
+              et niveaux de difficulté. Skoolife adapte ton planning en conséquence.
             </p>
             <div className="space-y-2">
               {[
@@ -280,13 +280,13 @@ const LandingFeatures = () => {
       {/* Final CTA Quote */}
       <div className="max-w-5xl mx-auto px-4 text-center">
         <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight font-heading mb-8">
-          Mets les parties fastidieuses des études en pilote automatique. 
-          Skoolife t'aide à optimiser ton temps, réduire la planification 
-          manuelle et organiser intelligemment ton succès académique.
+          Arrête de stresser pour tes révisions. 
+          Skoolife planifie tout pour toi, 
+          tu te concentres sur ce qui compte vraiment : apprendre.
         </h2>
         <Link to="/auth?mode=signup">
           <Button variant="hero" size="lg" className="md:text-base px-8">
-            Commencer maintenant
+            Commencer gratuitement
             <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
           </Button>
         </Link>
