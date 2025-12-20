@@ -37,7 +37,7 @@ const StaticCalendarCard = () => (
 
       {/* User Avatar */}
       <div className="mt-auto pt-4 border-t border-primary-foreground/20 w-full flex justify-center">
-        <div className="w-10 h-10 rounded-full overflow-hidden">
+        <div className="w-10 h-10 rounded-full overflow-hidden bg-primary-foreground/30 p-1">
           <img src={studentAvatar} alt="Étudiant" className="w-full h-full object-cover" />
         </div>
       </div>
