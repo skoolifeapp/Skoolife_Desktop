@@ -35,11 +35,7 @@ const VideoTile = ({ participant, isLarge = false }: VideoTileProps) => {
 
   return (
     <div 
-      className={`relative rounded-2xl overflow-hidden bg-card border-2 shadow-lg h-full w-full transition-all duration-300 ${
-        participant.isSpeaking 
-          ? 'border-primary ring-2 ring-primary/50 ring-offset-2 ring-offset-background' 
-          : 'border-border'
-      }`}
+      className="relative rounded-2xl overflow-hidden bg-card border border-border shadow-lg h-full w-full"
     >
       {/* Video element */}
       {participant.video && participant.videoTrack ? (
