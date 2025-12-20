@@ -37,8 +37,22 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Announcement Bar */}
+      <div className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-primary via-primary/90 to-primary text-primary-foreground">
+        <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-center gap-2 text-xs md:text-sm">
+          <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 animate-pulse" />
+          <span className="font-medium">7 jours d'essai gratuit</span>
+          <span className="hidden sm:inline">—</span>
+          <span className="hidden sm:inline">Organise tes révisions dès maintenant</span>
+          <Link to="/auth?mode=signup" className="ml-2 inline-flex items-center gap-1 font-semibold hover:underline underline-offset-2">
+            Commencer
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+      </div>
+
       {/* Header */}
-      <header className="fixed left-0 right-0 z-50 px-4 py-3 md:p-6 bg-background/80 backdrop-blur-md top-0">
+      <header className="fixed left-0 right-0 z-50 px-4 py-3 md:p-6 bg-background/80 backdrop-blur-md top-8 md:top-9">
         <nav className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img src={logo} alt="Skoolife" className="w-8 h-8 md:w-10 md:h-10 rounded-xl shadow-glow" />
@@ -58,7 +72,7 @@ const Index = () => {
       </header>
 
       {/* Hero */}
-      <main className="relative pt-16 md:pt-20">
+      <main className="relative pt-24 md:pt-28">
         {/* Background decorations - smaller on mobile */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-5 md:left-10 w-48 md:w-72 h-48 md:h-72 bg-primary/20 rounded-full blur-3xl animate-pulse-soft" />
