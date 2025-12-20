@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO, startOfDay } from 'date-fns';
+import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO, startOfDay, startOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ImportCalendarDialog from '@/components/ImportCalendarDialog';
 import EditSessionDialog from '@/components/EditSessionDialog';
@@ -31,6 +31,7 @@ import EditEventDialog from '@/components/EditEventDialog';
 import AddEventDialog from '@/components/AddEventDialog';
 import { ShareSessionDialog } from '@/components/ShareSessionDialog';
 import WeeklyHourGrid, { type GridClickData } from '@/components/WeeklyHourGrid';
+import MonthlyCalendarView from '@/components/MonthlyCalendarView';
 import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 
@@ -49,6 +50,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
+  const [calendarView, setCalendarView] = useState<'week' | 'month'>('week');
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [subjectsDialogOpen, setSubjectsDialogOpen] = useState(false);
   const [addEventDialogOpen, setAddEventDialogOpen] = useState(false);
@@ -970,11 +973,35 @@ const Dashboard = () => {
   return (
     <>
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header with week title and actions */}
+        {/* Header with week/month title and actions */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">
-            Semaine du {format(weekStart, 'dd MMM', { locale: fr })}
-          </h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-bold">
+              {calendarView === 'week' 
+                ? `Semaine du ${format(weekStart, 'dd MMM', { locale: fr })}`
+                : format(currentMonth, 'MMMM yyyy', { locale: fr })
+              }
+            </h2>
+            {/* View toggle */}
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+              <Button
+                variant={calendarView === 'week' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={() => setCalendarView('week')}
+              >
+                Semaine
+              </Button>
+              <Button
+                variant={calendarView === 'month' ? 'default' : 'ghost'}
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={() => setCalendarView('month')}
+              >
+                Mois
+              </Button>
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <Button 
               id="add-event-btn"
@@ -1036,27 +1063,31 @@ const Dashboard = () => {
                 </AlertDialogContent>
               </AlertDialog>
             )}
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={() => setWeekStart(subWeeks(weekStart, 1))}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
-            >
-              Aujourd'hui
-            </Button>
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={() => setWeekStart(addWeeks(weekStart, 1))}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            {calendarView === 'week' && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => setWeekStart(subWeeks(weekStart, 1))}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+                >
+                  Aujourd'hui
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => setWeekStart(addWeeks(weekStart, 1))}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -1188,33 +1219,51 @@ const Dashboard = () => {
           </aside>
 
           {/* Main content */}
-          <div className={cn("space-y-4", isPastWeek && "opacity-60 pointer-events-none")}>
-            {/* Week grid */}
-            <WeeklyHourGrid
-              weekDays={weekDays}
-              sessions={isFreeUser ? sessions.filter(s => s.isInvitedSession) : sessions}
-              calendarEvents={isFreeUser ? [] : calendarEvents}
-              exams={isFreeUser ? [] : subjects
-                .filter(s => s.exam_date && s.status !== 'archived')
-                .map(s => ({
-                  id: s.id,
-                  name: s.name,
-                  color: s.color || '#FFC107',
-                  exam_date: s.exam_date!
-                }))
-              }
-              sessionInvites={sessionInvites}
-              subjectFileCounts={subjectFileCounts}
-              isPastWeek={isPastWeek}
-              onSessionClick={handleSessionClick}
-              onEventClick={isFreeUser ? undefined : setSelectedEvent}
-              onGridClick={isFreeUser ? undefined : handleGridClick}
-              onSessionMove={isFreeUser ? undefined : handleSessionMove}
-              onEventMove={isFreeUser ? undefined : handleEventMove}
-              onSessionResize={isFreeUser ? undefined : handleSessionResize}
-              onEventResize={isFreeUser ? undefined : handleEventResize}
-              onSessionMarkDone={isFreeUser ? undefined : (sessionId) => handleSessionStatusUpdate(sessionId, 'done')}
-            />
+          <div className={cn("space-y-4", calendarView === 'week' && isPastWeek && "opacity-60 pointer-events-none")}>
+            {calendarView === 'week' ? (
+              /* Week grid */
+              <WeeklyHourGrid
+                weekDays={weekDays}
+                sessions={isFreeUser ? sessions.filter(s => s.isInvitedSession) : sessions}
+                calendarEvents={isFreeUser ? [] : calendarEvents}
+                exams={isFreeUser ? [] : subjects
+                  .filter(s => s.exam_date && s.status !== 'archived')
+                  .map(s => ({
+                    id: s.id,
+                    name: s.name,
+                    color: s.color || '#FFC107',
+                    exam_date: s.exam_date!
+                  }))
+                }
+                sessionInvites={sessionInvites}
+                subjectFileCounts={subjectFileCounts}
+                isPastWeek={isPastWeek}
+                onSessionClick={handleSessionClick}
+                onEventClick={isFreeUser ? undefined : setSelectedEvent}
+                onGridClick={isFreeUser ? undefined : handleGridClick}
+                onSessionMove={isFreeUser ? undefined : handleSessionMove}
+                onEventMove={isFreeUser ? undefined : handleEventMove}
+                onSessionResize={isFreeUser ? undefined : handleSessionResize}
+                onEventResize={isFreeUser ? undefined : handleEventResize}
+                onSessionMarkDone={isFreeUser ? undefined : (sessionId) => handleSessionStatusUpdate(sessionId, 'done')}
+              />
+            ) : (
+              /* Monthly calendar view */
+              <MonthlyCalendarView
+                currentMonth={currentMonth}
+                sessions={isFreeUser ? sessions.filter(s => s.isInvitedSession) : sessions}
+                calendarEvents={isFreeUser ? [] : calendarEvents}
+                subjects={subjects}
+                onMonthChange={setCurrentMonth}
+                onDayClick={(date) => {
+                  // Switch to week view for that day
+                  setWeekStart(startOfWeek(date, { weekStartsOn: 1 }));
+                  setCalendarView('week');
+                }}
+                onSessionClick={handleSessionClick}
+                onEventClick={isFreeUser ? (event) => {} : setSelectedEvent}
+              />
+            )}
           </div>
         </div>
       </div>
