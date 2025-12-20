@@ -10,7 +10,8 @@ import {
   Loader2,
   AlertCircle,
   LayoutGrid,
-  Bell
+  PanelLeftClose,
+  PanelLeft
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDailyCall } from '@/hooks/useDailyCall';
@@ -44,6 +45,7 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
 
   const { user } = useAuth();
   const [userName, setUserName] = useState('Utilisateur');
+  const [sidebarVisible, setSidebarVisible] = useState(true);
 
   // Fetch user name
   useEffect(() => {
@@ -78,12 +80,19 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   // Loading state - same layout as app content area
   if (isJoining) {
     return (
-      <div className="fixed inset-0 z-50 bg-background lg:pl-56">
+      <div className={`fixed inset-0 z-50 bg-background transition-all duration-300 ${sidebarVisible ? 'lg:pl-56' : ''}`}>
         {/* Header matching app */}
         <header className="sticky top-0 z-40 bg-card border-b border-border">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-3 text-muted-foreground">
-              <LayoutGrid className="w-5 h-5" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setSidebarVisible(!sidebarVisible)}
+              >
+                {sidebarVisible ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeft className="w-5 h-5" />}
+              </Button>
               <span className="text-lg">/</span>
               <span className="font-semibold text-foreground">Session Visio</span>
             </div>
@@ -109,12 +118,19 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   // Error state
   if (error) {
     return (
-      <div className="fixed inset-0 z-50 bg-background lg:pl-56">
+      <div className={`fixed inset-0 z-50 bg-background transition-all duration-300 ${sidebarVisible ? 'lg:pl-56' : ''}`}>
         {/* Header matching app */}
         <header className="sticky top-0 z-40 bg-card border-b border-border">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-3 text-muted-foreground">
-              <LayoutGrid className="w-5 h-5" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setSidebarVisible(!sidebarVisible)}
+              >
+                {sidebarVisible ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeft className="w-5 h-5" />}
+              </Button>
               <span className="text-lg">/</span>
               <span className="font-semibold text-foreground">Session Visio</span>
             </div>
@@ -143,9 +159,8 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   // Detect if someone is screen sharing
   const screenSharingParticipant = participants.find(p => p.screen);
   const isPresentationMode = !!screenSharingParticipant;
-  const thumbnailParticipants = isPresentationMode 
-    ? participants.filter(p => p.id !== screenSharingParticipant?.id)
-    : [];
+  // Get all camera participants (including the one sharing screen, for their camera feed)
+  const cameraParticipants = participants;
 
   // Calculate grid layout based on participant count (only used when no presentation)
   const getGridClass = () => {
@@ -157,28 +172,67 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
     return 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
   };
 
-  // Render presentation mode layout
+  // Render presentation mode layout - screen share full with camera thumbnails in top right
   const renderPresentationMode = () => (
-    <div className="flex flex-col lg:flex-row gap-4 h-full">
-      {/* Main screen share - takes most space */}
-      <div className="flex-1 min-h-0">
+    <div className="relative h-full w-full">
+      {/* Main screen share - fills the entire space */}
+      <div className="absolute inset-0">
         {screenSharingParticipant && (
-          <VideoTile 
-            participant={screenSharingParticipant}
-            isLarge
-          />
+          <div className="w-full h-full rounded-xl overflow-hidden bg-black border border-border relative">
+            <video
+              autoPlay
+              playsInline
+              muted={screenSharingParticipant.isLocal}
+              ref={(el) => {
+                if (el && screenSharingParticipant.screenTrack) {
+                  const stream = new MediaStream([screenSharingParticipant.screenTrack]);
+                  el.srcObject = stream;
+                }
+              }}
+              className="w-full h-full object-contain"
+            />
+            {/* Screen share label */}
+            <div className="absolute bottom-4 left-4 px-3 py-1.5 bg-primary rounded-full text-xs text-primary-foreground font-semibold flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary-foreground animate-pulse" />
+              Partage d'écran - {screenSharingParticipant.name}
+            </div>
+          </div>
         )}
       </div>
       
-      {/* Thumbnail strip - camera feeds */}
-      {thumbnailParticipants.length > 0 && (
-        <div className="flex lg:flex-col gap-2 lg:w-48 overflow-auto">
-          {thumbnailParticipants.map((participant) => (
-            <div key={participant.id} className="w-32 lg:w-full h-24 lg:h-28 flex-shrink-0">
-              <VideoTile 
-                participant={participant}
-                isLarge={false}
-              />
+      {/* Camera thumbnails - positioned in top right corner */}
+      {cameraParticipants.length > 0 && (
+        <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+          {cameraParticipants.map((participant) => (
+            <div 
+              key={participant.id} 
+              className="w-36 h-24 rounded-xl overflow-hidden shadow-lg border-2 border-card bg-card"
+            >
+              {/* Use camera track directly */}
+              {participant.cameraTrack ? (
+                <video
+                  autoPlay
+                  playsInline
+                  muted={participant.isLocal}
+                  ref={(el) => {
+                    if (el && participant.cameraTrack) {
+                      const stream = new MediaStream([participant.cameraTrack]);
+                      el.srcObject = stream;
+                    }
+                  }}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-muted">
+                  <Users className="w-6 h-6 text-muted-foreground" />
+                </div>
+              )}
+              {/* Name badge */}
+              <div className="absolute bottom-1 left-1 right-1 text-center">
+                <span className="text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded-full">
+                  {participant.name} {participant.isLocal && '(Toi)'}
+                </span>
+              </div>
             </div>
           ))}
         </div>
@@ -211,12 +265,20 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-background lg:pl-56 flex flex-col overflow-hidden">
+    <div className={`fixed inset-0 z-50 bg-background flex flex-col overflow-hidden transition-all duration-300 ${sidebarVisible ? 'lg:pl-56' : ''}`}>
       {/* Header matching app style - like Progression page */}
       <header className="flex-shrink-0 bg-card border-b border-border">
         <div className="flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3 text-muted-foreground">
-            <Video className="w-5 h-5 text-primary" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 hidden lg:flex"
+              onClick={() => setSidebarVisible(!sidebarVisible)}
+              title={sidebarVisible ? 'Masquer la sidebar' : 'Afficher la sidebar'}
+            >
+              {sidebarVisible ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeft className="w-5 h-5" />}
+            </Button>
             <span className="text-lg">/</span>
             <span className="font-semibold text-foreground">
               {sessionTitle || 'Session Visio'}
@@ -243,7 +305,7 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
       {/* Video Grid - Fill remaining space */}
       <main className="flex-1 p-6 min-h-0 overflow-hidden">
         <div className="h-full rounded-2xl bg-card border border-border p-4 flex flex-col">
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 relative">
             {isPresentationMode ? renderPresentationMode() : renderGridMode()}
           </div>
           

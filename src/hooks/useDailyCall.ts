@@ -6,6 +6,8 @@ export interface Participant {
   name: string;
   isLocal: boolean;
   videoTrack: MediaStreamTrack | null;
+  cameraTrack: MediaStreamTrack | null;
+  screenTrack: MediaStreamTrack | null;
   audioTrack: MediaStreamTrack | null;
   video: boolean;
   audio: boolean;
@@ -31,6 +33,7 @@ interface UseDailyCallReturn {
 const parseParticipant = (p: DailyParticipant): Participant => {
   const cameraTrack = p.tracks?.video?.persistentTrack || null;
   const screenTrack = ((p.tracks as any)?.screenVideo?.persistentTrack as MediaStreamTrack | undefined) || null;
+  // Main videoTrack: prefer screen if sharing, otherwise camera
   const videoTrack = p.screen && screenTrack ? screenTrack : cameraTrack;
 
   return {
@@ -38,8 +41,9 @@ const parseParticipant = (p: DailyParticipant): Participant => {
     name: p.user_name || 'Participant',
     isLocal: p.local,
     videoTrack,
+    cameraTrack,
+    screenTrack,
     audioTrack: p.tracks?.audio?.persistentTrack || null,
-    // When screen sharing, we always consider there is a "video" track to display
     video: p.screen ? true : p.video,
     audio: p.audio,
     screen: p.screen,
