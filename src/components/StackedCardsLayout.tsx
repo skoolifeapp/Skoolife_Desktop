@@ -53,7 +53,7 @@ const StackedCardsLayout = () => {
     
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % cards.length);
-    }, 5000);
+    }, 3000);
     
     return () => clearInterval(interval);
   }, [isPaused, cards.length]);
