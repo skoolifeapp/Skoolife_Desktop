@@ -976,30 +976,8 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-bold">
-              {calendarView === 'week' 
-                ? `Semaine du ${format(weekStart, 'dd MMM', { locale: fr })}`
-                : format(currentMonth, 'MMMM yyyy', { locale: fr })
-              }
+              Semaine du {format(weekStart, 'dd MMM', { locale: fr })}
             </h2>
-            {/* View toggle */}
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-              <Button
-                variant={calendarView === 'week' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-7 px-3 text-xs"
-                onClick={() => setCalendarView('week')}
-              >
-                Semaine
-              </Button>
-              <Button
-                variant={calendarView === 'month' ? 'default' : 'ghost'}
-                size="sm"
-                className="h-7 px-3 text-xs"
-                onClick={() => setCalendarView('month')}
-              >
-                Mois
-              </Button>
-            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button 
