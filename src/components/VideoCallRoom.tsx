@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { 
   Video, 
   VideoOff, 
@@ -90,6 +90,12 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
     }
   }, [roomUrl, userName, isLoadingName, isJoined, isJoining, join]);
 
+  // Track if chat is open for unread count (using ref to avoid effect re-runs)
+  const isChatOpenRef = useRef(isChatOpen);
+  useEffect(() => {
+    isChatOpenRef.current = isChatOpen;
+  }, [isChatOpen]);
+
   // Listen for incoming chat messages
   useEffect(() => {
     if (onAppMessage && isJoined) {
@@ -106,14 +112,20 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
             fileType: data.fileType,
             timestamp: new Date(data.timestamp),
           };
-          setChatMessages(prev => [...prev, newMessage]);
-          if (!isChatOpen) {
+          // Avoid duplicates by checking if message ID already exists
+          setChatMessages(prev => {
+            if (prev.some(msg => msg.id === newMessage.id)) {
+              return prev;
+            }
+            return [...prev, newMessage];
+          });
+          if (!isChatOpenRef.current) {
             setUnreadCount(prev => prev + 1);
           }
         }
       });
     }
-  }, [onAppMessage, isJoined, isChatOpen]);
+  }, [onAppMessage, isJoined]);
 
   // Handle sending a chat message
   const handleSendMessage = useCallback((content: string, type: 'text' | 'file', fileData?: { url: string; name: string; type: string }) => {
