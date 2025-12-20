@@ -35,7 +35,11 @@ const VideoTile = ({ participant, isLarge = false }: VideoTileProps) => {
 
   return (
     <div 
-      className="relative rounded-2xl overflow-hidden bg-card border border-border shadow-lg h-full w-full"
+      className={`relative rounded-2xl overflow-hidden bg-card border-2 shadow-lg h-full w-full transition-all duration-300 ${
+        participant.isSpeaking 
+          ? 'border-primary ring-2 ring-primary/50 ring-offset-2 ring-offset-background' 
+          : 'border-border'
+      }`}
     >
       {/* Video element */}
       {participant.video && participant.videoTrack ? (
@@ -63,7 +67,7 @@ const VideoTile = ({ participant, isLarge = false }: VideoTileProps) => {
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500" />
+            <div className={`w-2 h-2 rounded-full ${participant.isSpeaking ? 'bg-primary animate-pulse' : 'bg-green-500'}`} />
             <span className="text-white text-sm font-semibold truncate drop-shadow-md">
               {participant.name} {participant.isLocal && '(Toi)'}
             </span>

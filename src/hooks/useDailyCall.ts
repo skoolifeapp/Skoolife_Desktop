@@ -12,6 +12,7 @@ export interface Participant {
   video: boolean;
   audio: boolean;
   screen: boolean;
+  isSpeaking: boolean;
 }
 
 interface UseDailyCallReturn {
@@ -30,7 +31,7 @@ interface UseDailyCallReturn {
   toggleScreenShare: () => Promise<void>;
 }
 
-const parseParticipant = (p: DailyParticipant): Participant => {
+const parseParticipant = (p: DailyParticipant): Omit<Participant, 'isSpeaking'> => {
   const cameraTrack = p.tracks?.video?.persistentTrack || null;
   const screenTrack = ((p.tracks as any)?.screenVideo?.persistentTrack as MediaStreamTrack | undefined) || null;
   // Main videoTrack: prefer screen if sharing, otherwise camera
@@ -59,15 +60,20 @@ export const useDailyCall = (): UseDailyCallReturn => {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeSpeakerId, setActiveSpeakerId] = useState<string | null>(null);
   const callObjectRef = useRef<DailyCall | null>(null);
 
-  const updateParticipants = useCallback((call: DailyCall) => {
+  const updateParticipants = useCallback((call: DailyCall, speakerId?: string | null) => {
     const allParticipants = call.participants();
-    const parsed = Object.values(allParticipants).map(parseParticipant);
+    const currentSpeaker = speakerId !== undefined ? speakerId : activeSpeakerId;
+    const parsed = Object.values(allParticipants).map(p => ({
+      ...parseParticipant(p),
+      isSpeaking: p.session_id === currentSpeaker,
+    }));
     // Local participant first
     const sorted = parsed.sort((a, b) => (a.isLocal ? -1 : b.isLocal ? 1 : 0));
     setParticipants(sorted);
-  }, []);
+  }, [activeSpeakerId]);
 
   const join = useCallback(async (roomUrl: string, userName?: string) => {
     setError(null);
@@ -109,6 +115,13 @@ export const useDailyCall = (): UseDailyCallReturn => {
 
       call.on('participant-updated', () => {
         updateParticipants(call);
+      });
+
+      call.on('active-speaker-change', (event) => {
+        const speakerId = event?.activeSpeaker?.peerId || null;
+        console.log('Active speaker:', speakerId);
+        setActiveSpeakerId(speakerId);
+        updateParticipants(call, speakerId);
       });
 
       call.on('error', (event) => {
