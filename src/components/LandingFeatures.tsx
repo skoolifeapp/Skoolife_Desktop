@@ -316,17 +316,50 @@ const LandingFeatures = () => {
               Organise toutes tes matières avec leurs dates d'examen 
               et niveaux de difficulté. Skoolife adapte ton planning en conséquence.
             </p>
-            <div className="space-y-2">
+            
+            {/* Stats cards */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-muted/30 rounded-xl p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <Brain className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Matières actives</p>
+                  <p className="text-xl font-bold text-foreground">4</p>
+                </div>
+              </div>
+              <div className="bg-muted/30 rounded-xl p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Prochain examen</p>
+                  <p className="text-sm font-bold text-foreground">FINANCE <span className="text-primary">J-24</span></p>
+                </div>
+              </div>
+            </div>
+
+            {/* Subject table */}
+            <div className="bg-muted/30 rounded-xl overflow-hidden">
+              <div className="grid grid-cols-4 gap-2 px-4 py-2 text-xs text-muted-foreground border-b border-border">
+                <span>Matière</span>
+                <span>Date</span>
+                <span>Objectif</span>
+                <span className="text-right">Priorité</span>
+              </div>
               {[
-                { name: 'Maths', date: '15 Jan', color: 'bg-blue-400', difficulty: 'Difficile' },
-                { name: 'Physique', date: '18 Jan', color: 'bg-green-400', difficulty: 'Moyen' },
-                { name: 'Anglais', date: '20 Jan', color: 'bg-orange-400', difficulty: 'Facile' },
+                { name: 'FINANCE', date: '14/01/2026', hours: '35h', color: 'bg-red-500', priority: 'Haute', priorityColor: 'bg-red-100 text-red-600' },
+                { name: 'MCG', date: '14/01/2026', hours: '25h', color: 'bg-green-500', priority: 'Haute', priorityColor: 'bg-red-100 text-red-600' },
+                { name: 'MSI', date: '16/01/2026', hours: '20h', color: 'bg-blue-500', priority: 'Moyenne', priorityColor: 'bg-red-50 text-red-400' },
               ].map((subject, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className={`w-3 h-3 rounded-full ${subject.color}`} />
-                  <span className="font-medium text-foreground flex-1">{subject.name}</span>
-                  <span className="text-xs text-muted-foreground">{subject.date}</span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">{subject.difficulty}</span>
+                <div key={i} className="grid grid-cols-4 gap-2 px-4 py-3 items-center border-b border-border/50 last:border-0">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${subject.color}`} />
+                    <span className="font-medium text-foreground text-sm">{subject.name}</span>
+                  </div>
+                  <span className="text-sm text-muted-foreground">{subject.date}</span>
+                  <span className="text-sm text-foreground">{subject.hours}</span>
+                  <span className={`text-xs px-2 py-1 rounded-full ${subject.priorityColor} text-right w-fit ml-auto`}>{subject.priority}</span>
                 </div>
               ))}
             </div>
