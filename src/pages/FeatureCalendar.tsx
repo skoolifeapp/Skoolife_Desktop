@@ -205,26 +205,15 @@ const FeatureCalendar = () => {
       {/* Hero Section */}
       <main className="relative pt-24 md:pt-32">
         <div className="max-w-5xl mx-auto px-4 text-center">
-          {/* Big outline title */}
-          <div className="mb-8 animate-slide-up">
-            <h1 
-              className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold font-heading leading-none"
-              style={{
-                WebkitTextStroke: '2px currentColor',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
+          {/* Main heading */}
+          <div className="space-y-4 md:space-y-6 animate-slide-up">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight font-heading">
               Calendrier
+              <br />
+              <span className="gradient-text-animated font-heading">
+                Intelligent
+              </span>
             </h1>
-            <h2 
-              className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold font-heading leading-none mt-2"
-              style={{
-                WebkitTextStroke: '2px currentColor',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              Intelligent
-            </h2>
           </div>
 
           {/* Description */}
