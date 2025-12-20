@@ -81,36 +81,47 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   // Loading state - same layout as app content area
   if (isJoining) {
     return (
-      <div className={`fixed inset-0 z-50 bg-background transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-56'}`}>
-        {/* Header matching app */}
-        <header className="sticky top-0 z-40 bg-card border-b border-border">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-3 text-muted-foreground">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={toggleSidebarCollapsed}
-              >
-                {sidebarCollapsed ? <PanelLeft className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
-              </Button>
-              <span className="text-lg">/</span>
-              <span className="font-semibold text-foreground">Session Visio</span>
+      <div
+        className={`fixed inset-0 z-50 bg-sidebar transition-all duration-300 pt-2 pr-2 pb-2 ${
+          sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-56'
+        }`}
+      >
+        <div className="flex h-full flex-col bg-background rounded-xl overflow-hidden">
+          <header className="flex-shrink-0 border-b border-border">
+            <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hidden lg:flex"
+                  onClick={toggleSidebarCollapsed}
+                  title={sidebarCollapsed ? 'Agrandir la sidebar' : 'Réduire la sidebar'}
+                >
+                  {sidebarCollapsed ? (
+                    <PanelLeft className="w-5 h-5" />
+                  ) : (
+                    <PanelLeftClose className="w-5 h-5" />
+                  )}
+                </Button>
+                <span className="text-lg">/</span>
+                <span className="font-semibold text-foreground">
+                  {sessionTitle || 'Session Visio'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <NotificationsDropdown />
+                <ThemeToggle />
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <NotificationsDropdown />
-              <ThemeToggle />
+          </header>
+
+          <main className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center space-y-4 flex flex-col items-center justify-center">
+              <Loader2 className="w-12 h-12 text-primary animate-spin" />
+              <p className="text-xl font-semibold text-foreground">Connexion à la session...</p>
+              <p className="text-muted-foreground">Préparation de ta caméra et ton micro</p>
             </div>
-          </div>
-        </header>
-        
-        {/* Content */}
-        <div className="flex-1 flex items-center justify-center p-6" style={{ height: 'calc(100vh - 73px)' }}>
-          <div className="text-center space-y-4 flex flex-col items-center justify-center">
-            <Loader2 className="w-12 h-12 text-primary animate-spin" />
-            <p className="text-xl font-semibold text-foreground">Connexion à la session...</p>
-            <p className="text-muted-foreground">Préparation de ta caméra et ton micro</p>
-          </div>
+          </main>
         </div>
       </div>
     );
@@ -119,39 +130,50 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   // Error state
   if (error) {
     return (
-      <div className={`fixed inset-0 z-50 bg-background transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-56'}`}>
-        {/* Header matching app */}
-        <header className="sticky top-0 z-40 bg-card border-b border-border">
-          <div className="flex items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-3 text-muted-foreground">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={toggleSidebarCollapsed}
-              >
-                {sidebarCollapsed ? <PanelLeft className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+      <div
+        className={`fixed inset-0 z-50 bg-sidebar transition-all duration-300 pt-2 pr-2 pb-2 ${
+          sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-56'
+        }`}
+      >
+        <div className="flex h-full flex-col bg-background rounded-xl overflow-hidden">
+          <header className="flex-shrink-0 border-b border-border">
+            <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hidden lg:flex"
+                  onClick={toggleSidebarCollapsed}
+                  title={sidebarCollapsed ? 'Agrandir la sidebar' : 'Réduire la sidebar'}
+                >
+                  {sidebarCollapsed ? (
+                    <PanelLeft className="w-5 h-5" />
+                  ) : (
+                    <PanelLeftClose className="w-5 h-5" />
+                  )}
+                </Button>
+                <span className="text-lg">/</span>
+                <span className="font-semibold text-foreground">
+                  {sessionTitle || 'Session Visio'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <NotificationsDropdown />
+                <ThemeToggle />
+              </div>
+            </div>
+          </header>
+
+          <main className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center space-y-4 max-w-md">
+              <AlertCircle className="w-16 h-16 text-destructive mx-auto" />
+              <p className="text-xl font-semibold text-foreground">Erreur de connexion</p>
+              <p className="text-muted-foreground">{error}</p>
+              <Button onClick={onLeave} variant="outline" size="lg">
+                Retour
               </Button>
-              <span className="text-lg">/</span>
-              <span className="font-semibold text-foreground">Session Visio</span>
             </div>
-            <div className="flex items-center gap-2">
-              <NotificationsDropdown />
-              <ThemeToggle />
-            </div>
-          </div>
-        </header>
-        
-        {/* Content */}
-        <div className="flex-1 flex items-center justify-center p-6" style={{ height: 'calc(100vh - 73px)' }}>
-          <div className="text-center space-y-4 max-w-md">
-            <AlertCircle className="w-16 h-16 text-destructive mx-auto" />
-            <p className="text-xl font-semibold text-foreground">Erreur de connexion</p>
-            <p className="text-muted-foreground">{error}</p>
-            <Button onClick={onLeave} variant="outline" size="lg">
-              Retour
-            </Button>
-          </div>
+          </main>
         </div>
       </div>
     );
