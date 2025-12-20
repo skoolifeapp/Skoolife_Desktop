@@ -19,6 +19,10 @@ import {
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import HeroMiniDashboard3D from '@/components/HeroMiniDashboard3D';
+import mockupCalendar from '@/assets/mockup-calendar.png';
+import mockupProgression from '@/assets/mockup-progression.png';
+import mockupSubjects from '@/assets/mockup-subjects.png';
+import mockupSettings from '@/assets/mockup-settings.png';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -182,6 +186,86 @@ const Index = () => {
                 title="Ajustement intelligent"
                 description="Session ratée ? Skoolife réajuste automatiquement ton planning."
               />
+            </div>
+          </div>
+        </section>
+
+        {/* App Showcase Section */}
+        <section className="py-12 md:py-24 bg-card/30 overflow-hidden">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-8 md:mb-16">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 md:mb-6 font-heading">
+                Découvre l'interface
+              </h2>
+              <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+                Une application intuitive et moderne pour gérer tes révisions efficacement.
+              </p>
+            </div>
+
+            {/* Desktop Mockup Grid */}
+            <div className="hidden md:grid grid-cols-2 gap-8 lg:gap-12">
+              <div className="group relative">
+                <div className="absolute inset-0 bg-primary/10 rounded-3xl blur-2xl group-hover:bg-primary/20 transition-colors duration-500" />
+                <img 
+                  src={mockupCalendar} 
+                  alt="Calendrier Skoolife" 
+                  className="relative w-full h-auto rounded-xl shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-500"
+                />
+                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-card border border-border rounded-full px-4 py-2 shadow-lg">
+                  <span className="text-sm font-medium text-foreground">📅 Calendrier</span>
+                </div>
+              </div>
+              <div className="group relative mt-12">
+                <div className="absolute inset-0 bg-accent/10 rounded-3xl blur-2xl group-hover:bg-accent/20 transition-colors duration-500" />
+                <img 
+                  src={mockupProgression} 
+                  alt="Progression Skoolife" 
+                  className="relative w-full h-auto rounded-xl shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-500"
+                />
+                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-card border border-border rounded-full px-4 py-2 shadow-lg">
+                  <span className="text-sm font-medium text-foreground">📊 Progression</span>
+                </div>
+              </div>
+              <div className="group relative">
+                <div className="absolute inset-0 bg-accent/10 rounded-3xl blur-2xl group-hover:bg-accent/20 transition-colors duration-500" />
+                <img 
+                  src={mockupSubjects} 
+                  alt="Matières Skoolife" 
+                  className="relative w-full h-auto rounded-xl shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-500"
+                />
+                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-card border border-border rounded-full px-4 py-2 shadow-lg">
+                  <span className="text-sm font-medium text-foreground">📚 Matières</span>
+                </div>
+              </div>
+              <div className="group relative mt-12">
+                <div className="absolute inset-0 bg-primary/10 rounded-3xl blur-2xl group-hover:bg-primary/20 transition-colors duration-500" />
+                <img 
+                  src={mockupSettings} 
+                  alt="Paramètres Skoolife" 
+                  className="relative w-full h-auto rounded-xl shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-500"
+                />
+                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-card border border-border rounded-full px-4 py-2 shadow-lg">
+                  <span className="text-sm font-medium text-foreground">⚙️ Paramètres</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Mockup Carousel */}
+            <div className="md:hidden space-y-6">
+              <div className="relative">
+                <img 
+                  src={mockupCalendar} 
+                  alt="Calendrier Skoolife" 
+                  className="w-full h-auto rounded-xl shadow-xl"
+                />
+              </div>
+              <div className="relative">
+                <img 
+                  src={mockupProgression} 
+                  alt="Progression Skoolife" 
+                  className="w-full h-auto rounded-xl shadow-xl"
+                />
+              </div>
             </div>
           </div>
         </section>
