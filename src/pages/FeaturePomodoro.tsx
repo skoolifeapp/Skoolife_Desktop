@@ -166,67 +166,65 @@ const StaticPomodoroCard = () => (
         </div>
 
         {/* Right Column - Sessions */}
-        <div className="hidden md:flex w-72 flex-col gap-4">
+        <div className="hidden md:flex w-64 flex-col gap-3 flex-shrink-0">
           {/* Sessions List */}
-          <div className="flex-1 p-3 rounded-xl border border-border/30 bg-white dark:bg-card shadow-sm space-y-3 overflow-hidden">
+          <div className="p-2 rounded-xl border border-border/30 bg-white dark:bg-card shadow-sm space-y-2">
             {/* Session 1 - MSI (selected) */}
-            <div className="p-3 rounded-xl border-2 border-primary bg-primary/5">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="w-6 h-6 text-blue-500" />
+            <div className="p-2.5 rounded-lg border-2 border-primary bg-primary/5">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="w-4 h-4 text-blue-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-foreground">MSI</p>
-                  <p className="text-xs text-muted-foreground">Aujourd'hui</p>
+                  <p className="font-semibold text-sm text-foreground">MSI</p>
+                  <p className="text-[10px] text-muted-foreground">Aujourd'hui</p>
                 </div>
-                <div className="text-right flex-shrink-0 mr-2">
-                  <p className="text-xs text-muted-foreground">14:00</p>
-                  <p className="text-xs text-muted-foreground">-</p>
-                  <p className="text-xs text-muted-foreground">15:30</p>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-[10px] text-muted-foreground leading-tight">14:00</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight">15:30</p>
                 </div>
-                <button className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center gap-1 flex-shrink-0">
-                  <Play className="w-3 h-3" />
+                <button className="px-2 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium flex items-center gap-0.5 flex-shrink-0">
+                  <Play className="w-2.5 h-2.5" />
                   Focus
                 </button>
               </div>
             </div>
 
             {/* Session 2 - FINANCE */}
-            <div className="p-3 rounded-xl border border-border/30 bg-white dark:bg-card">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="w-6 h-6 text-red-500" />
+            <div className="p-2.5 rounded-lg border border-border/30">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="w-4 h-4 text-red-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-foreground">FINANCE</p>
-                  <p className="text-xs text-muted-foreground">Aujourd'hui</p>
+                  <p className="font-semibold text-sm text-foreground">FINANCE</p>
+                  <p className="text-[10px] text-muted-foreground">Aujourd'hui</p>
                 </div>
-                <div className="text-right flex-shrink-0 mr-2">
-                  <p className="text-xs text-muted-foreground">16:00</p>
-                  <p className="text-xs text-muted-foreground">-</p>
-                  <p className="text-xs text-muted-foreground">17:30</p>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-[10px] text-muted-foreground leading-tight">16:00</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight">17:30</p>
                 </div>
-                <button className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center gap-1 flex-shrink-0">
-                  <Play className="w-3 h-3" />
+                <button className="px-2 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium flex items-center gap-0.5 flex-shrink-0">
+                  <Play className="w-2.5 h-2.5" />
                   Focus
                 </button>
               </div>
             </div>
 
             {/* Session 3 - MCG */}
-            <div className="p-3 rounded-xl border border-border/30 bg-white dark:bg-card">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <BookOpen className="w-6 h-6 text-green-500" />
+            <div className="p-2.5 rounded-lg border border-border/30">
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="w-4 h-4 text-green-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-foreground">MCG</p>
+                  <p className="font-semibold text-sm text-foreground">MCG</p>
                 </div>
-                <div className="text-right flex-shrink-0 mr-2">
-                  <p className="text-xs text-muted-foreground">09:00</p>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-[10px] text-muted-foreground leading-tight">09:00</p>
                 </div>
-                <button className="px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center gap-1 flex-shrink-0">
-                  <Play className="w-3 h-3" />
+                <button className="px-2 py-1 rounded-full bg-primary text-primary-foreground text-[10px] font-medium flex items-center gap-0.5 flex-shrink-0">
+                  <Play className="w-2.5 h-2.5" />
                   Focus
                 </button>
               </div>
