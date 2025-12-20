@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import logo from '@/assets/logo.png';
+import groupStudyScreenshot from '@/assets/group-study-screenshot.jpg';
 
 const LandingFeatures = () => {
   return (
@@ -258,66 +259,14 @@ const LandingFeatures = () => {
               </ul>
             </div>
 
-            {/* Video call mockup side */}
+            {/* Video call screenshot side */}
             <div className="p-6 md:p-8 bg-muted/30 order-1 md:order-2">
-              <div className="bg-card rounded-xl border border-border overflow-hidden shadow-lg">
-                {/* Video header */}
-                <div className="bg-foreground/5 px-4 py-3 flex items-center justify-between border-b border-border">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500" />
-                    <span className="text-sm font-medium text-foreground">Session en cours</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">Maths - Chapitre 5</span>
-                </div>
-                
-                {/* Video grid */}
-                <div className="p-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    {/* Participant 1 */}
-                    <div className="aspect-video bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center relative">
-                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-lg font-bold">
-                        T
-                      </div>
-                      <span className="absolute bottom-2 left-2 text-xs text-white bg-black/40 px-2 py-0.5 rounded">Toi</span>
-                    </div>
-                    {/* Participant 2 */}
-                    <div className="aspect-video bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center relative">
-                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-lg font-bold">
-                        M
-                      </div>
-                      <span className="absolute bottom-2 left-2 text-xs text-white bg-black/40 px-2 py-0.5 rounded">Marie</span>
-                    </div>
-                    {/* Participant 3 */}
-                    <div className="aspect-video bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center relative">
-                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white text-lg font-bold">
-                        L
-                      </div>
-                      <span className="absolute bottom-2 left-2 text-xs text-white bg-black/40 px-2 py-0.5 rounded">Lucas</span>
-                    </div>
-                    {/* Add participant */}
-                    <div className="aspect-video bg-muted/50 rounded-lg flex items-center justify-center border-2 border-dashed border-border">
-                      <div className="text-center">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-1">
-                          <span className="text-primary text-xl">+</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">Inviter</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Controls */}
-                <div className="px-4 py-3 border-t border-border flex items-center justify-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                    <div className="w-4 h-4 rounded-sm bg-muted-foreground/50" />
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                    <div className="w-4 h-3 rounded-sm bg-muted-foreground/50" />
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-destructive flex items-center justify-center">
-                    <div className="w-5 h-1.5 rounded-full bg-white rotate-45" />
-                  </div>
-                </div>
+              <div className="rounded-xl overflow-hidden border border-border shadow-lg">
+                <img 
+                  src={groupStudyScreenshot} 
+                  alt="Session de révision en groupe avec visioconférence" 
+                  className="w-full h-auto object-cover"
+                />
               </div>
             </div>
           </div>
