@@ -240,7 +240,7 @@ const FeatureSubjects = () => {
       <main className="relative pt-24 md:pt-32">
         <div className="max-w-5xl mx-auto px-4 text-center">
           {/* Main heading */}
-          <div className="space-y-4 md:space-y-6 animate-slide-up mb-8">
+          <div className="space-y-4 md:space-y-6 mb-8">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight font-heading">
               Gestion des
               <br />
@@ -251,13 +251,13 @@ const FeatureSubjects = () => {
           </div>
 
           {/* Description */}
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-8 animate-slide-up" style={{ animationDelay: '100ms' }}>
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
             Organise toutes tes matières et examens en un seul endroit. Définis tes objectifs 
             de révision, suis les dates importantes et priorise efficacement ton travail.
           </p>
 
           {/* CTA Button */}
-          <div className="animate-slide-up" style={{ animationDelay: '200ms' }}>
+          <div>
             <Link to="/auth?mode=signup">
               <Button variant="outline" size="lg" className="rounded-full px-6">
                 Organiser mes matières
@@ -269,7 +269,7 @@ const FeatureSubjects = () => {
 
         {/* Static Subjects Preview */}
         <div className="relative max-w-6xl mx-auto px-4 mt-16 pb-16">
-          <div className="animate-slide-up" style={{ animationDelay: '300ms' }}>
+          <div>
             <StaticSubjectsCard />
           </div>
         </div>

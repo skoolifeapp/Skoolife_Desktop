@@ -35,7 +35,7 @@ const Index = () => {
         {/* Hero Section - Centered Text */}
         <div className="relative max-w-4xl mx-auto px-4 pt-12 md:pt-20 pb-8 md:pb-16 text-center">
           {/* Main heading */}
-          <div className="space-y-4 md:space-y-6 animate-slide-up">
+          <div className="space-y-4 md:space-y-6">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight font-heading">
               Tes révisions,
               <br />
@@ -50,7 +50,7 @@ const Index = () => {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 md:mt-10 animate-slide-up">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 md:mt-10">
             <Link to="/auth?mode=signup">
               <Button variant="hero" size="lg" className="md:text-base px-8">
                 Commencer gratuitement
@@ -60,14 +60,14 @@ const Index = () => {
           </div>
 
           {/* Free text */}
-          <p className="text-sm text-muted-foreground mt-4 animate-slide-up">
+          <p className="text-sm text-muted-foreground mt-4">
             Gratuit pendant 7 jours.
           </p>
         </div>
 
         {/* Dashboard Preview - Rising from bottom */}
         <div className="relative max-w-6xl mx-auto px-4">
-          <div className="relative animate-slide-up" style={{ animationDelay: '200ms' }}>
+          <div className="relative">
             <StackedCardsLayout />
           </div>
         </div>
