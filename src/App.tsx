@@ -37,6 +37,7 @@ const FeatureSubjects = lazy(() => import("./pages/FeatureSubjects"));
 const FeaturePomodoro = lazy(() => import("./pages/FeaturePomodoro"));
 const FeatureSettings = lazy(() => import("./pages/FeatureSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const About = lazy(() => import("./pages/About"));
 
 // Optimized QueryClient with caching
 const queryClient = new QueryClient({
@@ -77,6 +78,7 @@ const App = () => (
                       <Route path="/features/subjects" element={<FeatureSubjects />} />
                       <Route path="/features/pomodoro" element={<FeaturePomodoro />} />
                       <Route path="/features/settings" element={<FeatureSettings />} />
+                      <Route path="/about" element={<About />} />
                       <Route path="/post-checkout" element={<PostCheckout />} />
                       <Route path="/onboarding" element={<Onboarding />} />
 

@@ -18,7 +18,7 @@ const Navbar = () => {
   const isPricing = location.pathname === '/pricing';
   const [showFeatures, setShowFeatures] = useState(false);
 
-  const aboutLink = isHome ? '#a-propos' : '/#a-propos';
+  const isAbout = location.pathname === '/about';
 
   return (
     <header className="fixed left-0 right-0 z-50 top-0 flex justify-center px-4 py-4">
@@ -97,12 +97,16 @@ const Navbar = () => {
             )}
           </div>
           
-          <a 
-            href={aboutLink} 
-            className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-muted/50"
+          <Link 
+            to="/about" 
+            className={`px-3 py-1.5 text-sm transition-colors rounded-full ${
+              isAbout 
+                ? 'text-foreground font-medium bg-muted/50' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
           >
             À propos
-          </a>
+          </Link>
         </div>
         
         {/* CTA Button */}
