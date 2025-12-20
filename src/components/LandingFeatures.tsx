@@ -26,51 +26,125 @@ const LandingFeatures = () => {
           <div className="grid md:grid-cols-2 gap-0">
             {/* Screenshot side */}
             <div className="p-6 md:p-8 bg-muted/30">
-              <div className="rounded-xl overflow-hidden border border-border shadow-lg">
-                <div className="bg-card p-4">
-                  {/* Mock calendar header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm font-medium text-muted-foreground">Décembre 2024</span>
-                    <div className="flex gap-1">
-                      <div className="w-6 h-6 rounded bg-muted" />
-                      <div className="w-6 h-6 rounded bg-muted" />
+              <div className="rounded-xl overflow-hidden border border-border shadow-lg bg-card">
+                {/* Calendar header */}
+                <div className="flex items-center justify-between p-4 border-b border-border">
+                  <h4 className="text-lg font-bold text-foreground">Décembre 2025</h4>
+                  <div className="flex items-center gap-2">
+                    <button className="w-8 h-8 rounded-lg border border-primary/30 text-primary flex items-center justify-center hover:bg-primary/10 transition-colors">
+                      <span className="text-sm">‹</span>
+                    </button>
+                    <button className="px-3 py-1.5 rounded-lg border border-primary/30 text-primary text-xs font-medium hover:bg-primary/10 transition-colors">
+                      Aujourd'hui
+                    </button>
+                    <button className="w-8 h-8 rounded-lg border border-primary/30 text-primary flex items-center justify-center hover:bg-primary/10 transition-colors">
+                      <span className="text-sm">›</span>
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Days header */}
+                <div className="grid grid-cols-7 border-b border-border">
+                  {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => (
+                    <div key={day} className="py-2 text-center text-xs font-medium text-muted-foreground border-r border-border last:border-r-0">
+                      {day}
                     </div>
-                  </div>
-                  {/* Mock calendar grid */}
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { day: 16, events: [{ color: 'bg-green-400', title: 'Maths' }] },
-                      { day: 17, events: [{ color: 'bg-blue-400', title: 'Physique' }] },
-                      { day: 18, events: [{ color: 'bg-purple-400', title: 'Chimie' }, { color: 'bg-pink-400', title: 'SVT' }] },
-                    ].map((day, i) => (
-                      <div key={i} className="p-3 rounded-lg bg-muted/50">
-                        <span className="text-sm font-medium text-foreground">{day.day}</span>
-                        <div className="mt-2 space-y-1">
-                          {day.events.map((event, j) => (
-                            <div key={j} className={`text-xs px-2 py-1 rounded ${event.color} text-white font-medium truncate`}>
-                              {event.title}
-                            </div>
-                          ))}
-                        </div>
+                  ))}
+                </div>
+                
+                {/* Calendar grid */}
+                <div className="grid grid-cols-7">
+                  {/* Week 1 */}
+                  {[
+                    { day: 1, events: [] },
+                    { day: 2, events: [] },
+                    { day: 3, events: [] },
+                    { day: 4, events: [{ color: 'bg-indigo-500', title: 'TEC 535 Manage...' }, { color: 'bg-indigo-500', title: 'TEC 535 Manage...' }] },
+                    { day: 5, events: [{ color: 'bg-indigo-500', title: 'TEC 536 Anglais d...' }] },
+                    { day: 6, events: [] },
+                    { day: 7, events: [] },
+                  ].map((item, i) => (
+                    <div key={i} className="min-h-[60px] p-1 border-r border-b border-border last:border-r-0 relative">
+                      <span className="text-xs font-medium text-foreground">{item.day}</span>
+                      <div className="mt-0.5 space-y-0.5">
+                        {item.events.slice(0, 2).map((event, j) => (
+                          <div key={j} className={`text-[9px] px-1 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
+                            {event.title}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                    {[
-                      { day: 19, events: [{ color: 'bg-orange-400', title: 'Anglais' }] },
-                      { day: 20, events: [{ color: 'bg-green-400', title: 'Maths J7' }, { color: 'bg-blue-400', title: 'Physique J3' }] },
-                      { day: 21, events: [] },
-                    ].map((day, i) => (
-                      <div key={i} className="p-3 rounded-lg bg-muted/50">
-                        <span className="text-sm font-medium text-foreground">{day.day}</span>
-                        <div className="mt-2 space-y-1">
-                          {day.events.map((event, j) => (
-                            <div key={j} className={`text-xs px-2 py-1 rounded ${event.color} text-white font-medium truncate`}>
-                              {event.title}
-                            </div>
-                          ))}
-                        </div>
+                    </div>
+                  ))}
+                  
+                  {/* Week 2 */}
+                  {[
+                    { day: 8, events: [] },
+                    { day: 9, events: [] },
+                    { day: 10, events: [{ color: 'bg-indigo-500', title: 'TEC 532 Finance...' }, { color: 'bg-indigo-500', title: 'TEC 532 Finance...' }] },
+                    { day: 11, events: [{ color: 'bg-indigo-500', title: 'TEC 533 Manage...' }, { color: 'bg-indigo-500', title: 'TEC 533 Manage...' }] },
+                    { day: 12, events: [{ color: 'bg-indigo-500', title: 'TEC 532 Finance...' }, { color: 'bg-indigo-500', title: 'TEC 536 Anglais d...' }] },
+                    { day: 13, events: [] },
+                    { day: 14, events: [] },
+                  ].map((item, i) => (
+                    <div key={i} className="min-h-[60px] p-1 border-r border-b border-border last:border-r-0 relative">
+                      <span className="text-xs font-medium text-foreground">{item.day}</span>
+                      <div className="mt-0.5 space-y-0.5">
+                        {item.events.slice(0, 2).map((event, j) => (
+                          <div key={j} className={`text-[9px] px-1 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
+                            {event.title}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
+                  
+                  {/* Week 3 */}
+                  {[
+                    { day: 15, events: [] },
+                    { day: 16, events: [] },
+                    { day: 17, events: [] },
+                    { day: 18, events: [{ color: 'bg-indigo-500', title: 'TEC 535 Manage...' }, { color: 'bg-indigo-500', title: 'TEC 535 Manage...' }] },
+                    { day: 19, events: [{ color: 'bg-blue-500', title: 'MSI' }] },
+                    { day: 20, events: [{ color: 'bg-red-500', title: 'FINANCE' }, { color: 'bg-blue-500', title: 'MSI' }], isToday: true, extra: 1 },
+                    { day: 21, events: [{ color: 'bg-green-500', title: "Cours d'arabe" }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 1 },
+                  ].map((item, i) => (
+                    <div key={i} className="min-h-[60px] p-1 border-r border-b border-border last:border-r-0 relative">
+                      <span className={`text-xs font-medium ${item.isToday ? 'bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center' : 'text-foreground'}`}>
+                        {item.day}
+                      </span>
+                      <div className="mt-0.5 space-y-0.5">
+                        {item.events.slice(0, 2).map((event, j) => (
+                          <div key={j} className={`text-[9px] px-1 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
+                            {event.title}
+                          </div>
+                        ))}
+                        {item.extra && <span className="text-[8px] text-muted-foreground">+{item.extra} autres</span>}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Week 4 */}
+                  {[
+                    { day: 22, events: [{ color: 'bg-blue-500', title: 'Neosilver' }] },
+                    { day: 23, events: [{ color: 'bg-blue-500', title: 'Neosilver' }] },
+                    { day: 24, events: [{ color: 'bg-blue-500', title: 'Neosilver' }] },
+                    { day: 25, events: [{ color: 'bg-red-500', title: 'FINANCE' }] },
+                    { day: 26, events: [{ color: 'bg-blue-500', title: 'Neosilver' }, { color: 'bg-amber-500', title: 'FINANCE' }], extra: 1 },
+                    { day: 27, events: [{ color: 'bg-red-500', title: 'FINANCE' }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 1 },
+                    { day: 28, events: [{ color: 'bg-green-500', title: "Cours d'arabe" }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 2 },
+                  ].map((item, i) => (
+                    <div key={i} className="min-h-[60px] p-1 border-r border-b border-border last:border-r-0 relative">
+                      <span className="text-xs font-medium text-foreground">{item.day}</span>
+                      <div className="mt-0.5 space-y-0.5">
+                        {item.events.slice(0, 2).map((event, j) => (
+                          <div key={j} className={`text-[9px] px-1 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
+                            {event.title}
+                          </div>
+                        ))}
+                        {item.extra && <span className="text-[8px] text-muted-foreground">+{item.extra} autres</span>}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
