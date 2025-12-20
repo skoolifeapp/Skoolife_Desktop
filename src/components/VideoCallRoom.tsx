@@ -87,33 +87,30 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
         }`}
       >
         <div className="flex h-full flex-col bg-background rounded-xl overflow-hidden">
-          <header className="flex-shrink-0 border-b border-border">
-            <div className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hidden lg:flex"
-                  onClick={toggleSidebarCollapsed}
-                  title={sidebarCollapsed ? 'Agrandir la sidebar' : 'Réduire la sidebar'}
-                >
-                  {sidebarCollapsed ? (
-                    <PanelLeft className="w-5 h-5" />
-                  ) : (
-                    <PanelLeftClose className="w-5 h-5" />
-                  )}
-                </Button>
-                <span className="text-lg">/</span>
-                <span className="font-semibold text-foreground">
-                  {sessionTitle || 'Session Visio'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <NotificationsDropdown />
-                <ThemeToggle />
-              </div>
+          <div className="flex h-14 items-center justify-between px-6 border-b border-border flex-shrink-0">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-8 h-8 rounded-lg hidden lg:flex"
+                onClick={toggleSidebarCollapsed}
+              >
+                {sidebarCollapsed ? (
+                  <PanelLeft className="w-4 h-4" />
+                ) : (
+                  <PanelLeftClose className="w-4 h-4" />
+                )}
+              </Button>
+              <span>/</span>
+              <span className="font-medium text-foreground">
+                {sessionTitle || 'Session Visio'}
+              </span>
             </div>
-          </header>
+            <div className="flex items-center gap-2">
+              <NotificationsDropdown />
+              <ThemeToggle />
+            </div>
+          </div>
 
           <main className="flex-1 flex items-center justify-center p-6">
             <div className="text-center space-y-4 flex flex-col items-center justify-center">
@@ -136,33 +133,30 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
         }`}
       >
         <div className="flex h-full flex-col bg-background rounded-xl overflow-hidden">
-          <header className="flex-shrink-0 border-b border-border">
-            <div className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hidden lg:flex"
-                  onClick={toggleSidebarCollapsed}
-                  title={sidebarCollapsed ? 'Agrandir la sidebar' : 'Réduire la sidebar'}
-                >
-                  {sidebarCollapsed ? (
-                    <PanelLeft className="w-5 h-5" />
-                  ) : (
-                    <PanelLeftClose className="w-5 h-5" />
-                  )}
-                </Button>
-                <span className="text-lg">/</span>
-                <span className="font-semibold text-foreground">
-                  {sessionTitle || 'Session Visio'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <NotificationsDropdown />
-                <ThemeToggle />
-              </div>
+          <div className="flex h-14 items-center justify-between px-6 border-b border-border flex-shrink-0">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-8 h-8 rounded-lg hidden lg:flex"
+                onClick={toggleSidebarCollapsed}
+              >
+                {sidebarCollapsed ? (
+                  <PanelLeft className="w-4 h-4" />
+                ) : (
+                  <PanelLeftClose className="w-4 h-4" />
+                )}
+              </Button>
+              <span>/</span>
+              <span className="font-medium text-foreground">
+                {sessionTitle || 'Session Visio'}
+              </span>
             </div>
-          </header>
+            <div className="flex items-center gap-2">
+              <NotificationsDropdown />
+              <ThemeToggle />
+            </div>
+          </div>
 
           <main className="flex-1 flex items-center justify-center p-6">
             <div className="text-center space-y-4 max-w-md">
@@ -290,41 +284,38 @@ const VideoCallRoom = ({ roomUrl, onLeave, sessionTitle }: VideoCallRoomProps) =
   return (
     <div className={`fixed inset-0 z-50 bg-sidebar flex flex-col overflow-hidden transition-all duration-300 pt-2 pr-2 pb-2 ${sidebarCollapsed ? 'lg:pl-16' : 'lg:pl-56'}`}>
       <div className="flex-1 flex flex-col bg-background rounded-xl overflow-hidden">
-      {/* Header matching app style - like Progression page */}
-      <header className="flex-shrink-0 border-b border-border">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 hidden lg:flex"
-              onClick={toggleSidebarCollapsed}
-              title={sidebarCollapsed ? 'Agrandir la sidebar' : 'Réduire la sidebar'}
-            >
-              {sidebarCollapsed ? <PanelLeft className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
-            </Button>
-            <span className="text-lg">/</span>
-            <span className="font-semibold text-foreground">
-              {sessionTitle || 'Session Visio'}
+      {/* Header matching app style */}
+      <div className="flex h-14 items-center justify-between px-6 border-b border-border flex-shrink-0">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-8 h-8 rounded-lg hidden lg:flex"
+            onClick={toggleSidebarCollapsed}
+          >
+            {sidebarCollapsed ? <PanelLeft className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+          </Button>
+          <span>/</span>
+          <span className="font-medium text-foreground">
+            {sessionTitle || 'Session Visio'}
+          </span>
+          {isPresentationMode && (
+            <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs font-medium rounded-full ml-2">
+              Mode présentation
             </span>
-            {isPresentationMode && (
-              <span className="px-2 py-0.5 bg-primary/20 text-primary text-xs font-medium rounded-full ml-2">
-                Mode présentation
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 text-green-600 rounded-full">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm font-medium">
-                {participants.length} participant{participants.length > 1 ? 's' : ''}
-              </span>
-            </div>
-            <NotificationsDropdown />
-            <ThemeToggle />
-          </div>
+          )}
         </div>
-      </header>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 text-green-600 rounded-full">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-sm font-medium">
+              {participants.length} participant{participants.length > 1 ? 's' : ''}
+            </span>
+          </div>
+          <NotificationsDropdown />
+          <ThemeToggle />
+        </div>
+      </div>
 
       {/* Video Grid - Fill remaining space */}
       <main className="flex-1 p-6 min-h-0 overflow-hidden">
