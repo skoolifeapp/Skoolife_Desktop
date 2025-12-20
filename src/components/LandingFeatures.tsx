@@ -64,11 +64,11 @@ const LandingFeatures = () => {
                     { day: 6, events: [] },
                     { day: 7, events: [] },
                   ].map((item, i) => (
-                    <div key={i} className="min-h-[60px] p-1 border-r border-b border-border last:border-r-0 relative">
+                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border last:border-r-0 relative">
                       <span className="text-xs font-medium text-foreground">{item.day}</span>
-                      <div className="mt-0.5 space-y-0.5">
+                      <div className="mt-1 space-y-1">
                         {item.events.slice(0, 2).map((event, j) => (
-                          <div key={j} className={`text-[9px] px-1 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
+                          <div key={j} className={`text-[10px] px-1.5 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
                             {event.title}
                           </div>
                         ))}
@@ -86,11 +86,11 @@ const LandingFeatures = () => {
                     { day: 13, events: [] },
                     { day: 14, events: [] },
                   ].map((item, i) => (
-                    <div key={i} className="min-h-[60px] p-1 border-r border-b border-border last:border-r-0 relative">
+                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border last:border-r-0 relative">
                       <span className="text-xs font-medium text-foreground">{item.day}</span>
-                      <div className="mt-0.5 space-y-0.5">
+                      <div className="mt-1 space-y-1">
                         {item.events.slice(0, 2).map((event, j) => (
-                          <div key={j} className={`text-[9px] px-1 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
+                          <div key={j} className={`text-[10px] px-1.5 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
                             {event.title}
                           </div>
                         ))}
@@ -108,17 +108,17 @@ const LandingFeatures = () => {
                     { day: 20, events: [{ color: 'bg-red-500', title: 'FINANCE' }, { color: 'bg-blue-500', title: 'MSI' }], isToday: true, extra: 1 },
                     { day: 21, events: [{ color: 'bg-green-500', title: "Cours d'arabe" }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 1 },
                   ].map((item, i) => (
-                    <div key={i} className="min-h-[60px] p-1 border-r border-b border-border last:border-r-0 relative">
+                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border last:border-r-0 relative">
                       <span className={`text-xs font-medium ${item.isToday ? 'bg-primary text-primary-foreground w-5 h-5 rounded-full flex items-center justify-center' : 'text-foreground'}`}>
                         {item.day}
                       </span>
-                      <div className="mt-0.5 space-y-0.5">
+                      <div className="mt-1 space-y-1">
                         {item.events.slice(0, 2).map((event, j) => (
-                          <div key={j} className={`text-[9px] px-1 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
+                          <div key={j} className={`text-[10px] px-1.5 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
                             {event.title}
                           </div>
                         ))}
-                        {item.extra && <span className="text-[8px] text-muted-foreground">+{item.extra} autres</span>}
+                        {item.extra && <span className="text-[9px] text-muted-foreground">+{item.extra} autres</span>}
                       </div>
                     </div>
                   ))}
@@ -133,15 +133,15 @@ const LandingFeatures = () => {
                     { day: 27, events: [{ color: 'bg-red-500', title: 'FINANCE' }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 1 },
                     { day: 28, events: [{ color: 'bg-green-500', title: "Cours d'arabe" }, { color: 'bg-red-500', title: 'FINANCE' }], extra: 2 },
                   ].map((item, i) => (
-                    <div key={i} className="min-h-[60px] p-1 border-r border-b border-border last:border-r-0 relative">
+                    <div key={i} className="min-h-[80px] p-1.5 border-r border-b border-border last:border-r-0 relative">
                       <span className="text-xs font-medium text-foreground">{item.day}</span>
-                      <div className="mt-0.5 space-y-0.5">
+                      <div className="mt-1 space-y-1">
                         {item.events.slice(0, 2).map((event, j) => (
-                          <div key={j} className={`text-[9px] px-1 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
+                          <div key={j} className={`text-[10px] px-1.5 py-0.5 rounded ${event.color} text-white font-medium truncate`}>
                             {event.title}
                           </div>
                         ))}
-                        {item.extra && <span className="text-[8px] text-muted-foreground">+{item.extra} autres</span>}
+                        {item.extra && <span className="text-[9px] text-muted-foreground">+{item.extra} autres</span>}
                       </div>
                     </div>
                   ))}
