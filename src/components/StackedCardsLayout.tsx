@@ -80,7 +80,7 @@ const StackedCardsLayout = () => {
   return (
     <div className="relative w-full max-w-5xl mx-auto">
       {/* Cards container with clipping */}
-      <div className="relative h-[360px] md:h-[400px] overflow-hidden">
+      <div className="relative h-[450px] md:h-[520px] overflow-hidden">
         {cards.map((card, index) => {
           const style = getCardStyle(index);
           const isActive = index === activeIndex;
@@ -96,7 +96,7 @@ const StackedCardsLayout = () => {
                 zIndex: style.zIndex,
                 transform: style.transform,
                 opacity: style.opacity,
-                height: '600px',
+                height: '700px',
                 top: '50px',
                 boxShadow: '0 -8px 30px -10px rgba(0, 0, 0, 0.15)',
               }}
