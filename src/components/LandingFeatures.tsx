@@ -1,9 +1,8 @@
-import { Check, Calendar, Brain, Clock, Target, Timer, Play, Pause, RotateCcw, Coffee, BookOpen, BarChart3, GraduationCap, Settings, Bell, Sun, CheckCircle2, RefreshCw, Plus } from 'lucide-react';
+import { Check, Calendar, Brain, Clock, Target, Timer, Play, Pause, RotateCcw, Coffee, BookOpen, BarChart3, GraduationCap, Settings, Bell, Sun, CheckCircle2, RefreshCw, Plus, Mic, Video, MonitorUp, MessageCircle, PhoneOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import logo from '@/assets/logo.png';
-import groupStudyScreenshot from '@/assets/group-study-screenshot.jpg';
 
 const LandingFeatures = () => {
   return (
@@ -259,14 +258,115 @@ const LandingFeatures = () => {
               </ul>
             </div>
 
-            {/* Video call screenshot side */}
+            {/* Video call mockup side */}
             <div className="p-6 md:p-8 bg-muted/30 order-1 md:order-2">
-              <div className="rounded-xl overflow-hidden border border-border shadow-lg">
-                <img 
-                  src={groupStudyScreenshot} 
-                  alt="Session de révision en groupe avec visioconférence" 
-                  className="w-full h-auto object-cover"
-                />
+              <div className="rounded-xl overflow-hidden border border-border shadow-lg bg-[#1a1a2e] dark:bg-[#0d0d1a]">
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-2 border-b border-white/10">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-white/60 text-xs">
+                      <BookOpen className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-sm font-semibold text-white">FINANCE</span>
+                    <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[10px] font-medium">Mode présentation</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-green-500" />
+                      <span className="text-xs text-white/80">2 participants</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main content area */}
+                <div className="relative">
+                  {/* Shared screen - Excel mockup */}
+                  <div className="aspect-video bg-white m-2 rounded-lg overflow-hidden">
+                    {/* Excel header bar */}
+                    <div className="bg-[#217346] px-3 py-1.5 flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <div className="w-2.5 h-2.5 rounded-full bg-white/30" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-white/30" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-white/30" />
+                      </div>
+                      <span className="text-[10px] text-white font-medium ml-2">INSEEC BACHELOR - Indicateurs Financiers</span>
+                    </div>
+                    {/* Excel content */}
+                    <div className="p-2 bg-[#f5f5f5]">
+                      {/* Table mockup */}
+                      <div className="border border-gray-300 rounded text-[7px] overflow-hidden">
+                        <div className="grid grid-cols-4 bg-gray-200 border-b border-gray-300">
+                          <div className="px-2 py-1 border-r border-gray-300 font-semibold">Indicateurs</div>
+                          <div className="px-2 py-1 border-r border-gray-300 font-semibold text-center">Fund</div>
+                          <div className="px-2 py-1 border-r border-gray-300 font-semibold text-center">Benchmark</div>
+                          <div className="px-2 py-1 font-semibold text-center">Écart</div>
+                        </div>
+                        <div className="grid grid-cols-4 border-b border-gray-200">
+                          <div className="px-2 py-1 border-r border-gray-200">Performance</div>
+                          <div className="px-2 py-1 border-r border-gray-200 text-center text-green-600">10.64%</div>
+                          <div className="px-2 py-1 border-r border-gray-200 text-center">8.57%</div>
+                          <div className="px-2 py-1 text-center text-green-600">+2.07%</div>
+                        </div>
+                        <div className="grid grid-cols-4 border-b border-gray-200 bg-gray-50">
+                          <div className="px-2 py-1 border-r border-gray-200">Volatilité</div>
+                          <div className="px-2 py-1 border-r border-gray-200 text-center">4.93%</div>
+                          <div className="px-2 py-1 border-r border-gray-200 text-center">3.07%</div>
+                          <div className="px-2 py-1 text-center text-red-500">+1.86%</div>
+                        </div>
+                        <div className="grid grid-cols-4">
+                          <div className="px-2 py-1 border-r border-gray-200">Sharpe Ratio</div>
+                          <div className="px-2 py-1 border-r border-gray-200 text-center">1.81</div>
+                          <div className="px-2 py-1 border-r border-gray-200 text-center">1.85</div>
+                          <div className="px-2 py-1 text-center text-red-500">-0.04</div>
+                        </div>
+                      </div>
+                      {/* Mini chart mockup */}
+                      <div className="mt-2 h-12 bg-white border border-gray-300 rounded p-1.5 flex items-end gap-0.5">
+                        {[40, 45, 42, 50, 48, 55, 60, 58, 65, 70, 68, 75, 72, 78, 82].map((h, i) => (
+                          <div key={i} className="flex-1 bg-blue-500/70 rounded-t" style={{ height: `${h}%` }} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Video tiles - overlaid */}
+                  <div className="absolute top-3 right-3 flex flex-col gap-2">
+                    {/* Participant 1 */}
+                    <div className="w-20 h-14 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center relative border-2 border-white/20 shadow-lg">
+                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-sm font-bold">
+                        R
+                      </div>
+                      <span className="absolute bottom-1 left-1 text-[8px] text-white bg-black/50 px-1 rounded">Ridouane (Toi)</span>
+                    </div>
+                    {/* Participant 2 */}
+                    <div className="w-20 h-14 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center relative border-2 border-white/20 shadow-lg">
+                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-sm font-bold">
+                        D
+                      </div>
+                      <span className="absolute bottom-1 left-1 text-[8px] text-white bg-black/50 px-1 rounded">Djamel</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Controls */}
+                <div className="px-4 py-3 flex items-center justify-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer transition-colors">
+                    <Mic className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer transition-colors">
+                    <Video className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-primary/80 hover:bg-primary flex items-center justify-center cursor-pointer transition-colors">
+                    <MonitorUp className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center cursor-pointer transition-colors relative">
+                    <MessageCircle className="w-4 h-4 text-white" />
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] text-white flex items-center justify-center font-medium">1</span>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center cursor-pointer transition-colors">
+                    <PhoneOff className="w-5 h-5 text-white" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
