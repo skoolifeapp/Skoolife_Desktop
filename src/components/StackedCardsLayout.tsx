@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { StaticCalendarCard, StaticProgressionCard, StaticSubjectsCard } from './StaticAppCards';
+import { StaticCalendarCard, StaticProgressionCard, StaticSubjectsCard, StaticSettingsCard } from './StaticAppCards';
 
 interface CardData {
   id: number;
@@ -27,6 +27,11 @@ const StackedCardsLayout = () => {
       title: 'Matières',
       content: <StaticSubjectsCard />,
     },
+    {
+      id: 3,
+      title: 'Paramètres',
+      content: <StaticSettingsCard />,
+    },
   ];
 
   // Auto-scroll every 3 seconds
@@ -46,21 +51,27 @@ const StackedCardsLayout = () => {
     // Cards stack BEHIND (negative Y = up)
     if (position === 0) {
       return {
-        zIndex: 30,
+        zIndex: 40,
         transform: 'translateY(0) scale(1)',
         opacity: 1,
       };
     } else if (position === 1) {
       return {
-        zIndex: 20,
-        transform: 'translateY(-20px) scale(0.96)',
+        zIndex: 30,
+        transform: 'translateY(-15px) scale(0.97)',
         opacity: 0.85,
+      };
+    } else if (position === 2) {
+      return {
+        zIndex: 20,
+        transform: 'translateY(-30px) scale(0.94)',
+        opacity: 0.65,
       };
     } else {
       return {
         zIndex: 10,
-        transform: 'translateY(-40px) scale(0.92)',
-        opacity: 0.6,
+        transform: 'translateY(-45px) scale(0.91)',
+        opacity: 0.45,
       };
     }
   };
