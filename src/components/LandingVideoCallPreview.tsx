@@ -6,9 +6,15 @@ import {
   Users,
   MessageSquare,
   PanelLeftClose,
-  Bell
+  Bell,
+  Calendar,
+  BarChart3,
+  GraduationCap,
+  Settings,
+  Timer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import logo from '@/assets/logo.png';
 
 const LandingVideoCallPreview = () => {
   // Mock participants for the demo
@@ -17,19 +23,44 @@ const LandingVideoCallPreview = () => {
     { id: '2', name: 'Djamel', initial: 'D', color: 'from-amber-500 to-orange-600', isLocal: false },
   ];
 
+  const sidebarIcons = [
+    { icon: Calendar, active: false },
+    { icon: BarChart3, active: true },
+    { icon: GraduationCap, active: false },
+    { icon: Settings, active: false },
+    { icon: Timer, active: false },
+  ];
+
   return (
-    <div className="rounded-xl overflow-hidden border border-border shadow-lg bg-sidebar">
+    <div className="rounded-xl overflow-hidden border border-border shadow-lg bg-[#FFFDF8] dark:bg-card">
       {/* Simulated app chrome */}
       <div className="flex h-full">
-        {/* Fake sidebar strip */}
-        <div className="w-12 bg-sidebar hidden sm:flex flex-col items-center py-3 gap-3 border-r border-border">
-          <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center">
-            <div className="w-4 h-4 rounded bg-primary" />
+        {/* Sidebar with Skoolife logo */}
+        <div className="w-12 bg-primary/10 hidden sm:flex flex-col items-center py-3 border-r border-border">
+          {/* Logo Skoolife */}
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center mb-4">
+            <img src={logo} alt="Skoolife" className="w-5 h-5" />
           </div>
-          <div className="flex-1 flex flex-col gap-2 mt-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="w-6 h-6 rounded bg-muted/50" />
+          
+          {/* Navigation icons */}
+          <div className="flex-1 flex flex-col gap-1.5">
+            {sidebarIcons.map((item, i) => (
+              <div 
+                key={i} 
+                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                  item.active 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'text-muted-foreground hover:bg-muted/50'
+                }`}
+              >
+                <item.icon className="w-4 h-4" />
+              </div>
             ))}
+          </div>
+          
+          {/* User avatar at bottom */}
+          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mt-auto">
+            <span className="text-xs font-bold text-primary">S</span>
           </div>
         </div>
 
