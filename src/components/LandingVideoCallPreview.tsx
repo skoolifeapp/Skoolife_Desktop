@@ -65,7 +65,7 @@ const LandingVideoCallPreview = () => {
         </div>
 
         {/* Main content area */}
-        <div className="flex-1 flex flex-col bg-background rounded-r-xl sm:rounded-l-none rounded-xl overflow-hidden m-1 sm:m-1.5">
+        <div className="flex-1 flex flex-col bg-[#FFFDF8] dark:bg-card rounded-r-xl sm:rounded-l-none rounded-xl overflow-hidden m-1 sm:m-1.5">
           {/* Header */}
           <div className="flex h-10 items-center justify-between px-3 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
