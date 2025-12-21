@@ -35,22 +35,22 @@ const LandingVideoCallPreview = () => {
     <div className="rounded-xl overflow-hidden border border-border shadow-lg bg-[#FFFDF8] dark:bg-card">
       {/* Simulated app chrome */}
       <div className="flex h-full">
-        {/* Sidebar with Skoolife logo */}
-        <div className="w-12 bg-primary/10 hidden sm:flex flex-col items-center py-3 border-r border-border">
+        {/* Sidebar with Skoolife logo - identical to StaticAppCards */}
+        <div className="w-14 hidden sm:flex flex-col bg-primary text-primary-foreground items-center py-3">
           {/* Logo Skoolife */}
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center mb-4">
-            <img src={logo} alt="Skoolife" className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-xl overflow-hidden mb-6">
+            <img src={logo} alt="Skoolife" className="w-full h-full object-cover" />
           </div>
           
           {/* Navigation icons */}
-          <div className="flex-1 flex flex-col gap-1.5">
+          <div className="flex-1 flex flex-col items-center gap-3">
             {sidebarIcons.map((item, i) => (
               <div 
                 key={i} 
-                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center ${
                   item.active 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'text-muted-foreground hover:bg-muted/50'
+                    ? 'bg-primary-foreground/20' 
+                    : 'hover:bg-primary-foreground/10'
                 }`}
               >
                 <item.icon className="w-4 h-4" />
@@ -59,8 +59,10 @@ const LandingVideoCallPreview = () => {
           </div>
           
           {/* User avatar at bottom */}
-          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mt-auto">
-            <span className="text-xs font-bold text-primary">S</span>
+          <div className="mt-auto pt-3 border-t border-primary-foreground/20 w-full flex justify-center">
+            <div className="w-9 h-9 rounded-full bg-primary-foreground/30 flex items-center justify-center text-sm font-medium">
+              S
+            </div>
           </div>
         </div>
 
