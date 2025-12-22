@@ -22,7 +22,6 @@ export const SUBSCRIPTION_TIERS = {
   student: {
     name: 'Student',
     price: '2,99',
-    promoPrice: '2,39',
     priceId: STRIPE_PRICES.student,
     productId: STRIPE_PRODUCTS.student,
     description: 'Tout pour organiser tes révisions',
@@ -30,7 +29,6 @@ export const SUBSCRIPTION_TIERS = {
   major: {
     name: 'Major',
     price: '4,99',
-    promoPrice: '3,99',
     priceId: STRIPE_PRICES.major,
     productId: STRIPE_PRODUCTS.major,
     description: 'Révise avec tes camarades',

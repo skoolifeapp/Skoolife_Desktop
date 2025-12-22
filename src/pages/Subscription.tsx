@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Crown, Sparkles, Calendar, CreditCard, ArrowDownCircle, ArrowUpCircle, XCircle, Loader2, Check, Percent } from "lucide-react";
+import { Crown, Sparkles, Calendar, CreditCard, ArrowDownCircle, ArrowUpCircle, XCircle, Loader2, Check } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { SubscriptionSkeleton } from "@/components/PageSkeletons";
@@ -25,16 +25,14 @@ import { SUBSCRIPTION_TIERS } from "@/config/stripe";
 const TIER_INFO = {
   student: {
     name: "Skoolife Student",
-    price: SUBSCRIPTION_TIERS.student.price,
-    promoPrice: SUBSCRIPTION_TIERS.student.promoPrice,
+    price: `${SUBSCRIPTION_TIERS.student.price}€`,
     icon: Sparkles,
     color: "text-primary",
     bgColor: "bg-primary/10",
   },
   major: {
     name: "Skoolife Major",
-    price: SUBSCRIPTION_TIERS.major.price,
-    promoPrice: SUBSCRIPTION_TIERS.major.promoPrice,
+    price: `${SUBSCRIPTION_TIERS.major.price}€`,
     icon: Crown,
     color: "text-amber-500",
     bgColor: "bg-amber-500/10",
@@ -228,17 +226,10 @@ const Subscription = () => {
             {/* Price */}
             <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl">
               <CreditCard className="w-5 h-5 text-muted-foreground" />
-              <div className="flex-1">
+              <div>
                 <p className="text-sm text-muted-foreground">Montant mensuel</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground line-through">{tierInfo.price}€</span>
-                  <span className="text-lg font-semibold">{tierInfo.promoPrice}€ / mois</span>
-                </div>
+                <p className="text-lg font-semibold">{tierInfo.price} / mois</p>
               </div>
-              <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 gap-1">
-                <Percent className="w-3 h-3" />
-                -20% 2 mois
-              </Badge>
             </div>
 
             {/* Next billing date */}
@@ -283,7 +274,7 @@ const Subscription = () => {
                         Débloquez toutes les fonctionnalités premium : invitations camarades, analytics avancés et plus.
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-amber-700 dark:text-amber-400"><span className="text-sm line-through opacity-70 mr-1">4,99€</span>3,99€/mois</span>
+                        <span className="text-lg font-bold text-amber-700 dark:text-amber-400">4,99€/mois</span>
                         <Button
                           onClick={() => setConfirmDialog({ open: true, targetTier: "major" })}
                           disabled={switchLoading}
@@ -308,7 +299,7 @@ const Subscription = () => {
                         Plan essentiel pour la planification de révisions. Certaines fonctionnalités premium seront désactivées.
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold"><span className="text-sm line-through opacity-50 mr-1">2,99€</span>2,39€/mois</span>
+                        <span className="text-lg font-bold">2,99€/mois</span>
                         <Button
                           variant="outline"
                           onClick={() => setConfirmDialog({ open: true, targetTier: "student" })}
@@ -386,11 +377,11 @@ const Subscription = () => {
             <AlertDialogDescription>
               {confirmDialog.targetTier === "major" ? (
                 <>
-                  Tu vas être redirigé vers Stripe pour passer au plan <strong>Major à 3,99€/mois</strong> (au lieu de 4,99€ les 2 premiers mois). Le prorata sera calculé automatiquement.
+                  Tu vas être redirigé vers Stripe pour passer au plan <strong>Major à 4,99€/mois</strong>. Le prorata sera calculé automatiquement.
                 </>
               ) : (
                 <>
-                  Tu vas être redirigé vers Stripe pour passer au plan <strong>Student à 2,39€/mois</strong> (au lieu de 2,99€ les 2 premiers mois). Certaines fonctionnalités premium seront désactivées.
+                  Tu vas être redirigé vers Stripe pour passer au plan <strong>Student à 2,99€/mois</strong>. Certaines fonctionnalités premium seront désactivées.
                 </>
               )}
             </AlertDialogDescription>
