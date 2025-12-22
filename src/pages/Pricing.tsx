@@ -18,7 +18,8 @@ import {
   Video, 
   BarChart3, 
   Sparkles,
-  MessageCircle
+  MessageCircle,
+  Percent
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { SUBSCRIPTION_TIERS } from '@/config/stripe';
@@ -130,6 +131,12 @@ const Pricing = () => {
                 <span className="text-4xl font-bold text-foreground">{PLANS.student.price}€</span>
                 <span className="text-muted-foreground ml-2">/ mois</span>
               </div>
+              <div className="mt-3">
+                <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 gap-1">
+                  <Percent className="w-3 h-3" />
+                  -20% les 2 premiers mois
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <ul className="space-y-4">
@@ -180,6 +187,12 @@ const Pricing = () => {
               <div className="mt-4">
                 <span className="text-4xl font-bold text-foreground">{PLANS.major.price}€</span>
                 <span className="text-muted-foreground ml-2">/ mois</span>
+              </div>
+              <div className="mt-3">
+                <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 gap-1">
+                  <Percent className="w-3 h-3" />
+                  -20% les 2 premiers mois
+                </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
