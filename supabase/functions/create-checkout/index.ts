@@ -57,6 +57,11 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
+      discounts: [
+        {
+          coupon: "oAjCa5xZ", // 20% off for the first 2 months
+        },
+      ],
       subscription_data: {
         trial_period_days: 7,
       },
