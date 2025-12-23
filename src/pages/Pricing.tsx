@@ -133,8 +133,7 @@ const Pricing = () => {
                 <span className="text-muted-foreground">/ mois</span>
               </div>
               <div className="mt-3">
-                <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 gap-1">
-                  <Percent className="w-3 h-3" />
+                <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                   -20% les 2 premiers mois
                 </Badge>
               </div>
@@ -191,8 +190,7 @@ const Pricing = () => {
                 <span className="text-muted-foreground">/ mois</span>
               </div>
               <div className="mt-3">
-                <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 gap-1">
-                  <Percent className="w-3 h-3" />
+                <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                   -20% les 2 premiers mois
                 </Badge>
               </div>
