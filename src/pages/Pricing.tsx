@@ -31,7 +31,7 @@ const PLANS = {
     ...SUBSCRIPTION_TIERS.student,
     features: [
       { text: 'Planning intelligent qui s\'adapte à toi', icon: Calendar },
-      { text: 'Génération auto de tes sessions', icon: Sparkles },
+      { text: 'Génération de tes sessions de révisions', icon: Sparkles },
       { text: 'Organise toutes tes matières facilement', icon: BookOpen },
       { text: 'Importe ton emploi du temps en 1 clic', icon: Calendar },
       { text: 'Timer Pomodoro pour rester focus', icon: Target },
