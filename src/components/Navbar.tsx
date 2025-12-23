@@ -25,7 +25,7 @@ const Navbar = () => {
   const logoLink = user ? '/app' : '/';
 
   return (
-    <header className="fixed left-0 right-0 z-50 top-0 flex justify-center px-4 py-4">
+    <header className="fixed left-0 right-0 z-[100] top-0 flex justify-center px-4 py-4">
       <nav className="flex items-center gap-2 px-3 py-2 bg-white/95 dark:bg-card/95 backdrop-blur-md rounded-full border border-border/50 shadow-lg">
         {/* Logo */}
         <Link to={logoLink} className="flex items-center gap-2 hover:opacity-80 transition-opacity px-2">
