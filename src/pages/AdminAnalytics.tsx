@@ -20,7 +20,7 @@ import {
   Wifi,
   Mail
 } from 'lucide-react';
-import { format, addDays, differenceInHours, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
+import { format, differenceInHours, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
   Table,
@@ -42,6 +42,35 @@ interface UserWithMetrics {
   status: 'trial' | 'active' | 'churned';
   trial_end_date: Date | null;
   is_trial_ending_soon: boolean;
+  stripe_status: 'trialing' | 'active' | 'canceled' | 'no_subscription';
+  product_id: string | null;
+}
+
+interface StripeUser {
+  user_id: string;
+  email: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  school: string | null;
+  created_at: string | null;
+  is_onboarding_complete: boolean | null;
+  stripe_status: 'trialing' | 'active' | 'canceled' | 'no_subscription';
+  subscription_end: string | null;
+  trial_end: string | null;
+  cancel_at_period_end: boolean;
+  product_id: string | null;
+}
+
+interface StripeStats {
+  totalSignups: number;
+  trialsStarted: number;
+  trialsStartedRate: number;
+  onboardingCompleted: number;
+  onboardingCompletedRate: number;
+  usersInTrial: number;
+  convertedUsers: number;
+  churnedUsers: number;
+  conversionRate: number;
 }
 
 const AdminAnalytics = () => {
@@ -50,8 +79,19 @@ const AdminAnalytics = () => {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isConnected, setIsConnected] = useState(true);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin-analytics'],
+  // Fetch Stripe data from edge function
+  const { data: stripeData, isLoading: stripeLoading } = useQuery({
+    queryKey: ['admin-stripe-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('admin-stripe-stats');
+      if (error) throw error;
+      return data as { stats: StripeStats; users: StripeUser[] };
+    },
+  });
+
+  // Fetch activation/retention data from DB
+  const { data: dbData, isLoading: dbLoading } = useQuery({
+    queryKey: ['admin-analytics-db'],
     queryFn: async () => {
       // Get admin user IDs to exclude
       const { data: adminRoles } = await supabase
@@ -61,13 +101,11 @@ const AdminAnalytics = () => {
 
       const adminIds = adminRoles?.map(r => r.user_id) || [];
 
-      const [profilesRes, aiPlansRes, activityRes] = await Promise.all([
-        supabase.from('profiles').select('id, email, first_name, last_name, school, created_at, is_onboarding_complete'),
+      const [aiPlansRes, activityRes] = await Promise.all([
         supabase.from('ai_plans').select('id, user_id, created_at'),
         supabase.from('user_activity').select('id, user_id, created_at'),
       ]);
 
-      const profiles = (profilesRes.data || []).filter(p => !adminIds.includes(p.id));
       const aiPlans = (aiPlansRes.data || []).filter(p => !adminIds.includes(p.user_id));
       const activity = (activityRes.data || []).filter(a => !adminIds.includes(a.user_id));
 
@@ -75,54 +113,11 @@ const AdminAnalytics = () => {
       const thisWeekStart = startOfWeek(now, { weekStartsOn: 1 });
       const thisWeekEnd = endOfWeek(now, { weekStartsOn: 1 });
 
-      // === FUNNEL METRICS ===
-      const totalSignups = profiles.length;
-      
-      // For now, we assume all users who completed onboarding went through trial
-      // In production, you'd get this from Stripe
-      const trialsStarted = profiles.filter(p => p.is_onboarding_complete).length;
-      const trialsStartedRate = totalSignups > 0 ? (trialsStarted / totalSignups) * 100 : 0;
-      
-      const onboardingCompleted = profiles.filter(p => p.is_onboarding_complete).length;
-      const onboardingCompletedRate = trialsStarted > 0 ? (onboardingCompleted / trialsStarted) * 100 : 0;
-
-      // === MONETIZATION METRICS ===
-      // Users in trial = signed up within last 7 days and onboarding complete
-      const usersInTrial = profiles.filter(p => {
-        if (!p.created_at || !p.is_onboarding_complete) return false;
-        const createdDate = new Date(p.created_at);
-        const daysSinceSignup = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
-        return daysSinceSignup <= 7;
-      }).length;
-
-      // Users who converted = onboarding complete + signed up more than 7 days ago
-      const convertedUsers = profiles.filter(p => {
-        if (!p.created_at || !p.is_onboarding_complete) return false;
-        const createdDate = new Date(p.created_at);
-        const daysSinceSignup = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
-        return daysSinceSignup > 7;
-      }).length;
-
-      // Users who churned = didn't complete onboarding + signed up more than 7 days ago
-      const churnedUsers = profiles.filter(p => {
-        if (!p.created_at) return false;
-        const createdDate = new Date(p.created_at);
-        const daysSinceSignup = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
-        return daysSinceSignup > 7 && !p.is_onboarding_complete;
-      }).length;
-
-      const conversionRate = (convertedUsers + churnedUsers) > 0 
-        ? (convertedUsers / (convertedUsers + churnedUsers)) * 100 
-        : 0;
-
-      // === ACTIVATION METRICS ===
+      // Activation metrics
       const usersWithPlanning = new Set(aiPlans.map(p => p.user_id));
       const planningGeneratedCount = usersWithPlanning.size;
-      const activationRate = onboardingCompleted > 0 
-        ? (planningGeneratedCount / onboardingCompleted) * 100 
-        : 0;
 
-      // === RETENTION METRICS (WAU) ===
+      // Retention metrics (WAU)
       const activityThisWeek = activity.filter(a => 
         a.created_at && isWithinInterval(new Date(a.created_at), { start: thisWeekStart, end: thisWeekEnd })
       );
@@ -134,72 +129,74 @@ const AdminAnalytics = () => {
       
       const wauCount = Object.values(userSessionsThisWeek).filter(count => count >= 2).length;
 
-      // === USER LIST WITH STATUS ===
-      const usersWithMetrics: UserWithMetrics[] = profiles.map(profile => {
-        const createdDate = profile.created_at ? new Date(profile.created_at) : null;
-        const trialEndDate = createdDate ? addDays(createdDate, 7) : null;
-        const daysSinceSignup = createdDate 
-          ? (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24)
-          : 0;
-
-        let status: 'trial' | 'active' | 'churned' = 'trial';
-        if (daysSinceSignup > 7) {
-          status = profile.is_onboarding_complete ? 'active' : 'churned';
-        } else if (profile.is_onboarding_complete) {
-          status = 'trial';
-        }
-
-        const hoursUntilTrialEnd = trialEndDate ? differenceInHours(trialEndDate, now) : 0;
-        const isTrialEndingSoon = status === 'trial' && hoursUntilTrialEnd > 0 && hoursUntilTrialEnd <= 24;
-
-        return {
-          id: profile.id,
-          email: profile.email,
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          school: profile.school,
-          created_at: profile.created_at,
-          is_onboarding_complete: profile.is_onboarding_complete,
-          status,
-          trial_end_date: trialEndDate,
-          is_trial_ending_soon: isTrialEndingSoon,
-        };
-      }).sort((a, b) => {
-        // Sort by trial ending soon first, then by created_at desc
-        if (a.is_trial_ending_soon && !b.is_trial_ending_soon) return -1;
-        if (!a.is_trial_ending_soon && b.is_trial_ending_soon) return 1;
-        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
-        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
-        return dateB - dateA;
-      });
-
       return {
-        // Funnel
-        totalSignups,
-        trialsStarted,
-        trialsStartedRate,
-        onboardingCompleted,
-        onboardingCompletedRate,
-        // Monetization
-        usersInTrial,
-        convertedUsers,
-        conversionRate,
-        // Activation
         planningGeneratedCount,
-        activationRate,
-        // Retention
         wauCount,
-        // Users
-        users: usersWithMetrics,
       };
     },
   });
 
-  // Real-time subscriptions
+  const isLoading = stripeLoading || dbLoading;
+
+  // Transform Stripe users to display format
+  const usersWithMetrics: UserWithMetrics[] = (stripeData?.users || []).map((user) => {
+    const now = new Date();
+    
+    // Determine trial end date from Stripe
+    let trialEndDate: Date | null = null;
+    if (user.trial_end) {
+      trialEndDate = new Date(user.trial_end);
+    } else if (user.subscription_end && user.stripe_status === 'trialing') {
+      trialEndDate = new Date(user.subscription_end);
+    }
+
+    // Map Stripe status to display status
+    let status: 'trial' | 'active' | 'churned' = 'churned';
+    if (user.stripe_status === 'trialing') {
+      status = 'trial';
+    } else if (user.stripe_status === 'active') {
+      status = 'active';
+    } else if (user.stripe_status === 'canceled' || user.stripe_status === 'no_subscription') {
+      status = 'churned';
+    }
+
+    const hoursUntilTrialEnd = trialEndDate ? differenceInHours(trialEndDate, now) : 0;
+    const isTrialEndingSoon = status === 'trial' && hoursUntilTrialEnd > 0 && hoursUntilTrialEnd <= 24;
+
+    return {
+      id: user.user_id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      school: user.school,
+      created_at: user.created_at,
+      is_onboarding_complete: user.is_onboarding_complete,
+      status,
+      trial_end_date: trialEndDate,
+      is_trial_ending_soon: isTrialEndingSoon,
+      stripe_status: user.stripe_status,
+      product_id: user.product_id,
+    };
+  }).sort((a, b) => {
+    // Sort by trial ending soon first, then by created_at desc
+    if (a.is_trial_ending_soon && !b.is_trial_ending_soon) return -1;
+    if (!a.is_trial_ending_soon && b.is_trial_ending_soon) return 1;
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return dateB - dateA;
+  });
+
+  // Calculate activation rate
+  const activationRate = stripeData?.stats.onboardingCompleted && stripeData.stats.onboardingCompleted > 0
+    ? ((dbData?.planningGeneratedCount || 0) / stripeData.stats.onboardingCompleted) * 100
+    : 0;
+
+  // Real-time subscriptions for DB data
   useEffect(() => {
     const handleUpdate = () => {
       setLastUpdated(new Date());
-      queryClient.invalidateQueries({ queryKey: ['admin-analytics'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-analytics-db'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stripe-stats'] });
     };
 
     const channel = supabase.channel('admin-analytics-realtime')
@@ -215,7 +212,7 @@ const AdminAnalytics = () => {
     };
   }, [queryClient]);
 
-  const filteredUsers = data?.users.filter((user) => {
+  const filteredUsers = usersWithMetrics.filter((user) => {
     const searchLower = searchQuery.toLowerCase();
     return (
       user.email?.toLowerCase().includes(searchLower) ||
@@ -223,10 +220,10 @@ const AdminAnalytics = () => {
       user.last_name?.toLowerCase().includes(searchLower) ||
       user.school?.toLowerCase().includes(searchLower)
     );
-  }) || [];
+  });
 
   const exportToCSV = () => {
-    if (!data) return;
+    if (!stripeData) return;
     
     const headers = ['Prénom', 'Nom', 'Email', 'École', 'Date inscription', 'Fin essai', 'Statut', 'Onboarding'];
     const rows = filteredUsers.map(user => [
@@ -310,16 +307,16 @@ const AdminAnalytics = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <div className="text-2xl font-bold">{data?.totalSignups ?? 0}</div>
+                <div className="text-2xl font-bold">{stripeData?.stats.totalSignups ?? 0}</div>
                 <p className="text-xs text-muted-foreground">Total Inscrits</p>
               </div>
               <div className="border-t pt-2">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xl font-bold text-blue-600">
-                    {data?.trialsStartedRate.toFixed(1) ?? 0}%
+                    {stripeData?.stats.trialsStartedRate.toFixed(1) ?? 0}%
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    ({data?.trialsStarted ?? 0})
+                    ({stripeData?.stats.trialsStarted ?? 0})
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">Essais Démarrés</p>
@@ -327,10 +324,10 @@ const AdminAnalytics = () => {
               <div className="border-t pt-2">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xl font-bold">
-                    {data?.onboardingCompletedRate.toFixed(1) ?? 0}%
+                    {stripeData?.stats.onboardingCompletedRate.toFixed(1) ?? 0}%
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    ({data?.onboardingCompleted ?? 0})
+                    ({stripeData?.stats.onboardingCompleted ?? 0})
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">Onboarding Complété</p>
@@ -350,16 +347,16 @@ const AdminAnalytics = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <div className="text-2xl font-bold">{data?.usersInTrial ?? 0}</div>
+                <div className="text-2xl font-bold">{stripeData?.stats.usersInTrial ?? 0}</div>
                 <p className="text-xs text-muted-foreground">Essais en cours</p>
               </div>
               <div className="border-t pt-2">
-                <div className="text-xl font-bold">{data?.convertedUsers ?? 0}</div>
+                <div className="text-xl font-bold">{stripeData?.stats.convertedUsers ?? 0}</div>
                 <p className="text-xs text-muted-foreground">Convertis en Payant</p>
               </div>
               <div className="border-t pt-2">
-                <div className={`text-2xl font-bold ${getConversionRateColor(data?.conversionRate ?? 0)}`}>
-                  {data?.conversionRate.toFixed(1) ?? 0}%
+                <div className={`text-2xl font-bold ${getConversionRateColor(stripeData?.stats.conversionRate ?? 0)}`}>
+                  {stripeData?.stats.conversionRate.toFixed(1) ?? 0}%
                 </div>
                 <p className="text-xs text-muted-foreground">Taux de Conversion</p>
               </div>
@@ -378,19 +375,19 @@ const AdminAnalytics = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <div className="text-3xl font-bold">{data?.activationRate.toFixed(1) ?? 0}%</div>
+                <div className="text-3xl font-bold">{activationRate.toFixed(1)}%</div>
                 <p className="text-xs text-muted-foreground">
-                  Planning Généré ({data?.planningGeneratedCount ?? 0} / {data?.onboardingCompleted ?? 0})
+                  Planning Généré ({dbData?.planningGeneratedCount ?? 0} / {stripeData?.stats.onboardingCompleted ?? 0})
                 </p>
               </div>
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Objectif : 80%</span>
-                  <span className={data && data.activationRate >= 80 ? 'text-green-600' : 'text-amber-600'}>
-                    {data && data.activationRate >= 80 ? '✓ Atteint' : 'En cours'}
+                  <span className={activationRate >= 80 ? 'text-green-600' : 'text-amber-600'}>
+                    {activationRate >= 80 ? '✓ Atteint' : 'En cours'}
                   </span>
                 </div>
-                <Progress value={data?.activationRate ?? 0} className="h-2" />
+                <Progress value={activationRate} className="h-2" />
               </div>
             </CardContent>
           </Card>
@@ -407,7 +404,7 @@ const AdminAnalytics = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <div>
-                <div className="text-4xl font-bold">{data?.wauCount ?? 0}</div>
+                <div className="text-4xl font-bold">{dbData?.wauCount ?? 0}</div>
                 <p className="text-xs text-muted-foreground">WAU (Weekly Active Users)</p>
               </div>
               <p className="text-xs text-muted-foreground border-t pt-2">
