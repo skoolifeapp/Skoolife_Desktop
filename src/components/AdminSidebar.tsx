@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { MessageSquare, Users, BarChart3, LogOut, Menu, X } from 'lucide-react';
+import { MessageSquare, Users, BarChart3, LogOut, Menu, X, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,7 @@ interface AdminSidebarProps {
 const NAV_ITEMS = [
   { path: '/admin', label: 'Conversations', icon: MessageSquare },
   { path: '/admin/users', label: 'Utilisateurs', icon: Users },
+  { path: '/admin/analytics', label: 'Analytics', icon: TrendingUp },
   { path: '/admin/stats', label: 'Statistiques', icon: BarChart3 },
 ];
 
