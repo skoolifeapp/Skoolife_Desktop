@@ -1,5 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { StaticCalendarCard, StaticProgressionCard, StaticSubjectsCard, StaticSettingsCard } from './StaticAppCards';
+
+// Context to allow sidebar to change active card
+interface LandingPreviewContextType {
+  activeIndex: number;
+  setActiveCard: (index: number) => void;
+}
+
+const LandingPreviewContext = createContext<LandingPreviewContextType | null>(null);
+
+export const useLandingPreview = () => useContext(LandingPreviewContext);
 
 interface CardData {
   id: number;
@@ -10,6 +20,12 @@ interface CardData {
 const StackedCardsLayout = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+
+  const setActiveCard = (index: number) => {
+    setActiveIndex(index);
+    setIsPaused(true);
+    setTimeout(() => setIsPaused(false), 10000);
+  };
 
   const cards: CardData[] = [
     {
@@ -92,35 +108,37 @@ const StackedCardsLayout = () => {
   };
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto pb-8">
-      {/* Cards container */}
-      <div className="relative h-[580px] md:h-[680px]">
-        {cards.map((card, index) => {
-          const style = getCardStyle(index);
-          const isActive = index === activeIndex;
-          
-          return (
-            <div
-              key={card.id}
-              onClick={() => handleCardClick(index)}
-              className={`absolute inset-x-0 rounded-xl md:rounded-2xl bg-white dark:bg-card border border-border/20 overflow-hidden
-                transition-all duration-500 ease-out
-                ${!isActive ? 'cursor-pointer hover:opacity-90' : ''}`}
-              style={{
-                zIndex: style.zIndex,
-                transform: style.transform,
-                opacity: style.opacity,
-                height: '540px',
-                top: '40px',
-                boxShadow: '0 8px 40px -10px rgba(0, 0, 0, 0.2)',
-              }}
-            >
-              {card.content}
-            </div>
-          );
-        })}
+    <LandingPreviewContext.Provider value={{ activeIndex, setActiveCard }}>
+      <div className="relative w-full max-w-6xl mx-auto pb-8">
+        {/* Cards container */}
+        <div className="relative h-[580px] md:h-[680px]">
+          {cards.map((card, index) => {
+            const style = getCardStyle(index);
+            const isActive = index === activeIndex;
+            
+            return (
+              <div
+                key={card.id}
+                onClick={() => handleCardClick(index)}
+                className={`absolute inset-x-0 rounded-xl md:rounded-2xl bg-white dark:bg-card border border-border/20 overflow-hidden
+                  transition-all duration-500 ease-out
+                  ${!isActive ? 'cursor-pointer hover:opacity-90' : ''}`}
+                style={{
+                  zIndex: style.zIndex,
+                  transform: style.transform,
+                  opacity: style.opacity,
+                  height: '540px',
+                  top: '40px',
+                  boxShadow: '0 8px 40px -10px rgba(0, 0, 0, 0.2)',
+                }}
+              >
+                {card.content}
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </LandingPreviewContext.Provider>
   );
 };
 
