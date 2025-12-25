@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+const LOGO_URL = '/logo.png';
 import StackedCardsLayout from '@/components/StackedCardsLayout';
 import LandingFeatures from '@/components/LandingFeatures';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import MobileCtaButton from '@/components/MobileCtaButton';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -49,16 +50,14 @@ const Index = () => {
             </p>
           </div>
 
+          {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 md:mt-10">
-            <MobileCtaButton 
-              desktopTo="/auth?mode=signup" 
-              variant="hero" 
-              size="lg" 
-              className="md:text-base px-8"
-            >
-              Commencer gratuitement
-              <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
-            </MobileCtaButton>
+            <Link to="/auth?mode=signup">
+              <Button variant="hero" size="lg" className="md:text-base px-8">
+                Commencer gratuitement
+                <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+              </Button>
+            </Link>
           </div>
 
           {/* Free text */}

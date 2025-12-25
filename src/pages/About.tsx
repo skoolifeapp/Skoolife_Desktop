@@ -1,7 +1,8 @@
-import { Target, AlertTriangle, Sparkles, LayoutDashboard, Heart, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, Target, AlertTriangle, Sparkles, LayoutDashboard, Heart } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import MobileCtaButton from '@/components/MobileCtaButton';
 
 const About = () => {
   return (
@@ -93,15 +94,12 @@ const About = () => {
 
           {/* CTA */}
           <div className="text-center pt-8">
-            <MobileCtaButton 
-              desktopTo="/auth?mode=signup" 
-              variant="hero" 
-              size="lg" 
-              className="md:text-base px-8"
-            >
-              Rejoindre Skoolife
-              <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
-            </MobileCtaButton>
+            <Link to="/auth?mode=signup">
+              <Button variant="hero" size="lg" className="md:text-base px-8">
+                Rejoindre Skoolife
+                <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+              </Button>
+            </Link>
             <p className="text-sm text-muted-foreground mt-4">
               Gratuit pendant 7 jours.
             </p>

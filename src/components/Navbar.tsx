@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Calendar, BarChart3, BookOpen, Settings, Timer, Menu, X } from 'lucide-react';
+import { Calendar, BarChart3, BookOpen, Settings, Timer } from 'lucide-react';
 const LOGO_URL = '/logo.png';
 import { useAuth } from '@/hooks/useAuth';
-import { useIsMobile } from '@/hooks/use-mobile';
-
 const features = [
   { name: 'Calendrier', icon: Calendar, description: 'Planifie tes révisions', path: '/features/calendar' },
   { name: 'Progression', icon: BarChart3, description: 'Suis tes progrès', path: '/features/progression' },
@@ -17,19 +15,14 @@ const features = [
 const Navbar = () => {
   const location = useLocation();
   const { user } = useAuth();
-  const isMobile = useIsMobile();
   const isHome = location.pathname === '/';
   const isPricing = location.pathname === '/pricing';
   const [showFeatures, setShowFeatures] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isAbout = location.pathname === '/about';
   
   // Redirect to /app if user is logged in, otherwise to /
   const logoLink = user ? '/app' : '/';
-  
-  // Get auth link - redirect to mobile-not-supported on mobile
-  const authLink = isMobile ? '/mobile-not-supported' : '/auth';
 
   return (
     <header className="fixed left-0 right-0 z-[100] top-0 flex justify-center px-4 py-4">
@@ -119,67 +112,14 @@ const Navbar = () => {
             À propos
           </Link>
         </div>
-
-        {/* Mobile Menu Button */}
-        <button 
-          className="md:hidden p-2 rounded-full hover:bg-muted/50 ml-auto"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
         
         {/* CTA Button */}
-        <Link to={authLink} className="ml-2 hidden md:block">
+        <Link to="/auth" className="ml-2">
           <Button variant="default" size="sm" className="rounded-full text-xs md:text-sm px-4">
             Se connecter
           </Button>
         </Link>
       </nav>
-
-      {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div className="fixed top-20 left-4 right-4 bg-white dark:bg-card rounded-2xl border border-border shadow-xl p-4 z-[99] md:hidden">
-          <div className="space-y-2">
-            <Link 
-              to="/pricing" 
-              className="block px-4 py-3 rounded-xl hover:bg-muted/50 text-foreground font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Tarifs
-            </Link>
-            <Link 
-              to="/about" 
-              className="block px-4 py-3 rounded-xl hover:bg-muted/50 text-foreground font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              À propos
-            </Link>
-            <div className="border-t border-border my-2" />
-            <p className="px-4 py-2 text-xs text-muted-foreground uppercase tracking-wide">Fonctionnalités</p>
-            {features.map((feature) => (
-              <Link
-                key={feature.name}
-                to={feature.path}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-muted/50"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <feature.icon className="w-5 h-5 text-primary" />
-                <span className="text-foreground">{feature.name}</span>
-              </Link>
-            ))}
-            <div className="border-t border-border my-2" />
-            <Link 
-              to={authLink}
-              className="block"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Button variant="default" className="w-full rounded-xl">
-                Se connecter
-              </Button>
-            </Link>
-          </div>
-        </div>
-      )}
     </header>
   );
 };
