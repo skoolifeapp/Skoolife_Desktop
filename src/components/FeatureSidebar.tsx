@@ -7,6 +7,7 @@ const featureRoutes = [
   '/features/progression',
   '/features/subjects',
   '/features/settings',
+  '/features/pomodoro',
 ];
 
 const FeatureSidebar = () => {
@@ -53,9 +54,12 @@ const FeatureSidebar = () => {
         >
           <Settings className="w-5 h-5" />
         </button>
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-primary-foreground/10">
+        <button 
+          onClick={() => handleNavClick(4)}
+          className={`w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-colors ${getActiveState('/features/pomodoro') ? 'bg-primary-foreground/20' : 'hover:bg-primary-foreground/10'}`}
+        >
           <Timer className="w-5 h-5" />
-        </div>
+        </button>
       </div>
 
       {/* User Avatar */}
