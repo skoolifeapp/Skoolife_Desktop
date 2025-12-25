@@ -1,9 +1,9 @@
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, GraduationCap, Plus, Calendar, Clock, Target, ChevronRight, Bell, Sun } from 'lucide-react';
+import { GraduationCap, Plus, Calendar, Clock, Target, ChevronRight, Bell, Sun, ArrowRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import FeatureSidebar from '@/components/FeatureSidebar';
+import MobileCtaButton from '@/components/MobileCtaButton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Static Subjects Card Component - Reproduit l'interface exacte de l'app
 const StaticSubjectsCard = () => (
@@ -188,6 +188,8 @@ const StaticSubjectsCard = () => (
 );
 
 const FeatureSubjects = () => {
+  const isMobile = useIsMobile();
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -202,7 +204,7 @@ const FeatureSubjects = () => {
       <main className="relative pt-24 md:pt-32">
         <div className="max-w-5xl mx-auto px-4 text-center">
           {/* Main heading */}
-          <div className="space-y-4 md:space-y-6 mb-8">
+          <div className="space-y-4 md:space-y-6 mb-6 md:mb-8">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight font-heading">
               Gestion des
               <br />
@@ -213,28 +215,45 @@ const FeatureSubjects = () => {
           </div>
 
           {/* Description */}
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-6 md:mb-8 px-2">
             Organise toutes tes matières et examens en un seul endroit. Définis tes objectifs 
             de révision, suis les dates importantes et priorise efficacement ton travail.
           </p>
 
           {/* CTA Button */}
           <div>
-            <Link to="/auth?mode=signup">
-              <Button variant="outline" size="lg" className="rounded-full px-6">
-                Organiser mes matières
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+            <MobileCtaButton 
+              desktopTo="/auth?mode=signup" 
+              variant="outline" 
+              size="lg" 
+              className="rounded-full px-6"
+            >
+              Organiser mes matières
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </MobileCtaButton>
           </div>
         </div>
 
-        {/* Static Subjects Preview */}
-        <div className="relative max-w-6xl mx-auto px-4 mt-16 pb-16">
-          <div>
-            <StaticSubjectsCard />
+        {/* Static Subjects Preview - Hidden on mobile */}
+        {!isMobile && (
+          <div className="relative max-w-6xl mx-auto px-4 mt-16 pb-16">
+            <div>
+              <StaticSubjectsCard />
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Mobile-friendly placeholder */}
+        {isMobile && (
+          <div className="px-4 mt-8 pb-8">
+            <div className="bg-muted/30 rounded-2xl p-6 text-center border border-border/20">
+              <GraduationCap className="w-16 h-16 text-primary mx-auto mb-4" />
+              <p className="text-sm text-muted-foreground">
+                Gère tes matières sur ordinateur
+              </p>
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />

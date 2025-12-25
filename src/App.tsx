@@ -41,6 +41,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const About = lazy(() => import("./pages/About"));
 const Legal = lazy(() => import("./pages/Legal"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const MobileNotSupported = lazy(() => import("./pages/MobileNotSupported"));
 
 // Optimized QueryClient with caching
 const queryClient = new QueryClient({
@@ -84,6 +85,7 @@ const App = () => (
                       <Route path="/about" element={<About />} />
                       <Route path="/legal" element={<Legal />} />
                       <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/mobile-not-supported" element={<MobileNotSupported />} />
                       <Route path="/post-checkout" element={<PostCheckout />} />
                       <Route path="/onboarding" element={<Onboarding />} />
 
