@@ -651,6 +651,42 @@ export type Database = {
         }
         Relationships: []
       }
+      study_files: {
+        Row: {
+          created_at: string
+          file_size: number
+          file_type: string
+          filename: string
+          folder_name: string | null
+          id: string
+          storage_path: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_size: number
+          file_type: string
+          filename: string
+          folder_name?: string | null
+          id?: string
+          storage_path: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_size?: number
+          file_type?: string
+          filename?: string
+          folder_name?: string | null
+          id?: string
+          storage_path?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subjects: {
         Row: {
           color: string | null

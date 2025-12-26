@@ -32,6 +32,7 @@ const InviteAccept = lazy(() => import("./pages/InviteAccept"));
 const CancelSubscription = lazy(() => import("./pages/CancelSubscription"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const Pomodoro = lazy(() => import("./pages/Pomodoro"));
+const StudyFiles = lazy(() => import("./pages/StudyFiles"));
 const FeatureCalendar = lazy(() => import("./pages/FeatureCalendar"));
 const FeatureProgression = lazy(() => import("./pages/FeatureProgression"));
 const FeatureSubjects = lazy(() => import("./pages/FeatureSubjects"));
@@ -97,6 +98,7 @@ const App = () => (
                         <Route path="/subscription" element={<Subscription />} />
                         <Route path="/cancel" element={<CancelSubscription />} />
                         <Route path="/pomodoro" element={<Pomodoro />} />
+                        <Route path="/study-files" element={<StudyFiles />} />
                       </Route>
 
                       <Route path="/admin" element={<Admin />} />

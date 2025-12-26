@@ -8,7 +8,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { UpgradeDialog } from '@/components/UpgradeDialog';
 import { NotificationsDropdown } from '@/components/NotificationsDropdown';
 import SupportDrawer from '@/components/SupportDrawer';
-import { Calendar, BarChart3, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard, ChevronDown, MoreVertical, HelpCircle, PanelLeftClose, PanelLeft, Timer } from 'lucide-react';
+import { Calendar, BarChart3, GraduationCap, Settings, LogOut, Menu, X, User, Video, Lock, Crown, Sparkles, CreditCard, ChevronDown, MoreVertical, HelpCircle, PanelLeftClose, PanelLeft, Timer, FileText } from 'lucide-react';
 const LOGO_URL = '/logo.png';
 import { useState, useEffect } from 'react';
 import { useLayoutSidebar } from '@/contexts/LayoutSidebarContext';
@@ -26,6 +26,7 @@ const NAV_ITEMS = [
 
 const TRAVAIL_ITEMS = [
   { path: '/pomodoro', label: 'Pomodoro', icon: Timer, requiresSubscription: true, requiresMajor: false },
+  { path: '/study-files', label: 'Mes fiches', icon: FileText, requiresSubscription: true, requiresMajor: true },
 ];
 
 interface AppSidebarProps {
