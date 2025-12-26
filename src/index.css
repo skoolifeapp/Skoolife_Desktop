@@ -315,3 +315,183 @@
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* ========================================
+   Tarteaucitron Cookie Consent Overrides
+   ======================================== */
+
+/* Main banner container */
+#tarteaucitronRoot #tarteaucitronAlertBig {
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 40px -10px hsl(var(--foreground) / 0.15) !important;
+  padding: 1.5rem !important;
+  max-width: 480px !important;
+  margin: 1rem !important;
+}
+
+/* Banner text */
+#tarteaucitronRoot #tarteaucitronDisclaimerAlert {
+  color: hsl(var(--foreground)) !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+}
+
+/* All buttons base style */
+#tarteaucitronRoot button,
+#tarteaucitronRoot .tarteaucitronAllow,
+#tarteaucitronRoot .tarteaucitronDeny {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 500 !important;
+  border-radius: 0.5rem !important;
+  padding: 0.625rem 1.25rem !important;
+  font-size: 0.875rem !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+}
+
+/* Accept All button - Primary style */
+#tarteaucitronRoot #tarteaucitronPersonalize2,
+#tarteaucitronRoot .tarteaucitronAllow {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border: none !important;
+}
+
+#tarteaucitronRoot #tarteaucitronPersonalize2:hover,
+#tarteaucitronRoot .tarteaucitronAllow:hover {
+  background: hsl(var(--accent)) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Deny All button - Secondary style */
+#tarteaucitronRoot #tarteaucitronAllDenied2,
+#tarteaucitronRoot .tarteaucitronDeny {
+  background: hsl(var(--secondary)) !important;
+  color: hsl(var(--secondary-foreground)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+
+#tarteaucitronRoot #tarteaucitronAllDenied2:hover,
+#tarteaucitronRoot .tarteaucitronDeny:hover {
+  background: hsl(var(--muted)) !important;
+}
+
+/* Customize button */
+#tarteaucitronRoot #tarteaucitronCloseAlert {
+  background: transparent !important;
+  color: hsl(var(--muted-foreground)) !important;
+  border: none !important;
+  text-decoration: underline !important;
+}
+
+#tarteaucitronRoot #tarteaucitronCloseAlert:hover {
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Panel/Modal container */
+#tarteaucitronRoot #tarteaucitron {
+  background: hsl(var(--background) / 0.95) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+#tarteaucitronRoot #tarteaucitronBack {
+  background: hsl(var(--card)) !important;
+  border-radius: 1rem !important;
+  border: 1px solid hsl(var(--border)) !important;
+  box-shadow: 0 25px 50px -12px hsl(var(--foreground) / 0.25) !important;
+}
+
+/* Panel header */
+#tarteaucitronRoot #tarteaucitronServices .tarteaucitronTitle {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 600 !important;
+  border-radius: 0.75rem 0.75rem 0 0 !important;
+}
+
+/* Service lines */
+#tarteaucitronRoot #tarteaucitronServices .tarteaucitronLine {
+  background: hsl(var(--card)) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  padding: 1rem !important;
+}
+
+#tarteaucitronRoot #tarteaucitronServices .tarteaucitronLine:hover {
+  background: hsl(var(--muted)) !important;
+}
+
+/* Service name text */
+#tarteaucitronRoot .tarteaucitronName {
+  color: hsl(var(--foreground)) !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* Service description */
+#tarteaucitronRoot .tarteaucitronListCookies {
+  color: hsl(var(--muted-foreground)) !important;
+  font-size: 0.75rem !important;
+}
+
+/* Icon in corner */
+#tarteaucitronRoot #tarteaucitronManager {
+  background: hsl(var(--primary)) !important;
+  border-radius: 50% !important;
+  width: 44px !important;
+  height: 44px !important;
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.3) !important;
+}
+
+#tarteaucitronRoot #tarteaucitronManager:hover {
+  background: hsl(var(--accent)) !important;
+  transform: scale(1.1) !important;
+}
+
+/* Hide credit text for cleaner look */
+#tarteaucitronRoot #tarteaucitronInfo {
+  display: none !important;
+}
+
+/* Links styling */
+#tarteaucitronRoot a {
+  color: hsl(var(--primary)) !important;
+}
+
+#tarteaucitronRoot a:hover {
+  color: hsl(var(--accent)) !important;
+}
+
+/* Dark mode specific overrides */
+.dark #tarteaucitronRoot #tarteaucitronAlertBig {
+  background: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+.dark #tarteaucitronRoot #tarteaucitronBack {
+  background: hsl(var(--card)) !important;
+}
+
+.dark #tarteaucitronRoot #tarteaucitronServices .tarteaucitronLine {
+  background: hsl(var(--card)) !important;
+}
+
+.dark #tarteaucitronRoot #tarteaucitronServices .tarteaucitronLine:hover {
+  background: hsl(var(--muted)) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  #tarteaucitronRoot #tarteaucitronAlertBig {
+    margin: 0.5rem !important;
+    padding: 1rem !important;
+    border-radius: 0.75rem !important;
+  }
+
+  #tarteaucitronRoot button {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.8125rem !important;
+  }
+}

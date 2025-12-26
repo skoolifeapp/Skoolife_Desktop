@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
@@ -21,6 +22,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingRedirect, setCheckingRedirect] = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const { signIn, signUp, user, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -97,6 +99,26 @@ const Auth = () => {
           } else {
             toast.error(error.message);
           }
+        } else {
+          // On signup success, update profile with consent timestamps
+          // The profile is created by the trigger, so we wait a moment then update
+          setTimeout(async () => {
+            const { data: { user: newUser } } = await supabase.auth.getUser();
+            if (newUser) {
+              const now = new Date().toISOString();
+              await supabase
+                .from('profiles')
+                .update({
+                  cgu_accepted_at: now,
+                  privacy_accepted_at: now,
+                  cgu_version: 'v1',
+                  privacy_version: 'v1',
+                  marketing_emails_optin: marketingOptIn,
+                  marketing_optin_at: marketingOptIn ? now : null
+                })
+                .eq('id', newUser.id);
+            }
+          }, 1000);
         }
       }
     } catch (err) {
@@ -262,6 +284,38 @@ const Auth = () => {
                     </>
                   )}
                 </Button>
+
+                {/* CGU/Privacy mention - only show on signup */}
+                {!isLogin && (
+                  <div className="space-y-3 pt-2">
+                    <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                      En créant un compte, j'accepte les{' '}
+                      <Link to="/legal" className="text-primary hover:underline font-medium">
+                        CGU
+                      </Link>{' '}
+                      et la{' '}
+                      <Link to="/privacy" className="text-primary hover:underline font-medium">
+                        Politique de Confidentialité
+                      </Link>.
+                    </p>
+
+                    {/* Marketing opt-in checkbox */}
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                      <Checkbox
+                        id="marketing-optin"
+                        checked={marketingOptIn}
+                        onCheckedChange={(checked) => setMarketingOptIn(checked === true)}
+                        className="mt-0.5"
+                      />
+                      <label
+                        htmlFor="marketing-optin"
+                        className="text-xs text-muted-foreground leading-relaxed cursor-pointer"
+                      >
+                        Nous pouvons vous envoyer : des e-mails d'informations/actualités (vous pouvez vous désinscrire à tout moment via le lien de désabonnement).
+                      </label>
+                    </div>
+                  </div>
+                )}
               </form>
 
               <div className="mt-6 text-center">
@@ -280,7 +334,7 @@ const Auth = () => {
 
           {/* Motivational text */}
           <p className="text-center text-sm text-muted-foreground">
-            Tu n'es plus seul avec tes révisions. 📚
+            Tu n'es plus seul avec tes révisions.
           </p>
         </div>
       </main>

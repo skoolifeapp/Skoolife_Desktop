@@ -271,6 +271,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cgu_accepted_at: string | null
+          cgu_version: string | null
           created_at: string | null
           email: string | null
           first_name: string | null
@@ -281,6 +283,10 @@ export type Database = {
           level: string | null
           liaison_code: string | null
           main_exam_period: string | null
+          marketing_emails_optin: boolean | null
+          marketing_optin_at: string | null
+          privacy_accepted_at: string | null
+          privacy_version: string | null
           school: string | null
           signed_up_via_invite: boolean | null
           study_domain: string | null
@@ -289,6 +295,8 @@ export type Database = {
           weekly_revision_hours: number | null
         }
         Insert: {
+          cgu_accepted_at?: string | null
+          cgu_version?: string | null
           created_at?: string | null
           email?: string | null
           first_name?: string | null
@@ -299,6 +307,10 @@ export type Database = {
           level?: string | null
           liaison_code?: string | null
           main_exam_period?: string | null
+          marketing_emails_optin?: boolean | null
+          marketing_optin_at?: string | null
+          privacy_accepted_at?: string | null
+          privacy_version?: string | null
           school?: string | null
           signed_up_via_invite?: boolean | null
           study_domain?: string | null
@@ -307,6 +319,8 @@ export type Database = {
           weekly_revision_hours?: number | null
         }
         Update: {
+          cgu_accepted_at?: string | null
+          cgu_version?: string | null
           created_at?: string | null
           email?: string | null
           first_name?: string | null
@@ -317,6 +331,10 @@ export type Database = {
           level?: string | null
           liaison_code?: string | null
           main_exam_period?: string | null
+          marketing_emails_optin?: boolean | null
+          marketing_optin_at?: string | null
+          privacy_accepted_at?: string | null
+          privacy_version?: string | null
           school?: string | null
           signed_up_via_invite?: boolean | null
           study_domain?: string | null

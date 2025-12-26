@@ -2,6 +2,19 @@ import { Link } from 'react-router-dom';
 const LOGO_URL = '/logo.png';
 
 const Footer = () => {
+  const openCookieSettings = () => {
+    // Open tarteaucitron panel if available
+    if (typeof window !== 'undefined' && window.tarteaucitron) {
+      const panel = document.getElementById('tarteaucitronManager');
+      if (panel) {
+        panel.click();
+      } else {
+        // Fallback: trigger the hashtag
+        window.location.hash = '#tarteaucitron';
+      }
+    }
+  };
+
   return (
     <footer className="border-t border-border bg-card/50">
       <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
@@ -16,6 +29,12 @@ const Footer = () => {
             <Link to="/about" className="hover:text-foreground transition-colors">À propos</Link>
             <Link to="/legal" className="hover:text-foreground transition-colors">Mentions légales</Link>
             <Link to="/privacy" className="hover:text-foreground transition-colors">Politique de confidentialité</Link>
+            <button
+              onClick={openCookieSettings}
+              className="hover:text-foreground transition-colors"
+            >
+              Gérer mes cookies
+            </button>
           </div>
         </div>
       </div>

@@ -11,6 +11,7 @@ import { VideoCallProvider } from "@/contexts/VideoCallContext";
 import { LayoutSidebarProvider } from "@/contexts/LayoutSidebarContext";
 import { AppLayout } from "@/components/AppLayout";
 import GlobalVideoCall from "@/components/GlobalVideoCall";
+import CookieConsent from "@/components/CookieConsent";
 
 // Lazy load all pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -68,6 +69,7 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
+            <CookieConsent />
             <BrowserRouter>
               <LayoutSidebarProvider>
                 <GlobalVideoCall />
