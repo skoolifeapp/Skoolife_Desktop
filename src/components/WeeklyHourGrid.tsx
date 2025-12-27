@@ -2,8 +2,7 @@ import { format, isSameDay, parseISO, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar, Users, MapPin, Video, Paperclip, Check } from 'lucide-react';
-import JoinCallButton from '@/components/JoinCallButton';
+import { Calendar, Users, MapPin, Paperclip, Check } from 'lucide-react';
 import type { RevisionSession, CalendarEvent, Subject } from '@/types/planning';
 
 export interface SessionInvitee {
@@ -712,12 +711,8 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         }}
                         title={`${event.title}\n${formatTimeRange(event.start_datetime, event.end_datetime, true)}`}
                       >
-                        {/* Camera icon for visio or e-learning events */}
-                        {isPurpleEvent && (
-                          <Video className="absolute top-1 right-1 w-3 h-3 text-purple-600 dark:text-purple-300" />
-                        )}
                         {/* File indicator for "cours" type events with files for this subject */}
-                        {event.event_type === 'cours' && event.subject_name && (subjectFileCounts?.[event.subject_name] ?? 0) > 0 && !isPurpleEvent && (
+                        {event.event_type === 'cours' && event.subject_name && (subjectFileCounts?.[event.subject_name] ?? 0) > 0 && (
                           <Paperclip className="absolute top-1 right-1 w-3 h-3 text-blue-600 dark:text-blue-300" />
                         )}
                         {/* Top resize handle - only visible when hovering near top */}
@@ -865,15 +860,6 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                               <Users className="w-2.5 h-2.5 flex-shrink-0" />
                               {session.inviterName || 'Invité'}
                             </span>
-                            {session.inviteMeetingFormat === 'visio' && session.inviteMeetingLink && (
-                              <span
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-[9px] text-blue-500 flex items-center gap-0.5"
-                                title="Visio disponible"
-                              >
-                                <Video className="w-2.5 h-2.5 flex-shrink-0" />
-                              </span>
-                            )}
                             {session.inviteMeetingFormat === 'presentiel' && session.inviteMeetingAddress && (
                               <span className="text-[9px] text-green-500 flex items-center gap-0.5">
                                 <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
@@ -895,21 +881,9 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                                 {inviteInfo.invitees.length}
                               </span>
                             ) : null}
-                            {inviteInfo.meeting_format === 'visio' && inviteInfo.meeting_link ? (
-                              <span
-                                onClick={(e) => e.stopPropagation()}
-                                className="text-[9px] text-blue-500 flex items-center gap-0.5"
-                                title="Visio disponible"
-                              >
-                                <Video className="w-2.5 h-2.5 flex-shrink-0" />
-                              </span>
-                            ) : inviteInfo.meeting_format && !inviteInfo.invitees?.some(i => i.accepted_by) && (
-                              <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
-                                {inviteInfo.meeting_format === 'visio' ? (
-                                  <Video className="w-2.5 h-2.5 text-blue-500" />
-                                ) : (
-                                  <MapPin className="w-2.5 h-2.5 text-green-500" />
-                                )}
+                            {inviteInfo.meeting_format === 'presentiel' && (
+                              <span className="text-[9px] text-green-500 flex items-center gap-0.5">
+                                <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
                               </span>
                             )}
                           </div>

@@ -3,9 +3,6 @@ project_id = "agdhijvukjotypbjiiwe"
 [functions.get-invite]
 verify_jwt = false
 
-[functions.create-daily-room]
-verify_jwt = true
-
 [functions.accept-invite]
 verify_jwt = false
 

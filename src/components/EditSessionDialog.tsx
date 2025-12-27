@@ -4,8 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarIcon, Loader2, Trash2, Paperclip, Share2, Users, Video, MapPin, Check, X } from 'lucide-react';
-import JoinCallButton from '@/components/JoinCallButton';
+import { CalendarIcon, Loader2, Trash2, Paperclip, Share2, Users, MapPin, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -369,37 +368,22 @@ const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate, onShare,
                 {inviteInfo.meeting_format && (
                   <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
-                      {inviteInfo.meeting_format === 'visio' ? (
-                        <>
-                          {inviteInfo.meeting_link ? (
-                            <JoinCallButton
-                              roomUrl={inviteInfo.meeting_link}
-                              sessionTitle={session?.subject?.name}
-                              variant="ghost"
-                              size="sm"
-                              className="text-blue-600 dark:text-blue-400 hover:underline p-0 h-auto"
-                            />
-                          ) : (
-                            <>
-                              <Video className="w-4 h-4 text-blue-500" />
-                              <span>Visio (lien à venir)</span>
-                            </>
-                          )}
-                        </>
-                      ) : (
+                      {inviteInfo.meeting_format === 'presentiel' ? (
                         <>
                           <MapPin className="w-4 h-4 text-green-500" />
                           <span>{inviteInfo.meeting_address || 'Présentiel'}</span>
                         </>
+                      ) : (
+                        <span>En ligne</span>
                       )}
                     </div>
-                    {/* Delete visio button */}
+                    {/* Delete invite button */}
                     <button
                       type="button"
                       onClick={handleDeleteVisio}
                       disabled={deletingVisio}
                       className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                      title="Supprimer l'invitation et la visio"
+                      title="Supprimer l'invitation"
                     >
                       {deletingVisio ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
