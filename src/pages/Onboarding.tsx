@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { User, Loader2, CheckCircle2 } from 'lucide-react';
 const LOGO_URL = '/logo.png';
@@ -129,6 +130,7 @@ const Onboarding = () => {
   const [studyDomain, setStudyDomain] = useState('');
   const [studySubcategory, setStudySubcategory] = useState('');
   const [examPeriod, setExamPeriod] = useState('');
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
 
   useEffect(() => {
     // Important: ne pas rediriger tant que l'auth n'est pas initialisée
@@ -183,6 +185,7 @@ const Onboarding = () => {
     setLoading(true);
 
     try {
+      const now = new Date().toISOString();
       // Upsert profile (create if not exists, update if exists)
       const { error: profileError } = await supabase
         .from('profiles')
@@ -196,7 +199,9 @@ const Onboarding = () => {
           study_domain: studyDomain,
           study_subcategory: studySubcategory,
           main_exam_period: examPeriod,
-          is_onboarding_complete: true
+          is_onboarding_complete: true,
+          marketing_emails_optin: marketingOptIn,
+          marketing_optin_at: marketingOptIn ? now : null
         }, { onConflict: 'id' });
 
       if (profileError) throw profileError;
@@ -342,6 +347,22 @@ const Onboarding = () => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Marketing opt-in checkbox */}
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border border-border/50">
+              <Checkbox
+                id="marketing-optin"
+                checked={marketingOptIn}
+                onCheckedChange={(checked) => setMarketingOptIn(checked === true)}
+                className="mt-0.5"
+              />
+              <label
+                htmlFor="marketing-optin"
+                className="text-sm text-muted-foreground leading-relaxed cursor-pointer"
+              >
+                Nous pouvons vous envoyer : des e-mails d'informations/actualités (vous pouvez vous désinscrire à tout moment via le lien de désabonnement).
+              </label>
             </div>
 
             <Button 

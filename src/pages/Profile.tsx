@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, User, Copy, Check } from 'lucide-react';
+import { Loader2, User, Copy, Check, Mail } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 
 const LEVELS = [
@@ -134,11 +135,13 @@ interface ProfileData {
   study_subcategory: string;
   main_exam_period: string;
   liaison_code: string;
+  marketing_emails_optin: boolean;
 }
 
 const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingMarketing, setSavingMarketing] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [profile, setProfile] = useState<ProfileData>({
     first_name: '',
@@ -150,6 +153,7 @@ const Profile = () => {
     study_subcategory: '',
     main_exam_period: '',
     liaison_code: '',
+    marketing_emails_optin: false,
   });
 
   const { user } = useAuth();
@@ -182,6 +186,7 @@ const Profile = () => {
           study_subcategory: profileData.study_subcategory || '',
           main_exam_period: profileData.main_exam_period || '',
           liaison_code: profileData.liaison_code || '',
+          marketing_emails_optin: profileData.marketing_emails_optin || false,
         });
       }
     } catch (err) {
@@ -237,6 +242,38 @@ const Profile = () => {
     }
   };
 
+  const handleMarketingOptInChange = async (checked: boolean) => {
+    if (!user) return;
+    
+    setSavingMarketing(true);
+    const now = new Date().toISOString();
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          marketing_emails_optin: checked,
+          marketing_optin_at: checked ? now : null
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        toast.error('Erreur lors de la mise à jour');
+      } else {
+        setProfile({ ...profile, marketing_emails_optin: checked });
+        toast.success(checked 
+          ? 'Vous recevrez nos actualités par email' 
+          : 'Vous ne recevrez plus nos emails'
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('Erreur lors de la mise à jour');
+    } finally {
+      setSavingMarketing(false);
+    }
+  };
+
   return (
     <div className="flex-1 p-6 md:p-8 space-y-8 overflow-auto">
         <div>
@@ -251,6 +288,7 @@ const Profile = () => {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
+          <>
           <Card className="border-0 shadow-md max-w-2xl">
             <CardHeader>
               <div className="flex items-center gap-4">
@@ -427,14 +465,44 @@ const Profile = () => {
                 </div>
               )}
 
-
               <Button onClick={handleSave} disabled={saving} className="w-full">
                 {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Enregistrer
               </Button>
             </CardContent>
           </Card>
-        )}
+
+          {/* Marketing preferences card */}
+          <Card className="border-0 shadow-md max-w-2xl">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Communications</CardTitle>
+                  <CardDescription>Gère tes préférences d'emails</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between gap-4 p-4 rounded-lg bg-muted/50 border border-border/50">
+                <div className="space-y-1">
+                  <p className="font-medium text-sm">Emails d'informations et actualités</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Recevez nos actualités, conseils et nouveautés. Vous pouvez vous désinscrire à tout moment.
+                  </p>
+                </div>
+                <Switch
+                  checked={profile.marketing_emails_optin}
+                  onCheckedChange={handleMarketingOptInChange}
+                  disabled={savingMarketing}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 };
