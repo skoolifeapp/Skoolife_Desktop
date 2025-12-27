@@ -4,8 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Clock, User, BookOpen, CheckCircle, XCircle, Loader2, MapPin, Video } from 'lucide-react';
-import JoinCallButton from '@/components/JoinCallButton';
+import { Calendar, Clock, User, BookOpen, CheckCircle, XCircle, Loader2, MapPin } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 const LOGO_URL = '/logo.png';
@@ -306,31 +305,12 @@ export default function Invite() {
               </div>
               
               {/* Meeting format display */}
-              {inviteData.meeting_format && (
+              {inviteData.meeting_format === 'presentiel' && (
                 <div className="flex items-center gap-2 pt-2 border-t border-border/50 mt-2">
-                  {inviteData.meeting_format === 'visio' ? (
-                    <>
-                      <Video className="w-4 h-4 text-blue-500" />
-                      {inviteData.meeting_link ? (
-                        <JoinCallButton
-                          roomUrl={inviteData.meeting_link}
-                          sessionTitle={inviteData.session.subject.name}
-                          variant="ghost"
-                          size="sm"
-                          className="text-blue-600 dark:text-blue-400 p-0 h-auto"
-                        />
-                      ) : (
-                        <span className="text-blue-600 dark:text-blue-400">Visio (lien à venir)</span>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <MapPin className="w-4 h-4 text-green-500" />
-                      <span className="text-green-600 dark:text-green-400">
-                        {inviteData.meeting_address || 'Présentiel'}
-                      </span>
-                    </>
-                  )}
+                  <MapPin className="w-4 h-4 text-green-500" />
+                  <span className="text-green-600 dark:text-green-400">
+                    {inviteData.meeting_address || 'Présentiel'}
+                  </span>
                 </div>
               )}
             </div>

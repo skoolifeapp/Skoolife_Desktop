@@ -9,9 +9,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Users, MapPin, Video, X, Check } from 'lucide-react';
+import { Calendar, Clock, Users, MapPin, X, Check } from 'lucide-react';
 import type { RevisionSession } from '@/types/planning';
-import JoinCallButton from '@/components/JoinCallButton';
 
 interface InvitedSessionDialogProps {
   session: RevisionSession | null;
@@ -87,24 +86,6 @@ export function InvitedSessionDialog({
           </div>
 
           {/* Meeting format */}
-          {session.inviteMeetingFormat === 'visio' && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-sm">
-                <Video className="w-4 h-4 text-blue-500" />
-                <span>Visioconférence</span>
-              </div>
-              {session.inviteMeetingLink && (
-                <JoinCallButton
-                  roomUrl={session.inviteMeetingLink}
-                  sessionTitle={session.subject?.name}
-                  variant="default"
-                  size="default"
-                  className="w-full"
-                />
-              )}
-            </div>
-          )}
-
           {session.inviteMeetingFormat === 'presentiel' && (
             <div className="flex items-center gap-3 text-sm">
               <MapPin className="w-4 h-4 text-green-500" />

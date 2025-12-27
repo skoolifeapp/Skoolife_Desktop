@@ -1,9 +1,8 @@
-import { Check, Calendar, Brain, Clock, Target, Timer, Play, Pause, RotateCcw, Coffee, BookOpen, BarChart3, GraduationCap, Settings, Bell, Sun, CheckCircle2, RefreshCw, Plus } from 'lucide-react';
+import { Check, Calendar, Brain, Clock, Target, Timer, Play, Pause, RotateCcw, Coffee, BookOpen, BarChart3, GraduationCap, Settings, Bell, Sun, CheckCircle2, RefreshCw, Plus, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 const LOGO_URL = '/logo.png';
-import LandingVideoCallPreview from '@/components/LandingVideoCallPreview';
 
 const LandingFeatures = () => {
   return (
@@ -243,25 +242,27 @@ const LandingFeatures = () => {
                 Révise à Plusieurs
               </h3>
               <p className="text-muted-foreground mb-6">
-                Invite tes amis à réviser avec toi grâce à la visio intégrée. 
+                Invite tes amis à réviser avec toi. 
                 Partage tes sessions directement depuis ton planning 
-                et révisez ensemble, même à distance.
+                et révisez ensemble, en présentiel ou à distance.
               </p>
               <ul className="space-y-3">
                 <li className="flex items-start gap-2 text-muted-foreground">
                   <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                  <span>Visioconférence intégrée, pas besoin d'app externe</span>
+                  <span>Partage de session en un clic via lien d'invitation</span>
                 </li>
                 <li className="flex items-start gap-2 text-muted-foreground">
                   <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                  <span>Partage de session en un clic via lien d'invitation</span>
+                  <span>Confirmation de participation en temps réel</span>
                 </li>
               </ul>
             </div>
 
-            {/* Video call preview side */}
-            <div className="p-6 md:p-8 bg-muted/30 order-1 md:order-2">
-              <LandingVideoCallPreview />
+            {/* Illustration side */}
+            <div className="p-6 md:p-8 bg-muted/30 order-1 md:order-2 flex items-center justify-center">
+              <div className="w-full max-w-[280px] aspect-square rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-border flex items-center justify-center">
+                <Users className="w-24 h-24 text-primary/60" />
+              </div>
             </div>
           </div>
         </div>

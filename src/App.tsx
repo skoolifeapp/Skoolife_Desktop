@@ -7,10 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { PresenceProvider } from "@/components/PresenceProvider";
-import { VideoCallProvider } from "@/contexts/VideoCallContext";
 import { LayoutSidebarProvider } from "@/contexts/LayoutSidebarContext";
 import { AppLayout } from "@/components/AppLayout";
-import GlobalVideoCall from "@/components/GlobalVideoCall";
 import CookieConsent from "@/components/CookieConsent";
 
 // Lazy load all pages for code splitting
@@ -65,17 +63,15 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
-        <VideoCallProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <CookieConsent />
-            <BrowserRouter>
-              <LayoutSidebarProvider>
-                <GlobalVideoCall />
-                <PresenceProvider>
-                  <Suspense fallback={<MinimalLoader />}>
-                    <Routes>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <CookieConsent />
+          <BrowserRouter>
+            <LayoutSidebarProvider>
+              <PresenceProvider>
+                <Suspense fallback={<MinimalLoader />}>
+                  <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/auth" element={<Auth />} />
                       <Route path="/pricing" element={<Pricing />} />
@@ -111,13 +107,12 @@ const App = () => (
                       <Route path="/invite-accept/:token" element={<InviteAccept />} />
                       <Route path="/cancel" element={<CancelSubscription />} />
                       <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </Suspense>
-                </PresenceProvider>
-              </LayoutSidebarProvider>
-            </BrowserRouter>
-          </TooltipProvider>
-        </VideoCallProvider>
+                  </Routes>
+                </Suspense>
+              </PresenceProvider>
+            </LayoutSidebarProvider>
+          </BrowserRouter>
+        </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
