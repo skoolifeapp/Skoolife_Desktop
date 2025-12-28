@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CalendarIcon, Loader2, Trash2, Paperclip } from 'lucide-react';
+import { CalendarIcon, Loader2, Trash2, Paperclip, Share2, Users, MapPin, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -61,16 +61,28 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+export interface InviteInfo {
+  invitees: Array<{ accepted_by: string | null; first_name: string | null; last_name: string | null; confirmed?: boolean }>;
+  meeting_format: string | null;
+  meeting_address: string | null;
+  meeting_link: string | null;
+}
+
 interface EditSessionDialogProps {
   session: RevisionSession | null;
   subjects: Subject[];
   onClose: () => void;
   onUpdate: () => void;
+  onShare?: () => void;
+  canShare?: boolean;
+  hasAcceptedInvite?: boolean;
+  inviteInfo?: InviteInfo;
 }
 
-const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate }: EditSessionDialogProps) => {
+const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate, onShare, canShare = false, hasAcceptedInvite = false, inviteInfo }: EditSessionDialogProps) => {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deletingVisio, setDeletingVisio] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -158,6 +170,28 @@ const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate }: EditSe
     }
   };
 
+  const handleDeleteVisio = async () => {
+    if (!session) return;
+
+    setDeletingVisio(true);
+    try {
+      // Delete all invites for this session (removes from invitees' planning and clears visio)
+      const { error } = await supabase
+        .from('session_invites')
+        .delete()
+        .eq('session_id', session.id);
+
+      if (error) throw error;
+
+      
+      onUpdate();
+    } catch (err) {
+      console.error('Error deleting visio:', err);
+      toast.error('Erreur lors de la suppression de la visio');
+    } finally {
+      setDeletingVisio(false);
+    }
+  };
 
   const currentSubject = subjects.find(s => s.id === form.watch('subject_id'));
   const currentStatus = form.watch('status');
@@ -300,6 +334,67 @@ const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate }: EditSe
               )}
             />
 
+            {/* Invite info */}
+            {inviteInfo && (
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 space-y-2">
+                {inviteInfo.invitees.filter(i => i.accepted_by && i.first_name).length > 0 && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Users className="w-4 h-4 text-primary" />
+                      <span>Camarades invités</span>
+                    </div>
+                    {inviteInfo.invitees.filter(i => i.accepted_by && i.first_name).map((invitee, idx) => (
+                      <div key={idx} className="flex items-center gap-2 text-sm ml-6">
+                        {invitee.confirmed ? (
+                          <Check className="w-3.5 h-3.5 text-green-500" />
+                        ) : (
+                          <span className="text-amber-500 text-xs">⏳</span>
+                        )}
+                        <span className={invitee.confirmed ? 'text-foreground' : 'text-muted-foreground'}>
+                          {invitee.first_name} {invitee.last_name || ''}
+                        </span>
+                        <span className={`text-xs ${invitee.confirmed ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
+                          {invitee.confirmed ? 'Confirmé' : 'En attente'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {inviteInfo.invitees.length > inviteInfo.invitees.filter(i => i.accepted_by).length && (
+                  <div className="text-xs text-muted-foreground">
+                    {inviteInfo.invitees.length - inviteInfo.invitees.filter(i => i.accepted_by).length} invitation{inviteInfo.invitees.length - inviteInfo.invitees.filter(i => i.accepted_by).length > 1 ? 's' : ''} en attente de réponse
+                  </div>
+                )}
+                {inviteInfo.meeting_format && (
+                  <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      {inviteInfo.meeting_format === 'presentiel' ? (
+                        <>
+                          <MapPin className="w-4 h-4 text-green-500" />
+                          <span>{inviteInfo.meeting_address || 'Présentiel'}</span>
+                        </>
+                      ) : (
+                        <span>En ligne</span>
+                      )}
+                    </div>
+                    {/* Delete invite button */}
+                    <button
+                      type="button"
+                      onClick={handleDeleteVisio}
+                      disabled={deletingVisio}
+                      className="p-1.5 rounded-md hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      title="Supprimer l'invitation"
+                    >
+                      {deletingVisio ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <X className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Course files section - shared at subject level */}
             {session && currentSubject && (
@@ -326,19 +421,31 @@ const EditSessionDialog = memo(({ session, subjects, onClose, onUpdate }: EditSe
 
             {/* Action buttons */}
             <div className="flex items-center justify-between gap-3 pt-2 border-t border-border">
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                onClick={handleDelete}
-                disabled={deleting}
-              >
-                {deleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                </Button>
+                {canShare && onShare && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={onShare}
+                  >
+                    <Share2 className="w-4 h-4" />
+                  </Button>
                 )}
-              </Button>
+              </div>
               <Button type="submit" disabled={saving}>
                 {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 Enregistrer

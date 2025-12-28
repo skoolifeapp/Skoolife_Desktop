@@ -134,6 +134,7 @@ interface ProfileData {
   study_domain: string;
   study_subcategory: string;
   main_exam_period: string;
+  liaison_code: string;
   marketing_emails_optin: boolean;
 }
 
