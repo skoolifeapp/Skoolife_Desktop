@@ -6,7 +6,7 @@ export interface StudyFile {
   id: string;
   user_id: string;
   filename: string;
-  file_type: 'pdf' | 'doc' | 'docx';
+  file_type: string;
   file_size: number;
   storage_path: string;
   folder_name: string | null;
@@ -14,9 +14,8 @@ export interface StudyFile {
   updated_at: string;
 }
 
-const ALLOWED_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx'];
-const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+// No file type restrictions - accept all files
+// No file size limit
 
 export function useStudyFiles() {
   const [uploading, setUploading] = useState(false);
@@ -26,27 +25,10 @@ export function useStudyFiles() {
     return filename.split('.').pop()?.toLowerCase() || '';
   };
 
-  const isValidFileType = (file: File): boolean => {
-    const ext = getFileExtension(file.name);
-    return ALLOWED_EXTENSIONS.includes(ext) || ALLOWED_TYPES.includes(file.type);
-  };
-
   const uploadFile = useCallback(async (
     file: File,
     folderName?: string
   ): Promise<StudyFile | null> => {
-    // Validate file type
-    if (!isValidFileType(file)) {
-      toast.error('Format non supporté. Importez uniquement PDF ou Word.');
-      return null;
-    }
-
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error('Fichier trop volumineux. Taille max : 25 MB.');
-      return null;
-    }
-
     setUploading(true);
     
     try {
@@ -77,7 +59,7 @@ export function useStudyFiles() {
         .insert({
           user_id: user.id,
           filename: file.name,
-          file_type: fileExt as 'pdf' | 'doc' | 'docx',
+          file_type: fileExt || 'unknown',
           file_size: file.size,
           storage_path: storagePath,
           folder_name: folderName || null
@@ -99,6 +81,68 @@ export function useStudyFiles() {
       console.error('Error uploading file:', err);
       toast.error('Erreur lors de l\'upload');
       return null;
+    } finally {
+      setUploading(false);
+    }
+  }, []);
+
+  const uploadMultipleFiles = useCallback(async (
+    files: File[],
+    folderName?: string
+  ): Promise<StudyFile[]> => {
+    setUploading(true);
+    const uploaded: StudyFile[] = [];
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Vous devez être connecté pour importer des fichiers');
+        return [];
+      }
+
+      for (const file of files) {
+        const fileExt = getFileExtension(file.name);
+        const fileId = crypto.randomUUID();
+        const storagePath = `${user.id}/${fileId}-${file.name}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('study-files')
+          .upload(storagePath, file);
+
+        if (uploadError) {
+          console.error('Upload error for', file.name, uploadError);
+          continue;
+        }
+
+        const { data, error } = await supabase
+          .from('study_files')
+          .insert({
+            user_id: user.id,
+            filename: file.name,
+            file_type: fileExt || 'unknown',
+            file_size: file.size,
+            storage_path: storagePath,
+            folder_name: folderName || null
+          })
+          .select()
+          .single();
+
+        if (error) {
+          await supabase.storage.from('study-files').remove([storagePath]);
+          continue;
+        }
+
+        uploaded.push(data as StudyFile);
+      }
+
+      if (uploaded.length > 0) {
+        toast.success(`${uploaded.length} fichier${uploaded.length > 1 ? 's' : ''} importé${uploaded.length > 1 ? 's' : ''}`);
+      }
+      return uploaded;
+    } catch (err) {
+      console.error('Error uploading files:', err);
+      toast.error('Erreur lors de l\'upload');
+      return uploaded;
     } finally {
       setUploading(false);
     }
@@ -259,6 +303,7 @@ export function useStudyFiles() {
     uploading,
     loading,
     uploadFile,
+    uploadMultipleFiles,
     getFiles,
     getAllFiles,
     getFolders,
