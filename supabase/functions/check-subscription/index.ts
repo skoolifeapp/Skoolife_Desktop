@@ -90,21 +90,20 @@ serve(async (req) => {
       subscriptionStatus = eligible.status;
       cancelAtPeriodEnd = eligible.cancel_at_period_end || eligible.status === "canceled";
 
-      const endSeconds =
+      // Always use current_period_end for billing date - this is the actual next billing date from Stripe
+      const currentPeriodEnd =
         typeof eligible.current_period_end === "number" &&
         Number.isFinite(eligible.current_period_end)
           ? eligible.current_period_end
-          : typeof eligible.trial_end === "number" && Number.isFinite(eligible.trial_end)
-            ? eligible.trial_end
-            : null;
+          : null;
 
-      subscriptionEnd = endSeconds ? new Date(endSeconds * 1000).toISOString() : null;
+      subscriptionEnd = currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null;
 
       logStep("Eligible subscription found", {
         subscriptionId: eligible.id,
         status: subscriptionStatus,
         cancelAtPeriodEnd,
-        endSeconds,
+        currentPeriodEnd,
         endDate: subscriptionEnd,
       });
 
