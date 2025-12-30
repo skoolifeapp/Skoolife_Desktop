@@ -1,4 +1,4 @@
-import { Check, Calendar, Brain, Clock, Target, Timer, Play, Pause, RotateCcw, Coffee, BookOpen, BarChart3, GraduationCap, Settings, Bell, Sun, CheckCircle2, RefreshCw, Plus, Users } from 'lucide-react';
+import { Check, Calendar, Brain, Clock, Target, Timer, Play, Pause, RotateCcw, Coffee, BookOpen, BarChart3, GraduationCap, Settings, Bell, Sun, CheckCircle2, RefreshCw, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -232,41 +232,6 @@ const LandingFeatures = () => {
         </div>
       </div>
 
-      {/* Feature 2: Révisions en groupe */}
-      <div className="max-w-6xl mx-auto px-4 mb-20 md:mb-32">
-        <div className="bg-card rounded-2xl border border-border overflow-hidden">
-          <div className="grid md:grid-cols-2 gap-0">
-            {/* Text side - left on desktop */}
-            <div className="p-6 md:p-10 flex flex-col justify-center order-2 md:order-1">
-              <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                Révise à Plusieurs
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Invite tes amis à réviser avec toi. 
-                Partage tes sessions directement depuis ton planning 
-                et révisez ensemble, en présentiel ou à distance.
-              </p>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-2 text-muted-foreground">
-                  <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                  <span>Partage de session en un clic via lien d'invitation</span>
-                </li>
-                <li className="flex items-start gap-2 text-muted-foreground">
-                  <Check className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                  <span>Confirmation de participation en temps réel</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Illustration side */}
-            <div className="p-6 md:p-8 bg-muted/30 order-1 md:order-2 flex items-center justify-center">
-              <div className="w-full max-w-[280px] aspect-square rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-border flex items-center justify-center">
-                <Users className="w-24 h-24 text-primary/60" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Feature 3: Pomodoro */}
       <div className="max-w-6xl mx-auto px-4 mb-20 md:mb-32">
