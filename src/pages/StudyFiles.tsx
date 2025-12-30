@@ -100,7 +100,7 @@ const StudyFilesPaywall = () => {
   );
 };
 
-// iCloud-style file item
+// iCloud-style file item with drag support
 const FileItem = ({
   file,
   onOpen,
@@ -108,7 +108,9 @@ const FileItem = ({
   onRename,
   onMove,
   onDelete,
-  folders
+  folders,
+  onDragStart,
+  onDragEnd
 }: {
   file: StudyFile;
   onOpen: () => void;
@@ -117,11 +119,28 @@ const FileItem = ({
   onMove: (folder: string | null) => void;
   onDelete: () => void;
   folders: string[];
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 }) => {
   const { icon: FileIcon, color, bg } = getFileIcon(file.file_type);
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('application/json', JSON.stringify({ type: 'file', fileId: file.id }));
+    e.dataTransfer.effectAllowed = 'move';
+    onDragStart?.();
+  };
+
+  const handleDragEnd = () => {
+    onDragEnd?.();
+  };
+
   return (
-    <div className="group relative flex flex-col items-center p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer">
+    <div 
+      className="group relative flex flex-col items-center p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       {/* Icon */}
       <div 
         className={cn("w-16 h-16 rounded-xl flex items-center justify-center mb-2", bg)}
@@ -204,32 +223,113 @@ const FileItem = ({
   );
 };
 
-// iCloud-style folder item
+// iCloud-style folder item with drop zone and actions
 const FolderItem = ({
   name,
   fileCount,
-  onClick
+  onClick,
+  onRename,
+  onDelete,
+  onFileDrop,
+  isDraggingFile
 }: {
   name: string;
   fileCount: number;
   onClick: () => void;
-}) => (
-  <div 
-    className="group relative flex flex-col items-center p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
-    onClick={onClick}
-  >
-    <div className="w-16 h-16 rounded-xl bg-blue-100 dark:bg-blue-950/50 flex items-center justify-center mb-2">
-      <Folder className="w-9 h-9 text-blue-500" />
-    </div>
-    <p className="text-xs text-center font-medium leading-tight line-clamp-2 w-full px-1">
-      {name}
-    </p>
-    <p className="text-[10px] text-muted-foreground mt-0.5">
-      {fileCount} fichier{fileCount !== 1 ? 's' : ''}
-    </p>
-  </div>
-);
+  onRename: () => void;
+  onDelete: () => void;
+  onFileDrop: (folderName: string) => void;
+  isDraggingFile: boolean;
+}) => {
+  const [isDropTarget, setIsDropTarget] = useState(false);
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isDraggingFile) {
+      e.dataTransfer.dropEffect = 'move';
+      setIsDropTarget(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDropTarget(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDropTarget(false);
+    
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('application/json'));
+      if (data.type === 'file') {
+        onFileDrop(name);
+      }
+    } catch {
+      // Not a file drag
+    }
+  };
+
+  return (
+    <div 
+      className={cn(
+        "group relative flex flex-col items-center p-3 rounded-xl transition-all cursor-pointer",
+        isDropTarget 
+          ? "bg-primary/20 ring-2 ring-primary scale-105" 
+          : "hover:bg-muted/50",
+        isDraggingFile && "ring-1 ring-dashed ring-primary/50"
+      )}
+      onClick={onClick}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div className={cn(
+        "w-16 h-16 rounded-xl flex items-center justify-center mb-2 transition-colors",
+        isDropTarget ? "bg-primary/30" : "bg-blue-100 dark:bg-blue-950/50"
+      )}>
+        <Folder className={cn("w-9 h-9", isDropTarget ? "text-primary" : "text-blue-500")} />
+      </div>
+      <p className="text-xs text-center font-medium leading-tight line-clamp-2 w-full px-1">
+        {name}
+      </p>
+      <p className="text-[10px] text-muted-foreground mt-0.5">
+        {fileCount} fichier{fileCount !== 1 ? 's' : ''}
+      </p>
+
+      {/* Actions dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <MoreHorizontal className="w-3.5 h-3.5" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onRename(); }}>
+            <Edit2 className="w-3.5 h-3.5 mr-2" />
+            <span className="text-xs">Renommer</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem 
+            onClick={(e) => { e.stopPropagation(); onDelete(); }} 
+            className="text-destructive focus:text-destructive"
+            disabled={fileCount > 0}
+          >
+            <Trash2 className="w-3.5 h-3.5 mr-2" />
+            <span className="text-xs">{fileCount > 0 ? 'Vider d\'abord' : 'Supprimer'}</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
 export default function StudyFiles() {
   const { subscriptionTier, subscriptionLoading, user } = useAuth();
   const navigate = useNavigate();
@@ -253,12 +353,17 @@ export default function StudyFiles() {
   const [sortBy, setSortBy] = useState<'date' | 'name'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [draggedFileId, setDraggedFileId] = useState<string | null>(null);
 
   // Dialogs
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [newFolderDialogOpen, setNewFolderDialogOpen] = useState(false);
+  const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
+  const [renameFolderDialogOpen, setRenameFolderDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<StudyFile | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [newFilename, setNewFilename] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
 
@@ -418,6 +523,56 @@ export default function StudyFiles() {
     }
   };
 
+  // Folder actions
+  const handleRenameFolderClick = (folderName: string) => {
+    setSelectedFolder(folderName);
+    setNewFolderName(folderName);
+    setRenameFolderDialogOpen(true);
+  };
+
+  const handleRenameFolderConfirm = async () => {
+    if (selectedFolder && newFolderName.trim() && newFolderName.trim() !== selectedFolder) {
+      // Update all files in the folder to the new folder name
+      const folderFiles = files.filter(f => f.folder_name === selectedFolder);
+      for (const file of folderFiles) {
+        await moveToFolder(file.id, newFolderName.trim());
+      }
+      // Update local folders list
+      setFolders(prev => prev.map(f => f === selectedFolder ? newFolderName.trim() : f).sort());
+      await loadData();
+    }
+    setRenameFolderDialogOpen(false);
+    setSelectedFolder(null);
+    setNewFolderName('');
+  };
+
+  const handleDeleteFolderClick = (folderName: string) => {
+    setSelectedFolder(folderName);
+    setDeleteFolderDialogOpen(true);
+  };
+
+  const handleDeleteFolderConfirm = async () => {
+    if (selectedFolder) {
+      const folderFileCount = files.filter(f => f.folder_name === selectedFolder).length;
+      if (folderFileCount === 0) {
+        setFolders(prev => prev.filter(f => f !== selectedFolder));
+      }
+    }
+    setDeleteFolderDialogOpen(false);
+    setSelectedFolder(null);
+  };
+
+  const handleFileDropOnFolder = async (folderName: string) => {
+    if (draggedFileId) {
+      const success = await moveToFolder(draggedFileId, folderName);
+      if (success) {
+        await loadData();
+      }
+      setDraggedFileId(null);
+      setIsDraggingFile(false);
+    }
+  };
+
   // Get files for current view
   const currentFiles = files.filter(file => {
     const matchesSearch = file.filename.toLowerCase().includes(searchQuery.toLowerCase());
@@ -574,6 +729,10 @@ export default function StudyFiles() {
                     name={folder}
                     fileCount={getFolderFileCount(folder)}
                     onClick={() => setCurrentFolder(folder)}
+                    onRename={() => handleRenameFolderClick(folder)}
+                    onDelete={() => handleDeleteFolderClick(folder)}
+                    onFileDrop={handleFileDropOnFolder}
+                    isDraggingFile={isDraggingFile}
                   />
                 ))}
               </div>
@@ -592,6 +751,14 @@ export default function StudyFiles() {
                     onMove={(folder) => handleMoveFile(file, folder)}
                     onDelete={() => handleDeleteClick(file)}
                     folders={folders}
+                    onDragStart={() => {
+                      setDraggedFileId(file.id);
+                      setIsDraggingFile(true);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedFileId(null);
+                      setIsDraggingFile(false);
+                    }}
                   />
                 ))}
               </div>
@@ -696,6 +863,49 @@ export default function StudyFiles() {
             </Button>
             <Button size="sm" onClick={handleCreateFolder} disabled={!newFolderName.trim()}>
               Créer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rename folder dialog */}
+      <Dialog open={renameFolderDialogOpen} onOpenChange={setRenameFolderDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">Renommer le dossier</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+            placeholder="Nouveau nom"
+            className="text-sm"
+          />
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" size="sm" onClick={() => setRenameFolderDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button size="sm" onClick={handleRenameFolderConfirm} disabled={!newFolderName.trim()}>
+              Renommer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete folder dialog */}
+      <Dialog open={deleteFolderDialogOpen} onOpenChange={setDeleteFolderDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">Supprimer le dossier ?</DialogTitle>
+            <DialogDescription className="text-xs">
+              Le dossier "{selectedFolder}" sera supprimé. Cette action est irréversible.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" size="sm" onClick={() => setDeleteFolderDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleDeleteFolderConfirm}>
+              Supprimer
             </Button>
           </DialogFooter>
         </DialogContent>
