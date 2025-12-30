@@ -288,8 +288,12 @@ export default function StudyFiles() {
   useEffect(() => {
     if (subscriptionTier !== 'major') return;
 
+    let dragCounter = 0;
+
     const handleDragEnter = (e: DragEvent) => {
       e.preventDefault();
+      e.stopPropagation();
+      dragCounter++;
       if (e.dataTransfer?.types.includes('Files')) {
         setIsDragging(true);
       }
@@ -297,17 +301,22 @@ export default function StudyFiles() {
 
     const handleDragLeave = (e: DragEvent) => {
       e.preventDefault();
-      if (e.relatedTarget === null || !(e.relatedTarget as Element)?.closest?.('#study-files-container')) {
+      e.stopPropagation();
+      dragCounter--;
+      if (dragCounter === 0) {
         setIsDragging(false);
       }
     };
 
     const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
+      e.stopPropagation();
     };
 
     const handleDrop = async (e: DragEvent) => {
       e.preventDefault();
+      e.stopPropagation();
+      dragCounter = 0;
       setIsDragging(false);
       
       const droppedFiles = Array.from(e.dataTransfer?.files || []);
@@ -479,21 +488,22 @@ export default function StudyFiles() {
               <FolderPlus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Nouveau dossier</span>
             </Button>
-            <label>
-              <input
-                type="file"
-                multiple
-                onChange={handleFileUpload}
-                className="hidden"
-                disabled={uploading}
-              />
-              <Button asChild disabled={uploading} size="sm" className="gap-1.5 h-8 text-xs">
-                <span>
-                  <Upload className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Importer</span>
-                </span>
-              </Button>
-            </label>
+            <Button 
+              onClick={() => document.getElementById('file-upload-input')?.click()}
+              disabled={uploading} 
+              size="sm" 
+              className="gap-1.5 h-8 text-xs"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Importer</span>
+            </Button>
+            <input
+              id="file-upload-input"
+              type="file"
+              multiple
+              onChange={handleFileUpload}
+              className="hidden"
+            />
           </div>
         </div>
 
