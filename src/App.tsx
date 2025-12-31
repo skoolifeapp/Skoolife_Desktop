@@ -26,6 +26,8 @@ const Admin = lazy(() => import("./pages/Admin"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const AdminStats = lazy(() => import("./pages/AdminStats"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
+const AdminSchools = lazy(() => import("./pages/AdminSchools"));
+const AdminSchoolDetail = lazy(() => import("./pages/AdminSchoolDetail"));
 const Invite = lazy(() => import("./pages/Invite"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
 const CancelSubscription = lazy(() => import("./pages/CancelSubscription"));
@@ -103,6 +105,8 @@ const App = () => (
                       <Route path="/admin/users" element={<AdminUsers />} />
                       <Route path="/admin/stats" element={<AdminStats />} />
                       <Route path="/admin/analytics" element={<AdminAnalytics />} />
+                      <Route path="/admin/schools" element={<AdminSchools />} />
+                      <Route path="/admin/schools/:id" element={<AdminSchoolDetail />} />
                       <Route path="/invite/:token" element={<Invite />} />
                       <Route path="/invite-accept/:token" element={<InviteAccept />} />
                       <Route path="/cancel" element={<CancelSubscription />} />

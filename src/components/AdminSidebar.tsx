@@ -1,14 +1,14 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { MessageSquare, Users, BarChart3, LogOut, Menu, X, TrendingUp } from 'lucide-react';
+import { MessageSquare, Users, BarChart3, LogOut, Menu, X, TrendingUp, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 const LOGO_URL = '/logo.png';
 
 interface AdminSidebarProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 const NAV_ITEMS = [
@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { path: '/admin/users', label: 'Utilisateurs', icon: Users },
   { path: '/admin/analytics', label: 'Analytics', icon: TrendingUp },
   { path: '/admin/stats', label: 'Statistiques', icon: BarChart3 },
+  { path: '/admin/schools', label: 'Écoles B2B', icon: Building2 },
 ];
 
 const AdminSidebar = ({ children }: AdminSidebarProps) => {
@@ -126,10 +127,12 @@ const AdminSidebar = ({ children }: AdminSidebarProps) => {
         </div>
       )}
 
-      {/* Main content */}
-      <main className="lg:ml-56 min-h-screen">
-        {children}
-      </main>
+      {/* Main content - only render if children provided */}
+      {children && (
+        <main className="lg:ml-56 min-h-screen">
+          {children}
+        </main>
+      )}
     </div>
   );
 };
