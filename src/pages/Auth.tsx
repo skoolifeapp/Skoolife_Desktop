@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, Building2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 const LOGO_URL = '/logo.png';
 
 const Auth = () => {
@@ -310,18 +310,10 @@ const Auth = () => {
             </CardContent>
           </Card>
 
-          {/* Schools link */}
-          <div className="text-center space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Vous êtes un établissement ?
-            </p>
-            <Link to="/schools/auth">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Building2 className="w-4 h-4" />
-                Espace Écoles
-              </Button>
-            </Link>
-          </div>
+          {/* Motivational text */}
+          <p className="text-center text-sm text-muted-foreground">
+            Tu n'es plus seul avec tes révisions.
+          </p>
         </div>
       </main>
     </div>
