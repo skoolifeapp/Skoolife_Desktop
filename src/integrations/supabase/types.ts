@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_codes: {
+        Row: {
+          class_id: string | null
+          code: string
+          cohort_id: string | null
+          created_at: string | null
+          created_by: string | null
+          current_uses: number | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          school_id: string
+        }
+        Insert: {
+          class_id?: string | null
+          code: string
+          cohort_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          school_id: string
+        }
+        Update: {
+          class_id?: string | null
+          code?: string
+          cohort_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_uses?: number | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_codes_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_codes_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_codes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_codes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_plans: {
         Row: {
           config_json: Json | null
@@ -95,6 +166,98 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      classes: {
+        Row: {
+          cohort_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          school_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          cohort_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          school_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          cohort_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          school_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "classes_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "classes_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cohorts: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          school_id: string
+          updated_at: string | null
+          year_end: number
+          year_start: number
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          school_id: string
+          updated_at?: string | null
+          year_end?: number
+          year_start?: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          school_id?: string
+          updated_at?: string | null
+          year_end?: number
+          year_start?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cohorts_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
         ]
@@ -433,6 +596,8 @@ export type Database = {
       }
       school_members: {
         Row: {
+          class_id: string | null
+          cohort_id: string | null
           created_at: string | null
           id: string
           invited_at: string | null
@@ -444,6 +609,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          class_id?: string | null
+          cohort_id?: string | null
           created_at?: string | null
           id?: string
           invited_at?: string | null
@@ -455,6 +622,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          class_id?: string | null
+          cohort_id?: string | null
           created_at?: string | null
           id?: string
           invited_at?: string | null
@@ -466,6 +635,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "school_members_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_members_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "school_members_invited_by_fkey"
             columns: ["invited_by"]
@@ -485,6 +668,57 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      school_subjects: {
+        Row: {
+          coefficient: number | null
+          cohort_id: string | null
+          created_at: string | null
+          description: string | null
+          exam_date: string | null
+          id: string
+          name: string
+          school_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          coefficient?: number | null
+          cohort_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          exam_date?: string | null
+          id?: string
+          name: string
+          school_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          coefficient?: number | null
+          cohort_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          exam_date?: string | null
+          id?: string
+          name?: string
+          school_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_subjects_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_subjects_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
         ]
@@ -1061,6 +1295,10 @@ export type Database = {
       is_school_member: {
         Args: { _school_id: string; _user_id: string }
         Returns: boolean
+      }
+      use_access_code: {
+        Args: { p_code: string; p_user_id: string }
+        Returns: Json
       }
     }
     Enums: {

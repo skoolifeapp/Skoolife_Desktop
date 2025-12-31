@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { PresenceProvider } from "@/components/PresenceProvider";
 import { LayoutSidebarProvider } from "@/contexts/LayoutSidebarContext";
+import { SchoolRoleProvider } from "@/hooks/useSchoolRole";
 import { AppLayout } from "@/components/AppLayout";
 import CookieConsent from "@/components/CookieConsent";
 
@@ -38,6 +39,12 @@ const About = lazy(() => import("./pages/About"));
 const Legal = lazy(() => import("./pages/Legal"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 
+// Institution B2B pages
+const CreateInstitution = lazy(() => import("./pages/institution/CreateInstitution"));
+const JoinInstitution = lazy(() => import("./pages/institution/JoinInstitution"));
+const InstitutionDashboard = lazy(() => import("./pages/institution/InstitutionDashboard"));
+const TeacherDashboard = lazy(() => import("./pages/institution/TeacherDashboard"));
+
 // Optimized QueryClient with caching
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,8 +72,9 @@ const App = () => (
           <CookieConsent />
           <BrowserRouter>
             <LayoutSidebarProvider>
-              <PresenceProvider>
-                <Suspense fallback={<MinimalLoader />}>
+              <SchoolRoleProvider>
+                <PresenceProvider>
+                  <Suspense fallback={<MinimalLoader />}>
                   <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/auth" element={<Auth />} />
@@ -79,6 +87,12 @@ const App = () => (
                       <Route path="/legal" element={<Legal />} />
                       <Route path="/privacy" element={<Privacy />} />
                       <Route path="/onboarding" element={<Onboarding />} />
+                      
+                      {/* Institution B2B routes */}
+                      <Route path="/institution/create" element={<CreateInstitution />} />
+                      <Route path="/join" element={<JoinInstitution />} />
+                      <Route path="/institution/dashboard" element={<InstitutionDashboard />} />
+                      <Route path="/institution/students" element={<TeacherDashboard />} />
 
                       {/* App routes with persistent sidebar */}
                       <Route element={<AppLayout />}>
@@ -99,8 +113,9 @@ const App = () => (
                       <Route path="/invite-accept/:token" element={<InviteAccept />} />
                       <Route path="*" element={<NotFound />} />
                   </Routes>
-                </Suspense>
-              </PresenceProvider>
+                  </Suspense>
+                </PresenceProvider>
+              </SchoolRoleProvider>
             </LayoutSidebarProvider>
           </BrowserRouter>
         </TooltipProvider>
