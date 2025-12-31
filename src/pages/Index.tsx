@@ -54,16 +54,11 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 md:mt-10">
             <Link to="/auth?mode=signup">
               <Button variant="hero" size="lg" className="md:text-base px-8">
-                Commencer gratuitement
+                Commencer
                 <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
             </Link>
           </div>
-
-          {/* Free text */}
-          <p className="text-sm text-muted-foreground mt-4">
-            Gratuit pendant 7 jours.
-          </p>
         </div>
 
         {/* Dashboard Preview - Rising from bottom */}

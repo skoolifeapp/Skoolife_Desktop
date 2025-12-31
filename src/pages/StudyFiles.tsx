@@ -39,8 +39,6 @@ import {
   Download,
   ExternalLink,
   FolderPlus,
-  Crown,
-  Lock,
   ArrowUpDown,
   Folder,
   X,
@@ -79,26 +77,6 @@ const formatFileSize = (bytes: number): string => {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-};
-
-const StudyFilesPaywall = () => {
-  const navigate = useNavigate();
-
-  return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center">
-      <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
-        <Lock className="w-10 h-10 text-primary" />
-      </div>
-      <h1 className="text-2xl font-bold mb-2">Mes fiches</h1>
-      <p className="text-muted-foreground mb-6 max-w-md">
-        Disponible uniquement avec l'abonnement Major.
-      </p>
-      <Button onClick={() => navigate('/subscription')} className="gap-2">
-        <Crown className="w-4 h-4" />
-        Passer à Major
-      </Button>
-    </div>
-  );
 };
 
 // iCloud-style file item with drag support
@@ -331,8 +309,9 @@ const FolderItem = ({
     </div>
   );
 };
+
 export default function StudyFiles() {
-  const { subscriptionTier, subscriptionLoading, user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const {
     uploading,
@@ -370,10 +349,10 @@ export default function StudyFiles() {
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (!subscriptionLoading && !user) {
+    if (!authLoading && !user) {
       navigate('/auth');
     }
-  }, [user, subscriptionLoading, navigate]);
+  }, [user, authLoading, navigate]);
 
   const loadData = useCallback(async () => {
     const [filesData, foldersData] = await Promise.all([
@@ -385,14 +364,14 @@ export default function StudyFiles() {
   }, [getAllFiles, getFolders]);
 
   useEffect(() => {
-    if (subscriptionTier === 'major') {
+    if (user) {
       loadData();
     }
-  }, [subscriptionTier, loadData]);
+  }, [user, loadData]);
 
   // Global drag & drop handlers
   useEffect(() => {
-    if (subscriptionTier !== 'major') return;
+    if (!user) return;
 
     let dragCounter = 0;
 
@@ -445,7 +424,7 @@ export default function StudyFiles() {
       document.removeEventListener('dragover', handleDragOver);
       document.removeEventListener('drop', handleDrop);
     };
-  }, [subscriptionTier, currentFolder, uploadMultipleFiles, loadData]);
+  }, [user, currentFolder, uploadMultipleFiles, loadData]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(event.target.files || []);
@@ -507,7 +486,7 @@ export default function StudyFiles() {
 
   const handleDeleteConfirm = async () => {
     if (selectedFile) {
-      const success = await deleteFile(selectedFile);
+      const success = await deleteFile(selectedFile.id, selectedFile.storage_path);
       if (success) {
         await loadData();
       }
@@ -517,416 +496,388 @@ export default function StudyFiles() {
   };
 
   const handleCreateFolder = async () => {
-    if (newFolderName.trim() && !folders.includes(newFolderName.trim())) {
-      setFolders(prev => [...prev, newFolderName.trim()].sort());
-      setNewFolderDialogOpen(false);
-      setNewFolderName('');
+    if (!newFolderName.trim()) return;
+    
+    // Create folder by adding a placeholder file (folders are virtual)
+    // Actually, we'll just add it to the local state and it will be created when a file is moved there
+    if (!folders.includes(newFolderName.trim())) {
+      setFolders(prev => [...prev, newFolderName.trim()]);
     }
+    setNewFolderDialogOpen(false);
+    setNewFolderName('');
   };
 
-  // Folder actions
-  const handleRenameFolderClick = (folderName: string) => {
-    setSelectedFolder(folderName);
-    setNewFolderName(folderName);
-    setRenameFolderDialogOpen(true);
-  };
-
-  const handleRenameFolderConfirm = async () => {
-    if (selectedFolder && newFolderName.trim() && newFolderName.trim() !== selectedFolder) {
-      // Update all files in the folder to the new folder name
-      const folderFiles = files.filter(f => f.folder_name === selectedFolder);
-      for (const file of folderFiles) {
-        await moveToFolder(file.id, newFolderName.trim());
-      }
-      // Update local folders list
-      setFolders(prev => prev.map(f => f === selectedFolder ? newFolderName.trim() : f).sort());
-      await loadData();
+  const handleRenameFolder = async () => {
+    if (!selectedFolder || !newFolderName.trim() || selectedFolder === newFolderName.trim()) {
+      setRenameFolderDialogOpen(false);
+      return;
     }
+
+    // Update all files in this folder to the new folder name
+    const filesToUpdate = files.filter(f => f.folder_name === selectedFolder);
+    for (const file of filesToUpdate) {
+      await moveToFolder(file.id, newFolderName.trim());
+    }
+
+    await loadData();
     setRenameFolderDialogOpen(false);
     setSelectedFolder(null);
     setNewFolderName('');
   };
 
-  const handleDeleteFolderClick = (folderName: string) => {
-    setSelectedFolder(folderName);
-    setDeleteFolderDialogOpen(true);
-  };
-
-  const handleDeleteFolderConfirm = async () => {
-    if (selectedFolder) {
-      const folderFileCount = files.filter(f => f.folder_name === selectedFolder).length;
-      if (folderFileCount === 0) {
-        setFolders(prev => prev.filter(f => f !== selectedFolder));
-      }
+  const handleDeleteFolder = async () => {
+    if (!selectedFolder) return;
+    
+    // Check if folder is empty
+    const filesInFolder = files.filter(f => f.folder_name === selectedFolder);
+    if (filesInFolder.length > 0) {
+      setDeleteFolderDialogOpen(false);
+      return;
     }
+
+    // Remove from local state (folder doesn't really exist in DB)
+    setFolders(prev => prev.filter(f => f !== selectedFolder));
     setDeleteFolderDialogOpen(false);
     setSelectedFolder(null);
   };
 
-  const handleFileDropOnFolder = async (folderName: string) => {
-    if (draggedFileId) {
-      const success = await moveToFolder(draggedFileId, folderName);
+  const handleFileDrop = async (folderName: string) => {
+    if (!draggedFileId) return;
+    
+    const file = files.find(f => f.id === draggedFileId);
+    if (file && file.folder_name !== folderName) {
+      const success = await moveToFolder(file.id, folderName);
       if (success) {
         await loadData();
       }
-      setDraggedFileId(null);
-      setIsDraggingFile(false);
     }
+    setDraggedFileId(null);
+    setIsDraggingFile(false);
   };
 
-  // Get files for current view
-  const currentFiles = files.filter(file => {
-    const matchesSearch = file.filename.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFolder = currentFolder === null 
-      ? !file.folder_name 
-      : file.folder_name === currentFolder;
-    return matchesSearch && matchesFolder;
-  });
-
-  // Sort files
-  const sortedFiles = [...currentFiles].sort((a, b) => {
-    let comparison = 0;
-    if (sortBy === 'date') {
-      comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-    } else {
-      comparison = a.filename.localeCompare(b.filename);
-    }
-    return sortOrder === 'asc' ? comparison : -comparison;
-  });
+  // Filter and sort files
+  const filteredFiles = files
+    .filter(file => {
+      const matchesSearch = file.filename.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFolder = currentFolder ? file.folder_name === currentFolder : !file.folder_name;
+      return matchesSearch && matchesFolder;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'date') {
+        const dateA = new Date(a.created_at).getTime();
+        const dateB = new Date(b.created_at).getTime();
+        return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+      } else {
+        return sortOrder === 'desc' 
+          ? b.filename.localeCompare(a.filename)
+          : a.filename.localeCompare(b.filename);
+      }
+    });
 
   // Get folder file counts
-  const getFolderFileCount = (folderName: string) => 
-    files.filter(f => f.folder_name === folderName).length;
+  const folderFileCounts = folders.reduce((acc, folder) => {
+    acc[folder] = files.filter(f => f.folder_name === folder).length;
+    return acc;
+  }, {} as Record<string, number>);
 
-  // Show loading state
-  if (subscriptionLoading) {
+  if (authLoading || loading) {
     return (
-      <div className="space-y-4 p-6">
-        <Skeleton className="h-8 w-48" />
-        <div className="grid gap-4 grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-            <Skeleton key={i} className="h-24 w-full" />
-          ))}
+      <div className="flex-1 p-4 md:p-6 lg:p-8 pb-20 lg:pb-8">
+        <div className="space-y-6">
+          <Skeleton className="h-10 w-48" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {[...Array(12)].map((_, i) => (
+              <Skeleton key={i} className="h-28 rounded-xl" />
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
-  // Show paywall for non-Major users
-  if (subscriptionTier !== 'major') {
-    return <StudyFilesPaywall />;
-  }
-
   return (
-    <div id="study-files-container" className="relative min-h-full">
-      {/* Global drag overlay */}
-      {isDragging && (
-        <div className="fixed inset-0 z-50 bg-primary/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
-          <div className="bg-background border-2 border-dashed border-primary rounded-2xl p-12 text-center">
-            <Upload className="w-16 h-16 mx-auto mb-4 text-primary" />
-            <p className="text-lg font-medium">Dépose tes fichiers ici</p>
-            <p className="text-sm text-muted-foreground mt-1">Tous les types de fichiers sont acceptés</p>
-          </div>
-        </div>
-      )}
-
+    <div className="flex-1 p-4 md:p-6 lg:p-8 pb-20 lg:pb-8">
       {/* Upload progress bar */}
       {uploading && uploadProgress && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-background border rounded-xl shadow-lg p-4 w-80 animate-fade-in">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <Upload className="w-4 h-4 text-primary animate-pulse" />
+        <div className="fixed top-16 left-0 right-0 z-50 bg-background/95 backdrop-blur border-b p-3">
+          <div className="max-w-xl mx-auto space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="truncate max-w-[200px]">{uploadProgress.currentFileName}</span>
+              <span className="text-muted-foreground">
+                {uploadProgress.currentFile} / {uploadProgress.totalFiles}
+              </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{uploadProgress.currentFileName}</p>
-              <p className="text-xs text-muted-foreground">
-                {uploadProgress.current + 1} / {uploadProgress.total} fichier{uploadProgress.total > 1 ? 's' : ''}
-              </p>
-            </div>
+            <Progress value={(uploadProgress.currentFile / uploadProgress.totalFiles) * 100} className="h-2" />
           </div>
-          <Progress 
-            value={((uploadProgress.current + 1) / uploadProgress.total) * 100} 
-            className="h-2"
-          />
         </div>
       )}
 
-      <div className="space-y-4 p-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold">Mes fiches</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {files.length} fichier{files.length !== 1 ? 's' : ''}
-            </p>
+      {/* Drag overlay */}
+      {isDragging && (
+        <div className="fixed inset-0 z-50 bg-primary/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+          <div className="bg-card border-2 border-dashed border-primary rounded-2xl p-12 text-center">
+            <Upload className="w-16 h-16 mx-auto mb-4 text-primary" />
+            <p className="text-xl font-medium">Dépose tes fichiers ici</p>
+            <p className="text-muted-foreground mt-1">pour les ajouter à {currentFolder || 'Mes fiches'}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setNewFolderDialogOpen(true)} variant="outline" size="sm" className="gap-1.5 h-8 text-xs">
-              <FolderPlus className="w-3.5 h-3.5" />
+        </div>
+      )}
+
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold">Mes fiches</h1>
+            <p className="text-muted-foreground">Organise tes documents de cours</p>
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setNewFolderDialogOpen(true)}
+              className="gap-2"
+            >
+              <FolderPlus className="w-4 h-4" />
               <span className="hidden sm:inline">Nouveau dossier</span>
             </Button>
-            <Button 
-              onClick={() => document.getElementById('file-upload-input')?.click()}
-              disabled={uploading} 
-              size="sm" 
-              className="gap-1.5 h-8 text-xs"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Importer</span>
+            <Button asChild className="gap-2">
+              <label>
+                <Upload className="w-4 h-4" />
+                <span className="hidden sm:inline">Ajouter</span>
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+              </label>
             </Button>
-            <input
-              id="file-upload-input"
-              type="file"
-              multiple
-              onChange={handleFileUpload}
-              className="hidden"
-            />
           </div>
         </div>
 
         {/* Breadcrumb */}
-        <div className="flex items-center gap-1 text-xs">
-          <button 
-            onClick={() => setCurrentFolder(null)}
-            className={cn(
-              "flex items-center gap-1 px-2 py-1 rounded hover:bg-muted transition-colors",
-              currentFolder === null && "text-primary font-medium"
-            )}
-          >
-            <Home className="w-3.5 h-3.5" />
-            <span>Tous les fichiers</span>
-          </button>
-          {currentFolder && (
-            <>
-              <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="px-2 py-1 text-primary font-medium">{currentFolder}</span>
-            </>
-          )}
-        </div>
+        {currentFolder && (
+          <div className="flex items-center gap-2 text-sm">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 h-8 px-2"
+              onClick={() => setCurrentFolder(null)}
+            >
+              <Home className="w-4 h-4" />
+              Mes fiches
+            </Button>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            <span className="font-medium">{currentFolder}</span>
+          </div>
+        )}
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-2">
+        {/* Search and Sort */}
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher..."
+              placeholder="Rechercher un fichier..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 h-8 text-xs"
+              className="pl-9"
             />
           </div>
-          <Select value={`${sortBy}-${sortOrder}`} onValueChange={(v) => {
-            const [by, order] = v.split('-');
-            setSortBy(by as 'date' | 'name');
-            setSortOrder(order as 'asc' | 'desc');
-          }}>
-            <SelectTrigger className="w-full sm:w-[140px] h-8 text-xs">
-              <ArrowUpDown className="w-3.5 h-3.5 mr-1.5" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="date-desc" className="text-xs">Plus récent</SelectItem>
-              <SelectItem value="date-asc" className="text-xs">Plus ancien</SelectItem>
-              <SelectItem value="name-asc" className="text-xs">A → Z</SelectItem>
-              <SelectItem value="name-desc" className="text-xs">Z → A</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select value={sortBy} onValueChange={(v: 'date' | 'name') => setSortBy(v)}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Par date</SelectItem>
+                <SelectItem value="name">Par nom</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+            >
+              <ArrowUpDown className={cn("w-4 h-4", sortOrder === 'asc' && "rotate-180")} />
+            </Button>
+          </div>
         </div>
 
-        {/* Content */}
-        {loading ? (
-          <div className="grid gap-2 grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <Skeleton key={i} className="h-28 w-full rounded-xl" />
-            ))}
+        {/* Folders (only at root) */}
+        {!currentFolder && folders.length > 0 && (
+          <div>
+            <h2 className="text-sm font-medium text-muted-foreground mb-3">Dossiers</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+              {folders.map(folder => (
+                <FolderItem
+                  key={folder}
+                  name={folder}
+                  fileCount={folderFileCounts[folder] || 0}
+                  onClick={() => setCurrentFolder(folder)}
+                  onRename={() => {
+                    setSelectedFolder(folder);
+                    setNewFolderName(folder);
+                    setRenameFolderDialogOpen(true);
+                  }}
+                  onDelete={() => {
+                    setSelectedFolder(folder);
+                    setDeleteFolderDialogOpen(true);
+                  }}
+                  onFileDrop={handleFileDrop}
+                  isDraggingFile={isDraggingFile}
+                />
+              ))}
+            </div>
           </div>
-        ) : (
-          <>
-            {/* Folders (only show at root level) */}
-            {currentFolder === null && folders.length > 0 && (
-              <div className="grid gap-2 grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
-                {folders.map(folder => (
-                  <FolderItem
-                    key={folder}
-                    name={folder}
-                    fileCount={getFolderFileCount(folder)}
-                    onClick={() => setCurrentFolder(folder)}
-                    onRename={() => handleRenameFolderClick(folder)}
-                    onDelete={() => handleDeleteFolderClick(folder)}
-                    onFileDrop={handleFileDropOnFolder}
-                    isDraggingFile={isDraggingFile}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Files */}
-            {sortedFiles.length > 0 ? (
-              <div className="grid gap-2 grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
-                {sortedFiles.map(file => (
-                  <FileItem
-                    key={file.id}
-                    file={file}
-                    onOpen={() => handleOpenFile(file)}
-                    onDownload={() => handleDownloadFile(file)}
-                    onRename={() => handleRenameClick(file)}
-                    onMove={(folder) => handleMoveFile(file, folder)}
-                    onDelete={() => handleDeleteClick(file)}
-                    folders={folders}
-                    onDragStart={() => {
-                      setDraggedFileId(file.id);
-                      setIsDraggingFile(true);
-                    }}
-                    onDragEnd={() => {
-                      setDraggedFileId(null);
-                      setIsDraggingFile(false);
-                    }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <FileText className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <p className="text-sm font-medium mb-1">
-                  {searchQuery ? 'Aucun résultat' : 'Aucun fichier'}
-                </p>
-                <p className="text-xs text-muted-foreground mb-4">
-                  {searchQuery 
-                    ? `Aucun fichier ne correspond à "${searchQuery}"`
-                    : 'Glisse des fichiers ici ou clique sur Importer'
-                  }
-                </p>
-                {!searchQuery && (
-                  <label>
-                    <input
-                      type="file"
-                      multiple
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      disabled={uploading}
-                    />
-                    <Button asChild size="sm" className="gap-1.5 text-xs">
-                      <span>
-                        <Upload className="w-3.5 h-3.5" />
-                        Importer des fichiers
-                      </span>
-                    </Button>
-                  </label>
-                )}
-              </div>
-            )}
-          </>
         )}
+
+        {/* Files */}
+        <div>
+          {!currentFolder && folders.length > 0 && (
+            <h2 className="text-sm font-medium text-muted-foreground mb-3">Fichiers</h2>
+          )}
+          
+          {filteredFiles.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                <FileText className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-medium mb-1">
+                {searchQuery ? 'Aucun fichier trouvé' : 'Aucun fichier'}
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                {searchQuery 
+                  ? 'Essaie avec d\'autres termes de recherche'
+                  : 'Glisse-dépose des fichiers ici ou clique sur Ajouter'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2">
+              {filteredFiles.map(file => (
+                <FileItem
+                  key={file.id}
+                  file={file}
+                  onOpen={() => handleOpenFile(file)}
+                  onDownload={() => handleDownloadFile(file)}
+                  onRename={() => handleRenameClick(file)}
+                  onMove={(folder) => handleMoveFile(file, folder)}
+                  onDelete={() => handleDeleteClick(file)}
+                  folders={folders}
+                  onDragStart={() => {
+                    setDraggedFileId(file.id);
+                    setIsDraggingFile(true);
+                  }}
+                  onDragEnd={() => {
+                    setDraggedFileId(null);
+                    setIsDraggingFile(false);
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Delete confirmation dialog */}
+      {/* Delete File Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-base">Supprimer ce fichier ?</DialogTitle>
-            <DialogDescription className="text-xs">
+            <DialogTitle>Supprimer le fichier ?</DialogTitle>
+            <DialogDescription>
               Cette action est irréversible. Le fichier "{selectedFile?.filename}" sera définitivement supprimé.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" size="sm" onClick={() => setDeleteDialogOpen(false)}>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Annuler
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleDeleteConfirm}>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
               Supprimer
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Rename dialog */}
+      {/* Rename File Dialog */}
       <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-base">Renommer le fichier</DialogTitle>
+            <DialogTitle>Renommer le fichier</DialogTitle>
           </DialogHeader>
           <Input
             value={newFilename}
             onChange={(e) => setNewFilename(e.target.value)}
             placeholder="Nouveau nom"
-            className="text-sm"
           />
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" size="sm" onClick={() => setRenameDialogOpen(false)}>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameDialogOpen(false)}>
               Annuler
             </Button>
-            <Button size="sm" onClick={handleRenameConfirm} disabled={!newFilename.trim()}>
+            <Button onClick={handleRenameConfirm}>
               Renommer
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* New folder dialog */}
+      {/* New Folder Dialog */}
       <Dialog open={newFolderDialogOpen} onOpenChange={setNewFolderDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-base">Créer un dossier</DialogTitle>
-            <DialogDescription className="text-xs">
-              Créez un nouveau dossier pour organiser vos fichiers.
-            </DialogDescription>
+            <DialogTitle>Nouveau dossier</DialogTitle>
           </DialogHeader>
           <Input
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
-            placeholder="Nom du dossier (ex: Finance, Compta...)"
-            className="text-sm"
+            placeholder="Nom du dossier"
           />
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" size="sm" onClick={() => setNewFolderDialogOpen(false)}>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewFolderDialogOpen(false)}>
               Annuler
             </Button>
-            <Button size="sm" onClick={handleCreateFolder} disabled={!newFolderName.trim()}>
+            <Button onClick={handleCreateFolder}>
               Créer
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Rename folder dialog */}
+      {/* Rename Folder Dialog */}
       <Dialog open={renameFolderDialogOpen} onOpenChange={setRenameFolderDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-base">Renommer le dossier</DialogTitle>
+            <DialogTitle>Renommer le dossier</DialogTitle>
           </DialogHeader>
           <Input
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
             placeholder="Nouveau nom"
-            className="text-sm"
           />
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" size="sm" onClick={() => setRenameFolderDialogOpen(false)}>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameFolderDialogOpen(false)}>
               Annuler
             </Button>
-            <Button size="sm" onClick={handleRenameFolderConfirm} disabled={!newFolderName.trim()}>
+            <Button onClick={handleRenameFolder}>
               Renommer
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete folder dialog */}
+      {/* Delete Folder Dialog */}
       <Dialog open={deleteFolderDialogOpen} onOpenChange={setDeleteFolderDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-base">Supprimer le dossier ?</DialogTitle>
-            <DialogDescription className="text-xs">
-              Le dossier "{selectedFolder}" sera supprimé. Cette action est irréversible.
+            <DialogTitle>Supprimer le dossier ?</DialogTitle>
+            <DialogDescription>
+              Le dossier "{selectedFolder}" sera supprimé. Cette action ne supprime pas les fichiers qu'il contient.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" size="sm" onClick={() => setDeleteFolderDialogOpen(false)}>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteFolderDialogOpen(false)}>
               Annuler
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleDeleteFolderConfirm}>
+            <Button variant="destructive" onClick={handleDeleteFolder}>
               Supprimer
             </Button>
           </DialogFooter>

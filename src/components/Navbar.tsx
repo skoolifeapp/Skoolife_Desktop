@@ -16,7 +16,6 @@ const Navbar = () => {
   const location = useLocation();
   const { user } = useAuth();
   const isHome = location.pathname === '/';
-  const isPricing = location.pathname === '/pricing';
   const [showFeatures, setShowFeatures] = useState(false);
 
   const isAbout = location.pathname === '/about';
@@ -35,17 +34,6 @@ const Navbar = () => {
         
         {/* Navigation Links - Hidden on mobile */}
         <div className="hidden md:flex items-center gap-1 ml-4">
-          <Link 
-            to="/pricing" 
-            className={`px-3 py-1.5 text-sm transition-colors rounded-full ${
-              isPricing 
-                ? 'text-foreground font-medium bg-muted/50' 
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            }`}
-          >
-            Tarifs
-          </Link>
-          
           {/* Fonctionnalités with dropdown */}
           <div 
             className="relative"
