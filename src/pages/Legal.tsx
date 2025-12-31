@@ -39,47 +39,37 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">3) Abonnements et paiements</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">3) Licences institutionnelles</h2>
               
-              <h3 className="text-lg font-medium mt-4 mb-2">3.1 Abonnements</h3>
+              <h3 className="text-lg font-medium mt-4 mb-2">3.1 Accès via établissement</h3>
               <p>
-                Certaines parties du Service peuvent être proposées sous forme d'abonnement (« Abonnement(s) »).<br />
-                Vous êtes facturé à l'avance sur une base récurrente selon le cycle de facturation indiqué lors de la souscription (mensuel ou annuel).
-              </p>
-              <p>Sauf résiliation avant la date de renouvellement, l'Abonnement se renouvelle automatiquement dans les mêmes conditions.</p>
-
-              <h3 className="text-lg font-medium mt-4 mb-2">3.2 Gestion, annulation</h3>
-              <p>
-                Vous pouvez annuler votre Abonnement depuis votre espace de gestion (si disponible) ou en contactant le support. L'annulation prend effet à la fin de la période en cours, sauf indication contraire au moment de l'achat.
+                L'accès au Service est généralement fourni via une licence institutionnelle souscrite par votre établissement d'enseignement (école, université, institution de formation).<br />
+                En tant qu'étudiant ou enseignant, vous bénéficiez d'un accès gratuit dans le cadre de cette licence.
               </p>
 
-              <h3 className="text-lg font-medium mt-4 mb-2">3.3 Moyens de paiement</h3>
+              <h3 className="text-lg font-medium mt-4 mb-2">3.2 Durée et conditions</h3>
               <p>
-                Une méthode de paiement valide peut être requise (ex : carte bancaire). Les paiements sont traités par un prestataire de paiement (ex : Stripe). Skoolife ne stocke pas les informations complètes de carte bancaire.
+                Votre accès au Service est conditionné à la validité de la licence de votre établissement. L'établissement est responsable de la gestion des comptes utilisateurs.
               </p>
-              <p>Si un paiement échoue, l'accès à certaines fonctionnalités payantes peut être suspendu jusqu'à régularisation.</p>
-            </section>
 
-            <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">4) Modifications de tarifs</h2>
+              <h3 className="text-lg font-medium mt-4 mb-2">3.3 Facturation institutionnelle</h3>
               <p>
-                Nous pouvons modifier les tarifs des Abonnements. Toute modification prend effet à la fin du cycle de facturation en cours.<br />
-                Nous fournirons un préavis raisonnable (par exemple via e-mail ou via le Service). Votre utilisation continue après l'entrée en vigueur vaut acceptation des nouveaux tarifs.
+                La facturation est gérée directement avec l'établissement. Les étudiants et enseignants n'ont aucune obligation de paiement individuel.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">5) Remboursements</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">4) Modifications des conditions</h2>
               <p>
-                Les remboursements, lorsqu'ils existent, sont traités au cas par cas, sauf disposition légale impérative contraire.<br />
-                Selon la nature du Service (contenu numérique/accès immédiat), certains achats peuvent ne pas être remboursables, sauf obligation légale ou politique plus favorable explicitement indiquée.
+                Nous pouvons modifier les présentes conditions. Toute modification sera communiquée aux établissements partenaires.<br />
+                Votre utilisation continue après l'entrée en vigueur des modifications vaut acceptation des nouvelles conditions.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">6) Contenu utilisateur et licence</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">5) Contenu utilisateur et licence</h2>
               
-              <h3 className="text-lg font-medium mt-4 mb-2">6.1 Votre responsabilité</h3>
+              <h3 className="text-lg font-medium mt-4 mb-2">5.1 Votre responsabilité</h3>
               <p>
                 Vous êtes responsable de votre Contenu utilisateur (légalité, pertinence, exactitude, droits). Vous vous engagez à ne pas importer/téléverser de contenu :
               </p>
@@ -89,7 +79,7 @@ const Legal = () => {
                 <li>portant atteinte aux droits de propriété intellectuelle de tiers.</li>
               </ul>
 
-              <h3 className="text-lg font-medium mt-4 mb-2">6.2 Licence limitée accordée à Skoolife</h3>
+              <h3 className="text-lg font-medium mt-4 mb-2">5.2 Licence limitée accordée à Skoolife</h3>
               <p>
                 Vous conservez la propriété de votre Contenu utilisateur.<br />
                 Cependant, pour fournir le Service, vous accordez à Skoolife une licence non exclusive, mondiale, gratuite et limitée permettant de héberger, stocker, traiter, afficher et organiser votre Contenu utilisateur uniquement pour l'exploitation et l'amélioration du Service (ex : affichage, synchronisation, sauvegarde, génération de planning).
@@ -97,7 +87,7 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">7) Planning et algorithme interne (absence de garantie)</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">6) Planning et algorithme interne (absence de garantie)</h2>
               <p>
                 Skoolife utilise un algorithme interne pour organiser et ajuster votre planning (par exemple selon vos examens, disponibilités, préférences, événements importés).
               </p>
@@ -110,7 +100,7 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">8) Comptes et sécurité</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">7) Comptes et sécurité</h2>
               <p>
                 Lors de la création d'un Compte, vous devez fournir des informations exactes et à jour.<br />
                 Vous êtes responsable de la confidentialité de vos identifiants et de toute activité effectuée via votre Compte.
@@ -124,7 +114,7 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">9) Utilisation acceptable (interdictions)</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">8) Utilisation acceptable (interdictions)</h2>
               <p>Vous vous engagez à ne pas :</p>
               <ul className="list-disc pl-6 space-y-1">
                 <li>tenter de contourner la sécurité, tester la vulnérabilité, ou accéder à des parties non autorisées,</li>
@@ -135,7 +125,7 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">10) Propriété intellectuelle</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">9) Propriété intellectuelle</h2>
               <p>
                 Le Service, son design, ses fonctionnalités, ses textes, logos et contenus (hors Contenu utilisateur) sont la propriété de Skoolife et/ou de ses concédants.<br />
                 Toute reproduction, distribution ou utilisation non autorisée est interdite.
@@ -143,7 +133,7 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">11) Politique de droits d'auteur (réclamations)</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">10) Politique de droits d'auteur (réclamations)</h2>
               <p>
                 Nous respectons les droits de propriété intellectuelle.<br />
                 Si vous pensez qu'un contenu sur le Service porte atteinte à vos droits, contactez-nous en fournissant :
@@ -158,21 +148,21 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">12) Liens vers des sites tiers</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">11) Liens vers des sites tiers</h2>
               <p>
                 Le Service peut contenir des liens vers des sites ou services tiers. Nous ne contrôlons pas ces services et ne sommes pas responsables de leurs contenus, politiques ou pratiques. L'accès se fait à vos risques.
               </p>
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">13) Résiliation et suspension</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">12) Résiliation et suspension</h2>
               
-              <h3 className="text-lg font-medium mt-4 mb-2">13.1 Par vous</h3>
+              <h3 className="text-lg font-medium mt-4 mb-2">12.1 Par vous</h3>
               <p>
                 Vous pouvez cesser d'utiliser le Service à tout moment. Vous pouvez demander la suppression de votre Compte via le support (selon les modalités prévues par le Service et la loi).
               </p>
 
-              <h3 className="text-lg font-medium mt-4 mb-2">13.2 Par Skoolife</h3>
+              <h3 className="text-lg font-medium mt-4 mb-2">12.2 Par Skoolife</h3>
               <p>Nous pouvons suspendre ou résilier l'accès au Service (en tout ou partie), notamment en cas :</p>
               <ul className="list-disc pl-6 space-y-1">
                 <li>de violation des présents Termes,</li>
@@ -184,7 +174,7 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">14) Limitation de responsabilité</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">13) Limitation de responsabilité</h2>
               <p>Dans les limites autorisées par la loi, Skoolife ne pourra être tenue responsable :</p>
               <ul className="list-disc pl-6 space-y-1">
                 <li>des pertes indirectes (perte de chance, perte de données, perte d'exploitation),</li>
@@ -196,7 +186,7 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">15) Avertissement (Service "en l'état")</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">14) Avertissement (Service "en l'état")</h2>
               <p>
                 Le Service est fourni « en l'état » et « selon disponibilité », sans garantie expresse ou implicite.<br />
                 Nous ne garantissons pas que :
@@ -210,7 +200,7 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">16) Droit applicable</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">15) Droit applicable</h2>
               <p>
                 Les présents Termes sont régis par le droit français, sous réserve des règles protectrices applicables aux consommateurs.<br />
                 En cas de litige, les juridictions compétentes seront déterminées conformément aux règles de procédure applicables.
@@ -218,7 +208,7 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">17) Modifications des Termes</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">16) Modifications des Termes</h2>
               <p>
                 Nous pouvons modifier ces Termes à tout moment. En cas de modification importante, nous vous en informerons via le Service et/ou par e-mail avant l'entrée en vigueur.<br />
                 Si vous continuez à utiliser le Service après la date d'entrée en vigueur, vous acceptez les Termes mis à jour.
@@ -226,7 +216,7 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-semibold mt-8 mb-4">18) Nous contacter</h2>
+              <h2 className="text-xl font-semibold mt-8 mb-4">17) Nous contacter</h2>
               <p>
                 Pour toute question concernant ces Termes :<br />
                 <a href="mailto:skoolife.co@gmail.com" className="text-primary hover:underline">skoolife.co@gmail.com</a>

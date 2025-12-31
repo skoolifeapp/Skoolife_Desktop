@@ -7,6 +7,7 @@ export interface Subject {
   target_hours: number | null;
   notes?: string | null;
   status?: string;
+  difficulty_level?: string | null;
 }
 
 export interface RevisionSession {

@@ -8,14 +8,13 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { PresenceProvider } from "@/components/PresenceProvider";
 import { LayoutSidebarProvider } from "@/contexts/LayoutSidebarContext";
+import { SchoolRoleProvider } from "@/hooks/useSchoolRole";
 import { AppLayout } from "@/components/AppLayout";
 import CookieConsent from "@/components/CookieConsent";
 
 // Lazy load all pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
-const Pricing = lazy(() => import("./pages/Pricing"));
-const PostCheckout = lazy(() => import("./pages/PostCheckout"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -28,8 +27,6 @@ const AdminStats = lazy(() => import("./pages/AdminStats"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const Invite = lazy(() => import("./pages/Invite"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
-const CancelSubscription = lazy(() => import("./pages/CancelSubscription"));
-const Subscription = lazy(() => import("./pages/Subscription"));
 const Pomodoro = lazy(() => import("./pages/Pomodoro"));
 const StudyFiles = lazy(() => import("./pages/StudyFiles"));
 const FeatureCalendar = lazy(() => import("./pages/FeatureCalendar"));
@@ -41,6 +38,17 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const About = lazy(() => import("./pages/About"));
 const Legal = lazy(() => import("./pages/Legal"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+
+// Institution B2B pages
+const CreateInstitution = lazy(() => import("./pages/institution/CreateInstitution"));
+const JoinInstitution = lazy(() => import("./pages/institution/JoinInstitution"));
+const InstitutionDashboard = lazy(() => import("./pages/institution/InstitutionDashboard"));
+const TeacherDashboard = lazy(() => import("./pages/institution/TeacherDashboard"));
+const ManageCohorts = lazy(() => import("./pages/institution/ManageCohorts"));
+const ManageStudents = lazy(() => import("./pages/institution/ManageStudents"));
+const ManageTeachers = lazy(() => import("./pages/institution/ManageTeachers"));
+const InstitutionSettings = lazy(() => import("./pages/institution/InstitutionSettings"));
+const Contact = lazy(() => import("./pages/Contact"));
 
 // Optimized QueryClient with caching
 const queryClient = new QueryClient({
@@ -69,12 +77,12 @@ const App = () => (
           <CookieConsent />
           <BrowserRouter>
             <LayoutSidebarProvider>
-              <PresenceProvider>
-                <Suspense fallback={<MinimalLoader />}>
+              <SchoolRoleProvider>
+                <PresenceProvider>
+                  <Suspense fallback={<MinimalLoader />}>
                   <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/auth" element={<Auth />} />
-                      <Route path="/pricing" element={<Pricing />} />
                       <Route path="/features/calendar" element={<FeatureCalendar />} />
                       <Route path="/features/progression" element={<FeatureProgression />} />
                       <Route path="/features/subjects" element={<FeatureSubjects />} />
@@ -83,18 +91,25 @@ const App = () => (
                       <Route path="/about" element={<About />} />
                       <Route path="/legal" element={<Legal />} />
                       <Route path="/privacy" element={<Privacy />} />
-                      <Route path="/post-checkout" element={<PostCheckout />} />
                       <Route path="/onboarding" element={<Onboarding />} />
+                      
+                      {/* Institution B2B routes */}
+                      <Route path="/institution/create" element={<CreateInstitution />} />
+                      <Route path="/join" element={<JoinInstitution />} />
+                      <Route path="/institution/dashboard" element={<InstitutionDashboard />} />
+                      <Route path="/institution/students" element={<ManageStudents />} />
+                      <Route path="/institution/cohorts" element={<ManageCohorts />} />
+                      <Route path="/institution/teachers" element={<ManageTeachers />} />
+                      <Route path="/institution/settings" element={<InstitutionSettings />} />
+                      <Route path="/contact" element={<Contact />} />
 
-                      {/* App routes with persistent sidebar - no Suspense here, handled in AppLayout */}
+                      {/* App routes with persistent sidebar */}
                       <Route element={<AppLayout />}>
                         <Route path="/app" element={<Dashboard />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/progression" element={<Progression />} />
                         <Route path="/subjects" element={<Subjects />} />
                         <Route path="/profile" element={<Profile />} />
-                        <Route path="/subscription" element={<Subscription />} />
-                        <Route path="/cancel" element={<CancelSubscription />} />
                         <Route path="/pomodoro" element={<Pomodoro />} />
                         <Route path="/study-files" element={<StudyFiles />} />
                       </Route>
@@ -105,11 +120,11 @@ const App = () => (
                       <Route path="/admin/analytics" element={<AdminAnalytics />} />
                       <Route path="/invite/:token" element={<Invite />} />
                       <Route path="/invite-accept/:token" element={<InviteAccept />} />
-                      <Route path="/cancel" element={<CancelSubscription />} />
                       <Route path="*" element={<NotFound />} />
                   </Routes>
-                </Suspense>
-              </PresenceProvider>
+                  </Suspense>
+                </PresenceProvider>
+              </SchoolRoleProvider>
             </LayoutSidebarProvider>
           </BrowserRouter>
         </TooltipProvider>

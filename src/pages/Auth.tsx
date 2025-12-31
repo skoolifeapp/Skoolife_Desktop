@@ -54,8 +54,8 @@ const Auth = () => {
           // User already onboarded, go to app
           navigate('/app');
         } else {
-          // New user: send to pricing page to select subscription
-          navigate('/pricing');
+          // New user: send to onboarding
+          navigate('/onboarding');
         }
         
         setCheckingRedirect(false);
@@ -175,7 +175,7 @@ const Auth = () => {
                   const baseUrl = window.location.hostname.includes('skoolife.fr') 
                     ? 'https://app.skoolife.fr' 
                     : window.location.origin;
-                  // Always redirect to /auth so the useEffect handles proper routing to /pricing
+                  // Redirect to /auth so the useEffect handles proper routing
                   const finalRedirect = redirectUrl ? `${baseUrl}${redirectUrl}` : `${baseUrl}/auth`;
                   const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
