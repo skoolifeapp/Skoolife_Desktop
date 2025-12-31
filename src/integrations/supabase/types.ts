@@ -1043,6 +1043,10 @@ export type Database = {
         Args: { p_email: string; p_first_name: string }
         Returns: string
       }
+      get_school_role: {
+        Args: { _school_id: string; _user_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1054,9 +1058,13 @@ export type Database = {
         Args: { _school_id: string; _user_id: string }
         Returns: boolean
       }
+      is_school_member: {
+        Args: { _school_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "teacher"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1184,7 +1192,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "teacher"],
     },
   },
 } as const
