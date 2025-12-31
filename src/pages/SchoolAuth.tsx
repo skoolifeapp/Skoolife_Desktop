@@ -68,7 +68,7 @@ const SchoolAuth = () => {
           .maybeSingle();
 
         if (membership?.school_id) {
-          navigate(`/admin/schools/${membership.school_id}`);
+          navigate('/schools/dashboard');
         } else {
           toast.error("Ce compte n'est pas associé à un établissement");
           await supabase.auth.signOut();
@@ -79,6 +79,7 @@ const SchoolAuth = () => {
           email,
           password,
           options: {
+            emailRedirectTo: `${window.location.origin}/schools/dashboard`,
             data: {
               first_name: firstName,
               last_name: lastName
@@ -134,7 +135,7 @@ const SchoolAuth = () => {
         }
 
         toast.success('Compte créé avec succès !');
-        navigate(`/admin/schools/${schoolRes.schoolId}`);
+        navigate('/schools/dashboard');
       }
     } catch (err) {
       console.error('Auth error:', err);

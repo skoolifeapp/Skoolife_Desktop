@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import SchoolAuth from "./pages/SchoolAuth";
+import SchoolDashboard from "./pages/SchoolDashboard";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -91,6 +92,7 @@ const App = () => (
                       <Route path="/schools" element={<SchoolsLanding />} />
                       <Route path="/schools/contact" element={<SchoolsContact />} />
                       <Route path="/schools/auth" element={<SchoolAuth />} />
+                      <Route path="/schools/dashboard" element={<SchoolDashboard />} />
                       <Route path="/post-checkout" element={<PostCheckout />} />
                       <Route path="/onboarding" element={<Onboarding />} />
 
