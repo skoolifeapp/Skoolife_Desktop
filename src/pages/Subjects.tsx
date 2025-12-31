@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SubjectsSkeleton } from '@/components/PageSkeletons';
 import { useAuth } from '@/hooks/useAuth';
+import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,12 +15,15 @@ import { fr } from 'date-fns/locale';
 import type { Subject } from '@/types/planning';
 import SubjectDrawer from '@/components/SubjectDrawer';
 
+
+
 const Subjects = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [filter, setFilter] = useState<'all' | 'partiel' | 'controle_continu' | 'oral' | 'projet'>('all');
+  
 
   const EXAM_TYPES = [
     { value: 'partiel', label: 'Partiel' },
@@ -29,7 +33,15 @@ const Subjects = () => {
   ];
 
   const { user, signOut } = useAuth();
+  const { isInviteFreeUser, loading: inviteGateLoading } = useInviteFreeUser();
   const navigate = useNavigate();
+
+  // Redirect only free users (invite-signup without subscription)
+  useEffect(() => {
+    if (!inviteGateLoading && isInviteFreeUser) {
+      navigate('/app');
+    }
+  }, [inviteGateLoading, isInviteFreeUser, navigate]);
 
   useEffect(() => {
     if (!user) {
@@ -37,7 +49,9 @@ const Subjects = () => {
       return;
     }
     fetchSubjects();
+    
   }, [user, navigate]);
+
 
   const fetchSubjects = async () => {
     if (!user) return;
@@ -150,233 +164,234 @@ const Subjects = () => {
 
   return (
     <>
+
       <div className="p-4 lg:p-8 max-w-6xl mx-auto space-y-6">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
-              Mes matières & examens
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Ajoute tes matières, leurs dates d'examen et ton objectif d'heures de révision.
-            </p>
-          </div>
-          <Button 
-            onClick={handleAddSubject}
-            className="gap-2 shrink-0"
-            data-add-subject-button
-          >
-            <Plus className="w-4 h-4" />
-            Ajouter une matière
-          </Button>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="bg-card border-border">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <GraduationCap className="w-6 h-6 text-primary" />
-              </div>
+            {/* Page Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Matières actives</p>
-                <p className="text-2xl font-bold text-foreground">{activeSubjects.length}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Prochain examen</p>
-                {nextExam ? (
-                  <p className="text-lg font-semibold text-foreground">
-                    {nextExam.name} <span className="text-primary">J-{daysUntilNextExam}</span>
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Aucun examen prévu</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card border-border">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Target className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Heures totales visées</p>
-                <p className="text-2xl font-bold text-foreground">{totalTargetHours}h</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filter Tabs by Exam Type */}
-        <div className="flex gap-2 flex-wrap">
-          <Button 
-            variant={filter === 'all' ? 'default' : 'outline'} 
-            size="sm"
-            onClick={() => setFilter('all')}
-          >
-            Toutes ({subjects.length})
-          </Button>
-          {EXAM_TYPES.map(type => (
-            <Button 
-              key={type.value}
-              variant={filter === type.value ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setFilter(type.value as any)}
-            >
-              {type.label} ({getExamTypeCount(type.value)})
-            </Button>
-          ))}
-        </div>
-
-        {/* Subjects List - Desktop Table */}
-        <div className="hidden md:block">
-          {filteredSubjects.length > 0 ? (
-            <Card className="bg-card border-border overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/30">
-                      <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Matière</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Date d'examen</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Objectif</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Priorité</th>
-                      <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Statut</th>
-                      <th className="text-right px-4 py-3 text-sm font-medium text-muted-foreground"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredSubjects.map((subject, index) => (
-                      <tr 
-                        key={subject.id}
-                        className="border-b border-border last:border-0 hover:bg-muted/20 cursor-pointer transition-colors"
-                        onClick={() => handleEditSubject(subject)}
-                        data-subject-row={index === 0 ? 'first' : undefined}
-                      >
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
-                            <div 
-                              className="w-4 h-4 rounded-full shrink-0" 
-                              style={{ backgroundColor: subject.color }}
-                            />
-                            <span className="font-medium text-foreground">{subject.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4 text-muted-foreground">
-                          {subject.exam_date 
-                            ? format(parseISO(subject.exam_date), 'dd/MM/yyyy', { locale: fr })
-                            : <span className="text-muted-foreground/50">Non définie</span>
-                          }
-                        </td>
-                        <td className="px-4 py-4 text-muted-foreground">
-                          {subject.target_hours ? `${subject.target_hours}h` : '-'}
-                        </td>
-                        <td className="px-4 py-4">
-                          <Badge className={getPriorityColor(subject.exam_weight)}>
-                            {getPriorityLabel(subject.exam_weight)}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-4">
-                          <Badge variant={(subject.status || 'active') === 'active' ? 'default' : 'secondary'}>
-                            {(subject.status || 'active') === 'active' ? 'Active' : 'Terminée'}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-4 text-right">
-                          <ChevronRight className="w-5 h-5 text-muted-foreground inline-block" />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          ) : (
-            <Card className="bg-card border-border">
-              <CardContent className="py-12 text-center">
-                <GraduationCap className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-                <h3 className="text-lg font-medium text-foreground mb-2">Aucune matière</h3>
-                <p className="text-muted-foreground mb-4">
-                  {filter !== 'all' 
-                    ? `Aucune matière avec ce type d'examen.`
-                    : "Commence par ajouter tes matières pour générer ton planning."}
+                <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                  Mes matières & examens
+                </h1>
+                <p className="text-muted-foreground mt-1">
+                  Ajoute tes matières, leurs dates d'examen et ton objectif d'heures de révision.
                 </p>
-                <Button onClick={handleAddSubject} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Ajouter une matière
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Subjects List - Mobile Cards */}
-        <div className="md:hidden space-y-3">
-          {filteredSubjects.length > 0 ? (
-            filteredSubjects.map((subject, index) => (
-              <Card 
-                key={subject.id}
-                className="bg-card border-border cursor-pointer hover:bg-muted/20 transition-colors"
-                onClick={() => handleEditSubject(subject)}
-                data-subject-row={index === 0 ? 'first' : undefined}
+              </div>
+              <Button 
+                onClick={handleAddSubject}
+                className="gap-2 shrink-0"
+                data-add-subject-button
               >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded-full shrink-0" 
-                        style={{ backgroundColor: subject.color }}
-                      />
-                      <div>
-                        <h3 className="font-medium text-foreground">{subject.name}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {subject.exam_date 
-                            ? format(parseISO(subject.exam_date), 'dd/MM/yyyy', { locale: fr })
-                            : 'Date non définie'
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                <Plus className="w-4 h-4" />
+                Ajouter une matière
+              </Button>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <GraduationCap className="w-6 h-6 text-primary" />
                   </div>
-                  <div className="flex items-center gap-2 mt-3 flex-wrap">
-                    {subject.target_hours && (
-                      <Badge variant="secondary" className="text-xs">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {subject.target_hours}h
-                      </Badge>
-                    )}
-                    <Badge className={`text-xs ${getPriorityColor(subject.exam_weight)}`}>
-                      {getPriorityLabel(subject.exam_weight)}
-                    </Badge>
-                    <Badge variant={(subject.status || 'active') === 'active' ? 'default' : 'secondary'} className="text-xs">
-                      {(subject.status || 'active') === 'active' ? 'Active' : 'Terminée'}
-                    </Badge>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Matières actives</p>
+                    <p className="text-2xl font-bold text-foreground">{activeSubjects.length}</p>
                   </div>
                 </CardContent>
               </Card>
-            ))
-          ) : (
-            <Card className="bg-card border-border">
-              <CardContent className="py-12 text-center">
-                <GraduationCap className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
-                <p className="text-muted-foreground">
-                  {filter !== 'all' 
-                    ? "Aucune matière avec ce type"
-                    : "Aucune matière"}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Prochain examen</p>
+                    {nextExam ? (
+                      <p className="text-lg font-semibold text-foreground">
+                        {nextExam.name} <span className="text-primary">J-{daysUntilNextExam}</span>
+                      </p>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Aucun examen prévu</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Target className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Heures totales visées</p>
+                    <p className="text-2xl font-bold text-foreground">{totalTargetHours}h</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Filter Tabs by Exam Type */}
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                variant={filter === 'all' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setFilter('all')}
+              >
+                Toutes ({subjects.length})
+              </Button>
+              {EXAM_TYPES.map(type => (
+                <Button 
+                  key={type.value}
+                  variant={filter === type.value ? 'default' : 'outline'} 
+                  size="sm"
+                  onClick={() => setFilter(type.value as any)}
+                >
+                  {type.label} ({getExamTypeCount(type.value)})
+                </Button>
+              ))}
+            </div>
+
+            {/* Subjects List - Desktop Table */}
+            <div className="hidden md:block">
+              {filteredSubjects.length > 0 ? (
+                <Card className="bg-card border-border overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-border bg-muted/30">
+                          <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Matière</th>
+                          <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Date d'examen</th>
+                          <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Objectif</th>
+                          <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Priorité</th>
+                          <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Statut</th>
+                          <th className="text-right px-4 py-3 text-sm font-medium text-muted-foreground"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredSubjects.map((subject, index) => (
+                          <tr 
+                            key={subject.id}
+                            className="border-b border-border last:border-0 hover:bg-muted/20 cursor-pointer transition-colors"
+                            onClick={() => handleEditSubject(subject)}
+                            data-subject-row={index === 0 ? 'first' : undefined}
+                          >
+                            <td className="px-4 py-4">
+                              <div className="flex items-center gap-3">
+                                <div 
+                                  className="w-4 h-4 rounded-full shrink-0" 
+                                  style={{ backgroundColor: subject.color }}
+                                />
+                                <span className="font-medium text-foreground">{subject.name}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-muted-foreground">
+                              {subject.exam_date 
+                                ? format(parseISO(subject.exam_date), 'dd/MM/yyyy', { locale: fr })
+                                : <span className="text-muted-foreground/50">Non définie</span>
+                              }
+                            </td>
+                            <td className="px-4 py-4 text-muted-foreground">
+                              {subject.target_hours ? `${subject.target_hours}h` : '-'}
+                            </td>
+                            <td className="px-4 py-4">
+                              <Badge className={getPriorityColor(subject.exam_weight)}>
+                                {getPriorityLabel(subject.exam_weight)}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-4">
+                              <Badge variant={(subject.status || 'active') === 'active' ? 'default' : 'secondary'}>
+                                {(subject.status || 'active') === 'active' ? 'Active' : 'Terminée'}
+                              </Badge>
+                            </td>
+                            <td className="px-4 py-4 text-right">
+                              <ChevronRight className="w-5 h-5 text-muted-foreground inline-block" />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </Card>
+              ) : (
+                <Card className="bg-card border-border">
+                  <CardContent className="py-12 text-center">
+                    <GraduationCap className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">Aucune matière</h3>
+                    <p className="text-muted-foreground mb-4">
+                      {filter !== 'all' 
+                        ? `Aucune matière avec ce type d'examen.`
+                        : "Commence par ajouter tes matières pour générer ton planning."}
+                    </p>
+                    <Button onClick={handleAddSubject} className="gap-2">
+                      <Plus className="w-4 h-4" />
+                      Ajouter une matière
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Subjects List - Mobile Cards */}
+            <div className="md:hidden space-y-3">
+              {filteredSubjects.length > 0 ? (
+                filteredSubjects.map((subject, index) => (
+                  <Card 
+                    key={subject.id}
+                    className="bg-card border-border cursor-pointer hover:bg-muted/20 transition-colors"
+                    onClick={() => handleEditSubject(subject)}
+                    data-subject-row={index === 0 ? 'first' : undefined}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="w-4 h-4 rounded-full shrink-0" 
+                            style={{ backgroundColor: subject.color }}
+                          />
+                          <div>
+                            <h3 className="font-medium text-foreground">{subject.name}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {subject.exam_date 
+                                ? format(parseISO(subject.exam_date), 'dd/MM/yyyy', { locale: fr })
+                                : 'Date non définie'
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex items-center gap-2 mt-3 flex-wrap">
+                        {subject.target_hours && (
+                          <Badge variant="secondary" className="text-xs">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {subject.target_hours}h
+                          </Badge>
+                        )}
+                        <Badge className={`text-xs ${getPriorityColor(subject.exam_weight)}`}>
+                          {getPriorityLabel(subject.exam_weight)}
+                        </Badge>
+                        <Badge variant={(subject.status || 'active') === 'active' ? 'default' : 'secondary'} className="text-xs">
+                          {(subject.status || 'active') === 'active' ? 'Active' : 'Terminée'}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Card className="bg-card border-border">
+                  <CardContent className="py-12 text-center">
+                    <GraduationCap className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+                    <p className="text-muted-foreground">
+                      {filter !== 'all' 
+                        ? "Aucune matière avec ce type"
+                        : "Aucune matière"}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
 
       {/* Subject Drawer */}
       <SubjectDrawer 
@@ -386,6 +401,7 @@ const Subjects = () => {
         onSaved={handleSubjectSaved}
         onDeleted={handleSubjectSaved}
       />
+
     </>
   );
 };

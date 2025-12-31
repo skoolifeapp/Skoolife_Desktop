@@ -11,6 +11,3 @@ verify_jwt = false
 
 [functions.send-exam-reminders]
 verify_jwt = false
-
-[functions.create-institution]
-verify_jwt = false

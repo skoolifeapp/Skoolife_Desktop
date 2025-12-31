@@ -193,6 +193,52 @@ export const ProfileSkeleton = () => (
     </div>
   </div>
 );
+
+// Subscription skeleton - matches subscription page layout
+export const SubscriptionSkeleton = () => (
+  <div className="flex-1 p-6 md:p-8 space-y-8 overflow-auto animate-fade-in">
+    <div className="space-y-2">
+      <Skeleton className="h-9 w-56" />
+      <Skeleton className="h-5 w-64" />
+    </div>
+    <div className="max-w-2xl space-y-6">
+      {/* Plan card skeleton */}
+      <div className="p-6 rounded-xl shadow-md bg-card space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-12 w-12 rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-36" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </div>
+          <Skeleton className="h-6 w-16 rounded-full" />
+        </div>
+        <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+          <Skeleton className="h-5 w-5 rounded" />
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-6 w-28" />
+          </div>
+        </div>
+        <div className="p-4 rounded-xl bg-secondary/50 flex items-center gap-3">
+          <Skeleton className="h-5 w-5 rounded" />
+          <div className="space-y-1">
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-6 w-36" />
+          </div>
+        </div>
+      </div>
+      {/* Actions card skeleton */}
+      <div className="p-6 rounded-xl shadow-md bg-card space-y-4">
+        <Skeleton className="h-6 w-44" />
+        <Skeleton className="h-10 w-full rounded-md" />
+        <Skeleton className="h-10 w-full rounded-md" />
+      </div>
+    </div>
+  </div>
+);
+
 // Generic fallback skeleton
 export const GenericSkeleton = () => (
   <div className="p-6 md:p-8 space-y-6 animate-fade-in">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SettingsSkeleton } from '@/components/PageSkeletons';
 import { useAuth } from '@/hooks/useAuth';
+import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -30,6 +31,7 @@ import {
 import { toast } from 'sonner';
 import { Clock, Loader2, RotateCcw, Settings as SettingsIcon } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+
 
 const DAYS_OF_WEEK = [
   { value: 1, label: 'Lun' },
@@ -78,7 +80,15 @@ const Settings = () => {
   });
 
   const { user } = useAuth();
+  const { isInviteFreeUser, loading: inviteGateLoading } = useInviteFreeUser();
   const navigate = useNavigate();
+
+  // Redirect uniquement les comptes créés via lien d'invitation (comptes gratuits)
+  useEffect(() => {
+    if (!inviteGateLoading && isInviteFreeUser) {
+      navigate('/app');
+    }
+  }, [inviteGateLoading, isInviteFreeUser, navigate]);
 
   useEffect(() => {
     if (!user) {
@@ -394,6 +404,8 @@ const Settings = () => {
             </div>
           </CardContent>
         </Card>
+
+        
     </div>
   );
 };
