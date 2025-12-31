@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { 
   Calendar, Clock, Upload, Plus, RefreshCw,
-  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, GraduationCap, Lock, Crown
+  ChevronLeft, ChevronRight, Loader2, CheckCircle2, Target, Trash2, GraduationCap
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -36,13 +36,11 @@ import { TutorialOverlay } from '@/components/TutorialOverlay';
 import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 
 import { InvitedSessionDialog } from '@/components/InvitedSessionDialog';
-import { UpgradeDialog } from '@/components/UpgradeDialog';
 
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
 const Dashboard = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [signedUpViaInvite, setSignedUpViaInvite] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [sessions, setSessions] = useState<RevisionSession[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
@@ -72,21 +70,12 @@ const Dashboard = () => {
     meeting_link: string | null;
   }>>({});
   const [subjectFileCounts, setSubjectFileCounts] = useState<Record<string, number>>({});
-  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   
-  const { user, signOut, isSubscribed, subscriptionLoading, subscriptionTier } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isSigningOut = useRef(false);
   const inviteDialogShownRef = useRef(false);
-  
-  // Check if user is free (only applies to users who signed up via invite link AND have no subscription)
-  // Regular users (signed up normally) are NOT affected even if they don't have a subscription
-  // Student and Major subscribers ALWAYS have full access regardless of how they signed up
-  const hasActiveSubscription = !subscriptionLoading && isSubscribed;
-  const isFreeUser = signedUpViaInvite && !subscriptionLoading && !isSubscribed && !hasActiveSubscription;
-  const isStudentTier = subscriptionTier === 'student';
-  const canInviteClassmates = !isFreeUser && !isStudentTier; // Only Major tier can invite
   
   // Track user activity for analytics
   useActivityTracker();
@@ -169,10 +158,8 @@ const Dashboard = () => {
       }
 
       setProfile(profileData);
-      setSignedUpViaInvite(profileData?.signed_up_via_invite || false);
 
       // Check if tutorial should be shown (first visit after onboarding)
-      // Skip tutorial for users who signed up via invite link
       const tutorialSeen = localStorage.getItem(`tutorial_seen_${user.id}`);
       if (!tutorialSeen && !profileData?.signed_up_via_invite) {
         setShowTutorial(true);
@@ -361,14 +348,8 @@ const Dashboard = () => {
       setSubjectFileCounts(subjectFileCountsMap);
 
       // Check if event tutorial should be shown
-      // Skip for users who signed up via invite link
       const eventTutorialSeen = localStorage.getItem(`event_tutorial_seen_${user.id}`);
       const mainTutorialSeen = localStorage.getItem(`tutorial_seen_${user.id}`);
-      // Show event tutorial only if:
-      // - Main tutorial has been seen (or not needed)
-      // - Event tutorial hasn't been seen
-      // - There are events in the calendar
-      // - User did NOT sign up via invite
       if (mainTutorialSeen && !eventTutorialSeen && (eventsData?.length || 0) > 0 && !profileData?.signed_up_via_invite) {
         setShowEventTutorial(true);
       }
@@ -454,252 +435,178 @@ const Dashboard = () => {
       const preferredDays = preferences?.preferred_days_of_week || [1, 2, 3, 4, 5]; // Mon-Fri by default
       const dailyStartTime = preferences?.daily_start_time || '08:00';
       const dailyEndTime = preferences?.daily_end_time || '22:00';
-      const maxHoursPerDay = preferences?.max_hours_per_day || 4;
-      const sessionDuration = (preferences as any)?.session_duration_minutes || 90; // Duration in minutes
-      const avoidEarlyMorning = preferences?.avoid_early_morning || false; // Before 9h
-      const avoidLateEvening = preferences?.avoid_late_evening || false; // After 21h
+      const sessionDuration = preferences?.session_duration_minutes || 90;
+      const weeklyRevisionHours = profile?.weekly_revision_hours || 10;
 
-      // Parse start/end times
-      const [startHour] = dailyStartTime.split(':').map(Number);
-      const [endHour] = dailyEndTime.split(':').map(Number);
-
-      // Calculate effective start/end hours considering preferences
-      let effectiveStartHour = startHour;
-      let effectiveEndHour = endHour;
-      
-      if (avoidEarlyMorning && effectiveStartHour < 9) {
-        effectiveStartHour = 9;
-      }
-      if (avoidLateEvening && effectiveEndHour > 21) {
-        effectiveEndHour = 21;
-      }
-
-      // Generate time slots based on preferences
-      const breakBetweenSessions = 30; // 30 min break
-      const timeSlots: { start: string; end: string }[] = [];
-      
-      let currentHour = effectiveStartHour;
-      while (currentHour + 1.5 <= effectiveEndHour) {
-        // Skip lunch time (12:30-14:00)
-        if (currentHour >= 12.5 && currentHour < 14) {
-          currentHour = 14;
-          continue;
-        }
-        
-        const startMinutes = currentHour * 60;
-        const endMinutes = startMinutes + sessionDuration;
-        
-        const formatTimeSlot = (minutes: number) => {
-          const h = Math.floor(minutes / 60);
-          const m = minutes % 60;
-          return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-        };
-
-        timeSlots.push({
-          start: formatTimeSlot(startMinutes),
-          end: formatTimeSlot(endMinutes)
-        });
-        
-        currentHour += (sessionDuration + breakBetweenSessions) / 60;
-      }
-
-      // Planning algorithm
-      const weeklyGoalHours = profile?.weekly_revision_hours || 10;
-
-      // Convert preferred days to day offsets for Monday-based week (1=Mon→0, ..., 6=Sam→5, 0=Dim→6)
-      const workDays = preferredDays.map(d => (d === 0 ? 6 : d - 1)).sort((a, b) => a - b);
-      
-      const newSessions: { user_id: string; subject_id: string; date: string; start_time: string; end_time: string; status: string; notes: string | null }[] = [];
-
-      // Sort subjects by urgency score (exam proximity + weight), excluding terminated subjects
+      // Get active subjects only
       const activeSubjects = subjects.filter(s => (s.status || 'active') === 'active');
-      
-      // Calculate urgency score for each subject
-      const getUrgencyScore = (subject: Subject): number => {
-        const today = new Date();
-        const weight = subject.exam_weight || 3;
-        
-        if (!subject.exam_date) {
-          // No exam date = lowest priority
-          return weight;
-        }
-        
-        const examDate = new Date(subject.exam_date);
-        const daysUntilExam = Math.max(1, Math.ceil((examDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
-        
-        // Higher score = higher priority
-        // Formula: weight * (100 / daysUntilExam) - closer exams get exponentially higher scores
-        return weight * (100 / daysUntilExam);
-      };
-      
-      const sortedSubjects = [...activeSubjects].sort((a, b) => {
-        return getUrgencyScore(b) - getUrgencyScore(a); // Highest score first
+
+      // Calculate remaining hours needed per subject
+      const subjectsWithRemainingHours = activeSubjects.map(subject => {
+        const targetHours = subject.target_hours || 10;
+        const alreadyScheduled = scheduledHoursPerSubject[subject.id] || 0;
+        const remainingHours = Math.max(0, targetHours - alreadyScheduled);
+        return { ...subject, remainingHours };
       });
 
-      const today = startOfDay(new Date());
-      const currentTimeStr = format(new Date(), 'HH:mm');
+      // Calculate priority scores based on:
+      // 1. Exam proximity (closer = higher priority)
+      // 2. Exam weight (higher = higher priority)
+      // 3. Difficulty level (higher = more time needed)
+      // 4. Remaining hours ratio (more remaining = higher priority)
+      const today = new Date();
+      const scoredSubjects = subjectsWithRemainingHours.map(subject => {
+        let score = 0;
+        
+        // Exam proximity (1-100 points, closer exams get more)
+        if (subject.exam_date) {
+          const examDate = new Date(subject.exam_date);
+          const daysUntilExam = Math.max(1, Math.ceil((examDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+          score += Math.max(0, 100 - daysUntilExam); // Closer exams get higher score
+        }
+        
+        // Exam weight (0-50 points)
+        score += (subject.exam_weight || 1) * 10;
+        
+        // Difficulty level (0-30 points)
+        const difficultyMap: Record<string, number> = { 'easy': 10, 'medium': 20, 'hard': 30 };
+        score += difficultyMap[subject.difficulty_level || 'medium'] || 20;
+        
+        // Remaining hours ratio (0-50 points)
+        if (subject.remainingHours > 0) {
+          const targetHours = subject.target_hours || 10;
+          const ratio = subject.remainingHours / targetHours;
+          score += ratio * 50;
+        }
+        
+        return { ...subject, priorityScore: score };
+      });
+
+      // Sort by priority score (highest first)
+      scoredSubjects.sort((a, b) => b.priorityScore - a.priorityScore);
+
+      // Fetch blocking events for this week
+      const { data: weekEvents } = await supabase
+        .from('calendar_events')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('start_datetime', weekStart.toISOString())
+        .lte('start_datetime', addDays(weekStart, 7).toISOString());
+
+      const blockingEvents = (weekEvents || []).filter(e => e.is_blocking !== false);
+
+      // Generate time slots for the week
+      const timeSlots: { date: Date; startTime: string; endTime: string }[] = [];
       
-      // Track hours scheduled per day to respect maxHoursPerDay
-      const hoursScheduledPerDay: Record<string, number> = {};
-      // Track total hours added this week (CRITICAL: never exceed weeklyGoalHours)
-      let totalHoursAddedThisWeek = 0;
-      const sessionHoursToAdd = sessionDuration / 60;
-      
-      for (const dayOffset of workDays) {
-        // CRITICAL: Stop if weekly goal is reached
-        if (totalHoursAddedThisWeek >= weeklyGoalHours) break;
+      for (let i = 0; i < 7; i++) {
+        const currentDate = addDays(weekStart, i);
+        const dayOfWeek = currentDate.getDay() === 0 ? 7 : currentDate.getDay(); // Convert Sunday from 0 to 7
         
-        const currentDate = addDays(weekStart, dayOffset);
+        // Skip non-preferred days
+        if (!preferredDays.includes(dayOfWeek === 7 ? 0 : dayOfWeek)) continue;
         
-        // Skip days before today
-        if (currentDate < today) continue;
+        // Skip past dates
+        if (currentDate < startOfDay(today)) continue;
         
-        const isToday = isSameDay(currentDate, new Date());
-        const dateStr = format(currentDate, 'yyyy-MM-dd');
-
-        // Check blocking events for this day
-        const dayEvents = calendarEvents.filter(e => {
-          const eventDate = parseISO(e.start_datetime);
-          return isSameDay(eventDate, currentDate) && e.is_blocking;
-        });
-
-        // Get existing revision sessions for this day (done/skipped ones that weren't deleted)
-        const dayExistingSessions = sessions.filter(s => s.date === dateStr);
-
-        // Calculate hours already scheduled for this day (from existing sessions)
-        const existingHoursToday = dayExistingSessions.reduce((acc, s) => {
-          const [sh, sm] = s.start_time.split(':').map(Number);
-          const [eh, em] = s.end_time.split(':').map(Number);
-          return acc + ((eh * 60 + em) - (sh * 60 + sm)) / 60;
-        }, 0);
+        // Parse daily start and end times
+        const [startHour, startMin] = dailyStartTime.split(':').map(Number);
+        const [endHour, endMin] = dailyEndTime.split(':').map(Number);
         
-        hoursScheduledPerDay[dateStr] = existingHoursToday;
-
-        for (const slot of timeSlots) {
-          // CRITICAL: Stop if weekly goal is reached
-          if (totalHoursAddedThisWeek >= weeklyGoalHours) break;
+        // Generate slots within daily time range
+        let currentHour = startHour;
+        let currentMin = startMin;
+        
+        while (currentHour * 60 + currentMin + sessionDuration <= endHour * 60 + endMin) {
+          const slotStartTime = `${String(currentHour).padStart(2, '0')}:${String(currentMin).padStart(2, '0')}`;
+          const endTotalMin = currentHour * 60 + currentMin + sessionDuration;
+          const slotEndHour = Math.floor(endTotalMin / 60);
+          const slotEndMin = endTotalMin % 60;
+          const slotEndTime = `${String(slotEndHour).padStart(2, '0')}:${String(slotEndMin).padStart(2, '0')}`;
           
-          // Check if adding this session would exceed maxHoursPerDay
-          if ((hoursScheduledPerDay[dateStr] || 0) + sessionHoursToAdd > maxHoursPerDay) break;
+          // Check for conflicts with blocking events
+          const slotStart = new Date(currentDate);
+          slotStart.setHours(currentHour, currentMin, 0, 0);
+          const slotEnd = new Date(currentDate);
+          slotEnd.setHours(slotEndHour, slotEndMin, 0, 0);
           
-          // Check if adding this session would exceed weekly goal
-          if (totalHoursAddedThisWeek + sessionHoursToAdd > weeklyGoalHours) break;
-          
-          // Skip slots before current time if it's today
-          if (isToday && slot.start < currentTimeStr) continue;
-
-          // Check if slot conflicts with calendar events
-          const hasEventConflict = dayEvents.some(e => {
-            const eventStart = format(parseISO(e.start_datetime), 'HH:mm');
-            const eventEnd = format(parseISO(e.end_datetime), 'HH:mm');
-            return (slot.start >= eventStart && slot.start < eventEnd) ||
-                   (slot.end > eventStart && slot.end <= eventEnd) ||
-                   (slot.start <= eventStart && slot.end >= eventEnd);
+          const hasConflict = blockingEvents.some(event => {
+            const eventStart = new Date(event.start_datetime);
+            const eventEnd = new Date(event.end_datetime);
+            // Check for overlap
+            return slotStart < eventEnd && slotEnd > eventStart;
           });
-
-          // Check if slot conflicts with existing revision sessions
-          const hasSessionConflict = dayExistingSessions.some(s => {
-            return (slot.start >= s.start_time && slot.start < s.end_time) ||
-                   (slot.end > s.start_time && slot.end <= s.end_time) ||
-                   (slot.start <= s.start_time && slot.end >= s.end_time);
-          });
-
-          const hasConflict = hasEventConflict || hasSessionConflict;
-
+          
           if (!hasConflict) {
-            // Filter subjects that still have exams after this date AND haven't reached target_hours
-            const eligibleSubjects = sortedSubjects.filter(s => {
-              // Check exam date constraint
-              if (s.exam_date) {
-                const examDate = parseISO(s.exam_date);
-                if (currentDate >= examDate) return false;
-              }
-              // Check target_hours constraint (ABSOLUTE PRIORITY)
-              if (s.target_hours && s.target_hours > 0) {
-                const alreadyScheduled = scheduledHoursPerSubject[s.id] || 0;
-                if (alreadyScheduled + sessionHoursToAdd > s.target_hours) return false;
-              }
-              return true;
+            timeSlots.push({
+              date: currentDate,
+              startTime: slotStartTime,
+              endTime: slotEndTime
             });
-            
-            if (eligibleSubjects.length === 0) continue; // No subject to assign for this day
-            
-            // ALWAYS pick the most urgent subject (first in sorted list)
-            // This ensures subjects with closer exams get filled first
-            const subject = eligibleSubjects[0];
-
-            newSessions.push({
-              user_id: user.id,
-              subject_id: subject.id,
-              date: dateStr,
-              start_time: slot.start,
-              end_time: slot.end,
-              status: 'planned',
-              notes: null
-            });
-
-            // Track scheduled hours per day, per subject, and total weekly
-            hoursScheduledPerDay[dateStr] = (hoursScheduledPerDay[dateStr] || 0) + sessionHoursToAdd;
-            scheduledHoursPerSubject[subject.id] = (scheduledHoursPerSubject[subject.id] || 0) + sessionHoursToAdd;
-            totalHoursAddedThisWeek += sessionHoursToAdd;
           }
+          
+          // Move to next slot
+          currentMin += sessionDuration;
+          while (currentMin >= 60) {
+            currentMin -= 60;
+            currentHour++;
+          }
+        }
+      }
+
+      // Calculate target hours per week based on weekly_revision_hours
+      const targetHoursThisWeek = weeklyRevisionHours;
+      const sessionHours = sessionDuration / 60;
+      const maxSessions = Math.ceil(targetHoursThisWeek / sessionHours);
+
+      // Distribute sessions among subjects based on priority
+      const sessionsToCreate: { subject_id: string; date: string; start_time: string; end_time: string }[] = [];
+      let slotIndex = 0;
+      let sessionCount = 0;
+
+      // Round-robin distribution with priority weighting
+      while (sessionCount < maxSessions && slotIndex < timeSlots.length) {
+        for (const subject of scoredSubjects) {
+          if (slotIndex >= timeSlots.length || sessionCount >= maxSessions) break;
+          if (subject.remainingHours <= 0) continue;
+          
+          const slot = timeSlots[slotIndex];
+          sessionsToCreate.push({
+            subject_id: subject.id,
+            date: format(slot.date, 'yyyy-MM-dd'),
+            start_time: slot.startTime,
+            end_time: slot.endTime
+          });
+          
+          subject.remainingHours -= sessionHours;
+          slotIndex++;
+          sessionCount++;
         }
       }
 
       // Insert new sessions
-      if (newSessions.length > 0) {
+      if (sessionsToCreate.length > 0) {
         const { error } = await supabase
           .from('revision_sessions')
-          .insert(newSessions);
+          .insert(
+            sessionsToCreate.map(s => ({
+              ...s,
+              user_id: user.id,
+              status: 'planned'
+            }))
+          );
 
         if (error) throw error;
-        
-        // Check if all subjects have reached their target_hours
-        const allObjectivesReached = sortedSubjects.every(s => {
-          if (!s.target_hours || s.target_hours <= 0) return true;
-          const scheduled = scheduledHoursPerSubject[s.id] || 0;
-          return scheduled >= s.target_hours;
-        });
-        
-        if (allObjectivesReached && sortedSubjects.some(s => s.target_hours && s.target_hours > 0)) {
-          toast.success("L'objectif de révisions a été atteint ✨");
-        }
       }
 
-      // Save AI plan record
-      await supabase.from('ai_plans').insert({
-        user_id: user.id,
-        week_start_date: format(weekStart, 'yyyy-MM-dd'),
-        config_json: {
-          weekly_hours: profile?.weekly_revision_hours,
-          subjects_count: subjects.length,
-          sessions_generated: newSessions.length,
-          preferences: {
-            preferred_days: preferredDays,
-            daily_start: dailyStartTime,
-            daily_end: dailyEndTime,
-            max_hours_per_day: maxHoursPerDay,
-            avoid_early_morning: avoidEarlyMorning,
-            avoid_late_evening: avoidLateEvening
-          }
-        }
-      });
-
-      fetchData();
+      toast.success(`${sessionsToCreate.length} session(s) de révision générée(s) !`);
+      await fetchData();
 
     } catch (err) {
-      console.error(err);
+      console.error('Error generating planning:', err);
       toast.error('Erreur lors de la génération du planning');
     } finally {
       setGenerating(false);
     }
-  };
-
-
-  const handleSignOut = async () => {
-    isSigningOut.current = true;
-    await signOut();
-    navigate('/');
   };
 
   const handleDeleteAllEvents = async () => {
@@ -711,15 +618,39 @@ const Dashboard = () => {
         .from('calendar_events')
         .delete()
         .eq('user_id', user.id);
-
+      
       if (error) throw error;
-      fetchData();
+      
+      toast.success('Tous les évènements ont été supprimés');
+      await fetchData();
     } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors de la suppression des événements');
+      console.error('Error deleting events:', err);
+      toast.error('Erreur lors de la suppression');
     } finally {
       setDeletingEvents(false);
     }
+  };
+
+  const handleSessionClick = (session: RevisionSession) => {
+    // If it's an invited session, open the invited session dialog
+    if ((session as any).isInvitedSession) {
+      setSelectedInvitedSession(session);
+      setInvitedSessionDialogOpen(true);
+      return;
+    }
+    
+    // For own sessions, open the edit dialog
+    setSelectedSession(session);
+    setEditSessionDialogOpen(true);
+  };
+
+  const handleEventClick = (event: CalendarEvent) => {
+    setSelectedEvent(event);
+  };
+
+  const handleSessionShareClick = (session: RevisionSession) => {
+    setSelectedSession(session);
+    setShareSessionDialogOpen(true);
   };
 
   const handleGridClick = (data: GridClickData) => {
@@ -727,530 +658,298 @@ const Dashboard = () => {
     setAddEventDialogOpen(true);
   };
 
-  const handleSessionMove = async (sessionId: string, data: { date: string; startTime: string; endTime: string }) => {
-    try {
-      const { error } = await supabase
-        .from('revision_sessions')
-        .update({
-          date: data.date,
-          start_time: data.startTime,
-          end_time: data.endTime,
-        })
-        .eq('id', sessionId);
-
-      if (error) throw error;
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors du déplacement de la session');
+  const handleTutorialComplete = () => {
+    if (user) {
+      localStorage.setItem(`tutorial_seen_${user.id}`, 'true');
     }
+    setShowTutorial(false);
   };
 
-  const handleEventMove = async (eventId: string, data: { date: string; startTime: string; endTime: string }) => {
-    try {
-      // Create datetime strings from the date and times
-      const startDatetime = new Date(`${data.date}T${data.startTime}:00`);
-      const endDatetime = new Date(`${data.date}T${data.endTime}:00`);
-
-      const { error } = await supabase
-        .from('calendar_events')
-        .update({
-          start_datetime: startDatetime.toISOString(),
-          end_datetime: endDatetime.toISOString(),
-        })
-        .eq('id', eventId);
-
-      if (error) throw error;
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors du déplacement de l\'évènement');
+  const handleEventTutorialComplete = () => {
+    if (user) {
+      localStorage.setItem(`event_tutorial_seen_${user.id}`, 'true');
     }
+    setShowEventTutorial(false);
   };
-
-  const handleSessionResize = async (sessionId: string, data: { startTime?: string; endTime?: string }) => {
-    try {
-      const updateData: { start_time?: string; end_time?: string } = {};
-      if (data.startTime) updateData.start_time = data.startTime;
-      if (data.endTime) updateData.end_time = data.endTime;
-
-      const { error } = await supabase
-        .from('revision_sessions')
-        .update(updateData)
-        .eq('id', sessionId);
-
-      if (error) throw error;
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors du redimensionnement de la session');
-    }
-  };
-
-  const handleEventResize = async (eventId: string, data: { startTime?: string; endTime?: string }) => {
-    try {
-      // Get the current event to preserve datetimes
-      const event = calendarEvents.find(e => e.id === eventId);
-      if (!event) return;
-
-      // Parse the start datetime to get the date
-      const startDate = parseISO(event.start_datetime);
-      const dateStr = format(startDate, 'yyyy-MM-dd');
-      
-      const updateData: { start_datetime?: string; end_datetime?: string } = {};
-      
-      if (data.startTime) {
-        const startDatetime = new Date(`${dateStr}T${data.startTime}:00`);
-        updateData.start_datetime = startDatetime.toISOString();
-      }
-      
-      if (data.endTime) {
-        const endDatetime = new Date(`${dateStr}T${data.endTime}:00`);
-        updateData.end_datetime = endDatetime.toISOString();
-      }
-
-      const { error } = await supabase
-        .from('calendar_events')
-        .update(updateData)
-        .eq('id', eventId);
-
-      if (error) throw error;
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors du redimensionnement de l\'évènement');
-    }
-  };
-
-  const handleSessionStatusUpdate = async (sessionId: string, status: 'done' | 'skipped') => {
-    try {
-      const { error } = await supabase
-        .from('revision_sessions')
-        .update({ status })
-        .eq('id', sessionId);
-
-      if (error) throw error;
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors de la mise à jour');
-    }
-  };
-
-  const handleSessionDelete = async (sessionId: string) => {
-    try {
-      // First delete any invites associated with this session
-      await supabase
-        .from('session_invites')
-        .delete()
-        .eq('session_id', sessionId);
-
-      // Then delete the session itself
-      const { error } = await supabase
-        .from('revision_sessions')
-        .delete()
-        .eq('id', sessionId);
-
-      if (error) throw error;
-      
-      toast.success('Session supprimée');
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors de la suppression');
-    }
-  };
-
-  const handleSessionClick = (session: RevisionSession) => {
-    // If it's an invited session, show the invited session dialog
-    if (session.isInvitedSession) {
-      setSelectedInvitedSession(session);
-      setInvitedSessionDialogOpen(true);
-      return;
-    }
-    // Otherwise open the full edit session dialog directly (like events)
-    setSelectedSession(session);
-    setEditSessionDialogOpen(true);
-  };
-
-  const handleInviteConfirm = async (sessionId: string) => {
-    if (!user) return;
-    
-    try {
-      // Mark the invite as explicitly confirmed
-      const { error } = await supabase
-        .from('session_invites')
-        .update({ confirmed: true })
-        .eq('session_id', sessionId)
-        .eq('accepted_by', user.id);
-
-      if (error) throw error;
-      
-      toast.success('Participation confirmée !');
-      fetchData(); // Refresh to update UI
-    } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors de la confirmation');
-    }
-  };
-
-  const handleInviteDecline = async (sessionId: string) => {
-    if (!user) return;
-    
-    try {
-      // Remove the accepted_by from the invite
-      const { error } = await supabase
-        .from('session_invites')
-        .update({ 
-          accepted_by: null, 
-          accepted_at: null,
-          confirmed: false
-        })
-        .eq('session_id', sessionId)
-        .eq('accepted_by', user.id);
-
-      if (error) throw error;
-      
-      toast.success('Invitation refusée');
-      fetchData(); // Refresh to update UI
-    } catch (err) {
-      console.error(err);
-      toast.error('Erreur lors du refus de l\'invitation');
-    }
-  };
-
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  
-  // Check if the selected week is in the past (before current week)
-  const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-  const isPastWeek = weekStart < currentWeekStart;
-
-  const getSessionsForDay = (date: Date) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    return sessions.filter(s => s.date === dateStr);
-  };
-
-  const getEventsForDay = (date: Date) => {
-    return calendarEvents.filter(e => {
-      const eventDate = parseISO(e.start_datetime);
-      return isSameDay(eventDate, date);
-    });
-  };
-
-  // Calculate actual planned hours for the SELECTED WEEK only
-  const weekEnd = addDays(weekStart, 6);
-  const totalPlannedHours = sessions
-    .filter(s => {
-      const sessionDate = parseISO(s.date);
-      return s.status === 'planned' && 
-             sessionDate >= weekStart && 
-             sessionDate <= weekEnd;
-    })
-    .reduce((total, session) => {
-      const [startH, startM] = session.start_time.split(':').map(Number);
-      const [endH, endM] = session.end_time.split(':').map(Number);
-      const durationMinutes = (endH * 60 + endM) - (startH * 60 + startM);
-      return total + durationMinutes / 60;
-    }, 0);
-
-  const completedSessions = sessions.filter(s => {
-    const sessionDate = parseISO(s.date);
-    return s.status === 'done' && 
-           sessionDate >= weekStart && 
-           sessionDate <= weekEnd;
-  }).length;
-
-  const upcomingExams = subjects
-    .filter(s => s.exam_date && s.status !== 'archived')
-    .sort((a, b) => new Date(a.exam_date!).getTime() - new Date(b.exam_date!).getTime())
-    .slice(0, 3);
 
   if (loading) {
     return <DashboardSkeleton />;
   }
 
+  // Stats calculations
+  const activeSubjects = subjects.filter(s => (s.status || 'active') === 'active');
+  const completedSessions = sessions.filter(s => s.status === 'done').length;
+  const totalSessions = sessions.length;
+  const completionRate = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0;
+
+  // Calculate total revision hours from all sessions
+  const totalRevisionHours = sessions.reduce((total, session) => {
+    const [startH, startM] = session.start_time.split(':').map(Number);
+    const [endH, endM] = session.end_time.split(':').map(Number);
+    const durationHours = ((endH * 60 + endM) - (startH * 60 + startM)) / 60;
+    return total + durationHours;
+  }, 0);
+
+  // Calculate this week's sessions
+  const weekEndDate = addDays(weekStart, 6);
+  const thisWeekSessions = sessions.filter(s => {
+    const sessionDate = parseISO(s.date);
+    return sessionDate >= weekStart && sessionDate <= weekEndDate;
+  });
+
   return (
-    <>
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header with week/month title and actions */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold">
-              Semaine du {format(weekStart, 'dd MMM', { locale: fr })}
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              id="add-event-btn"
-              size="sm"
-              className={cn(
-                "bg-primary text-primary-foreground hover:bg-primary/90",
-                !hasActiveSubscription && "opacity-50 cursor-not-allowed"
-              )}
-              onClick={() => hasActiveSubscription ? setAddEventDialogOpen(true) : setUpgradeDialogOpen(true)}
-            >
-              {hasActiveSubscription ? <Plus className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-              Ajouter un évènement
-            </Button>
-            <Button 
-              id="import-calendar-btn"
-              variant="outline" 
-              size="icon"
-              className={cn("h-9 w-9", !hasActiveSubscription && "opacity-50 cursor-not-allowed")}
-              onClick={() => hasActiveSubscription ? setImportDialogOpen(true) : setUpgradeDialogOpen(true)}
-              title="Importer calendrier (.ics)"
-            >
-              <Upload className="w-4 h-4" />
-            </Button>
-            {hasActiveSubscription && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
-                    disabled={calendarEvents.length === 0}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Supprimer tous les événements ?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Cette action supprimera définitivement tous les {calendarEvents.length} événements de ton calendrier. 
-                      Cette action est irréversible.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={handleDeleteAllEvents}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      disabled={deletingEvents}
-                    >
-                      {deletingEvents ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : (
-                        <Trash2 className="w-4 h-4 mr-2" />
-                      )}
-                      Supprimer tout
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            {calendarView === 'week' && (
-              <>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => setWeekStart(subWeeks(weekStart, 1))}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
-                >
-                  Aujourd'hui
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => setWeekStart(addWeeks(weekStart, 1))}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </>
-            )}
-          </div>
+    <div className="flex-1 p-4 md:p-6 lg:p-8 pb-20 lg:pb-8 space-y-6">
+      {/* Tutorial Overlays */}
+      {showTutorial && (
+        <TutorialOverlay onComplete={handleTutorialComplete} />
+      )}
+      {showEventTutorial && !showTutorial && (
+        <EventTutorialOverlay onComplete={handleEventTutorialComplete} />
+      )}
+
+      {/* Header */}
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">
+            Bonjour{profile?.first_name ? `, ${profile.first_name}` : ''} 👋
+          </h1>
+          <p className="text-muted-foreground">
+            Voici ton planning de révisions
+          </p>
         </div>
-
-        <div className="grid lg:grid-cols-[300px_1fr] gap-8">
-          {/* Sidebar */}
-          <aside className="space-y-6">
-            {/* Free user banner */}
-            {isFreeUser && (
-              <Card className="border-2 border-primary/30 shadow-md bg-gradient-to-br from-primary/5 to-primary/10">
-                <CardContent className="pt-5 pb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Crown className="w-5 h-5 text-primary" />
-                    <h3 className="font-bold text-sm">Compte Gratuit</h3>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Tu peux voir les sessions auxquelles tu es invité(e). Pour créer ton propre planning de révisions, passe à Skoolife Student.
-                  </p>
-                  <Button 
-                    size="sm" 
-                    className="w-full"
-                    onClick={async () => {
-                      try {
-                        const { data, error } = await supabase.functions.invoke('create-checkout', {
-                          body: { priceId: 'price_1QlYourPriceIdHere' }
-                        });
-                        if (error) throw error;
-                        if (data?.url) window.open(data.url, '_blank');
-                      } catch (err) {
-                        console.error(err);
-                        toast.error('Erreur lors de la redirection vers le paiement');
-                      }
-                    }}
-                  >
-                    <Crown className="w-4 h-4 mr-2" />
-                    Passer à Student
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Stats - only for subscribed users */}
-            {!isFreeUser && (
-              <Card className="border-0 shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Cette semaine</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{totalPlannedHours}h</p>
-                      <p className="text-xs text-muted-foreground">planifiées</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-subject-green/10 flex items-center justify-center">
-                      <CheckCircle2 className="w-5 h-5 text-subject-green" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{completedSessions}</p>
-                      <p className="text-xs text-muted-foreground">sessions terminées</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Upcoming exams - only for subscribed users */}
-            {!isFreeUser && upcomingExams.length > 0 && (
-              <Card className="border-0 shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Target className="w-4 h-4" />
-                    Prochains examens
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {upcomingExams.map((subject) => {
-                    const examType = (subject as any).exam_type;
-                    const examTypeLabel = examType === 'partiel' ? 'Partiel' 
-                      : examType === 'controle_continu' ? 'CC'
-                      : examType === 'oral' ? 'Oral'
-                      : examType === 'projet' ? 'Projet'
-                      : null;
-                    
-                    return (
-                      <div key={subject.id} className="flex items-center gap-3">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: subject.color }}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">
-                            {subject.name}
-                            {examTypeLabel && <span className="text-muted-foreground font-normal"> ({examTypeLabel})</span>}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(parseISO(subject.exam_date!), 'dd MMM', { locale: fr })}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Actions */}
-            <div className="space-y-3">
-              <Button 
-                id="generate-planning-btn"
-                variant="hero" 
-                size="lg" 
-                className={cn("w-full", !hasActiveSubscription && "opacity-50")}
-                onClick={() => hasActiveSubscription ? generatePlanning() : setUpgradeDialogOpen(true)}
-                disabled={generating || isPastWeek}
-              >
-                {!hasActiveSubscription && <Lock className="w-4 h-4 mr-2" />}
-                {generating ? (
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                ) : (
-                  !hasActiveSubscription ? null : <RefreshCw className="w-4 h-4 mr-2" />
-                )}
-                Générer mon planning
-              </Button>
-            </div>
-          </aside>
-
-          {/* Main content */}
-          <div className={cn("space-y-4", calendarView === 'week' && isPastWeek && "opacity-60 pointer-events-none")}>
-            {calendarView === 'week' ? (
-              /* Week grid */
-              <WeeklyHourGrid
-                weekDays={weekDays}
-                sessions={isFreeUser ? sessions.filter(s => s.isInvitedSession) : sessions}
-                calendarEvents={isFreeUser ? [] : calendarEvents}
-                exams={isFreeUser ? [] : subjects
-                  .filter(s => s.exam_date && s.status !== 'archived')
-                  .map(s => ({
-                    id: s.id,
-                    name: s.name,
-                    color: s.color || '#FFC107',
-                    exam_date: s.exam_date!
-                  }))
-                }
-                sessionInvites={sessionInvites}
-                subjectFileCounts={subjectFileCounts}
-                isPastWeek={isPastWeek}
-                onSessionClick={handleSessionClick}
-                onEventClick={isFreeUser ? undefined : setSelectedEvent}
-                onGridClick={isFreeUser ? undefined : handleGridClick}
-                onSessionMove={isFreeUser ? undefined : handleSessionMove}
-                onEventMove={isFreeUser ? undefined : handleEventMove}
-                onSessionResize={isFreeUser ? undefined : handleSessionResize}
-                onEventResize={isFreeUser ? undefined : handleEventResize}
-                onSessionMarkDone={isFreeUser ? undefined : (sessionId) => handleSessionStatusUpdate(sessionId, 'done')}
-              />
+        
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setAddEventDialogOpen(true)}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Ajouter un évènement</span>
+            <span className="sm:hidden">Évènement</span>
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={() => setImportDialogOpen(true)}
+            className="gap-2"
+          >
+            <Upload className="w-4 h-4" />
+            <span className="hidden sm:inline">Import</span>
+          </Button>
+          
+          <Button
+            onClick={generatePlanning}
+            disabled={generating}
+            className="gap-2"
+          >
+            {generating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              /* Monthly calendar view */
-              <MonthlyCalendarView
-                currentMonth={currentMonth}
-                sessions={isFreeUser ? sessions.filter(s => s.isInvitedSession) : sessions}
-                calendarEvents={isFreeUser ? [] : calendarEvents}
-                subjects={subjects}
-                onMonthChange={setCurrentMonth}
-                onDayClick={(date) => {
-                  // Switch to week view for that day
-                  setWeekStart(startOfWeek(date, { weekStartsOn: 1 }));
-                  setCalendarView('week');
-                }}
-                onSessionClick={handleSessionClick}
-                onEventClick={isFreeUser ? (event) => {} : setSelectedEvent}
-              />
+              <RefreshCw className="w-4 h-4" />
             )}
-          </div>
+            <span className="hidden sm:inline">Générer mon planning</span>
+            <span className="sm:hidden">Générer</span>
+          </Button>
         </div>
       </div>
 
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="bg-card/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <GraduationCap className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{activeSubjects.length}</p>
+                <p className="text-xs text-muted-foreground">Matières actives</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-card/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <CheckCircle2 className="w-5 h-5 text-green-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{completionRate}%</p>
+                <p className="text-xs text-muted-foreground">Sessions terminées</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-card/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-500/10">
+                <Clock className="w-5 h-5 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{totalRevisionHours.toFixed(1)}h</p>
+                <p className="text-xs text-muted-foreground">Temps total révisé</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-card/50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-orange-500/10">
+                <Target className="w-5 h-5 text-orange-500" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{thisWeekSessions.length}</p>
+                <p className="text-xs text-muted-foreground">Sessions cette semaine</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Calendar Section */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-lg">Calendrier</CardTitle>
+              <div className="flex items-center gap-1 ml-4">
+                <Button
+                  variant={calendarView === 'week' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setCalendarView('week')}
+                >
+                  Semaine
+                </Button>
+                <Button
+                  variant={calendarView === 'month' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setCalendarView('month')}
+                >
+                  Mois
+                </Button>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {calendarEvents.length > 0 && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive gap-1">
+                      <Trash2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">Supprimer tous les évènements</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Supprimer tous les évènements ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cette action supprimera définitivement tous tes évènements du calendrier. Les sessions de révision ne seront pas affectées.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteAllEvents}
+                        className="bg-destructive hover:bg-destructive/90"
+                        disabled={deletingEvents}
+                      >
+                        {deletingEvents ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                        Supprimer tout
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+              
+              {calendarView === 'week' ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setWeekStart(subWeeks(weekStart, 1))}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <div className="text-sm font-medium min-w-[140px] text-center">
+                    {format(weekStart, 'd MMM', { locale: fr })} - {format(addDays(weekStart, 6), 'd MMM yyyy', { locale: fr })}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setWeekStart(addWeeks(weekStart, 1))}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setCurrentMonth(addDays(currentMonth, -30))}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <div className="text-sm font-medium min-w-[140px] text-center capitalize">
+                    {format(currentMonth, 'MMMM yyyy', { locale: fr })}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setCurrentMonth(addDays(currentMonth, 30))}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-2 md:p-4">
+          {calendarView === 'week' ? (
+            <WeeklyHourGrid
+              weekStart={weekStart}
+              sessions={sessions}
+              events={calendarEvents}
+              subjects={subjects}
+              sessionInvites={sessionInvites}
+              subjectFileCounts={subjectFileCounts}
+              onSessionClick={handleSessionClick}
+              onEventClick={handleEventClick}
+              onShareClick={handleSessionShareClick}
+              onGridClick={handleGridClick}
+            />
+          ) : (
+            <MonthlyCalendarView
+              currentMonth={currentMonth}
+              sessions={sessions}
+              events={calendarEvents}
+              subjects={subjects}
+              onSessionClick={handleSessionClick}
+              onEventClick={handleEventClick}
+              onDayClick={(date) => {
+                setWeekStart(startOfWeek(date, { weekStartsOn: 1 }));
+                setCalendarView('week');
+              }}
+            />
+          )}
+        </CardContent>
+      </Card>
+
       {/* Dialogs */}
-      <ImportCalendarDialog 
-        open={importDialogOpen} 
+      <ImportCalendarDialog
+        open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
         onImportComplete={fetchData}
       />
+      
       <AddEventDialog
         open={addEventDialogOpen}
         onOpenChange={(open) => {
@@ -1258,88 +957,41 @@ const Dashboard = () => {
           if (!open) setGridClickData(null);
         }}
         onEventAdded={fetchData}
-        initialDate={gridClickData ? new Date(gridClickData.date) : undefined}
+        initialDate={gridClickData?.date}
         initialStartTime={gridClickData?.startTime}
         initialEndTime={gridClickData?.endTime}
       />
+      
       <EditSessionDialog
-        session={editSessionDialogOpen ? selectedSession : null}
+        session={selectedSession}
         subjects={subjects}
         onClose={() => {
-          setEditSessionDialogOpen(false);
           setSelectedSession(null);
+          setEditSessionDialogOpen(false);
         }}
         onUpdate={fetchData}
-        canShare={canInviteClassmates}
-        onShare={() => {
-          setEditSessionDialogOpen(false);
-          setShareSessionDialogOpen(true);
-        }}
-        hasAcceptedInvite={selectedSession ? !!sessionInvites[selectedSession.id]?.invitees.some(i => i.accepted_by) : false}
-        inviteInfo={selectedSession ? sessionInvites[selectedSession.id] : undefined}
       />
+      
       <EditEventDialog
         event={selectedEvent}
         onClose={() => setSelectedEvent(null)}
         onUpdate={fetchData}
       />
-      {/* Share session dialog */}
+      
       <ShareSessionDialog
-        session={shareSessionDialogOpen ? selectedSession : null}
-        subject={selectedSession ? subjects.find(s => s.id === selectedSession.subject_id) : undefined}
-        onClose={() => {
-          setShareSessionDialogOpen(false);
-        }}
-        onInviteSuccess={fetchData}
+        open={shareSessionDialogOpen}
+        onOpenChange={setShareSessionDialogOpen}
+        session={selectedSession}
+        onShareComplete={fetchData}
       />
-
-      {/* Invited session dialog */}
+      
       <InvitedSessionDialog
-        session={selectedInvitedSession}
         open={invitedSessionDialogOpen}
-        onOpenChange={(open) => {
-          setInvitedSessionDialogOpen(open);
-          if (!open) setSelectedInvitedSession(null);
-        }}
-        onConfirm={handleInviteConfirm}
-        onDecline={handleInviteDecline}
+        onOpenChange={setInvitedSessionDialogOpen}
+        session={selectedInvitedSession}
+        onUpdate={fetchData}
       />
-
-      {/* Tutorial overlay */}
-      {showTutorial && user && (
-        <TutorialOverlay
-          onComplete={() => {
-            setShowTutorial(false);
-            localStorage.setItem(`tutorial_seen_${user.id}`, 'true');
-            // Check if event tutorial should be shown after main tutorial
-            if (calendarEvents.length > 0) {
-              const eventTutorialSeen = localStorage.getItem(`event_tutorial_seen_${user.id}`);
-              if (!eventTutorialSeen) {
-                setShowEventTutorial(true);
-              }
-            }
-          }}
-        />
-      )}
-
-      {/* Event tutorial overlay */}
-      {showEventTutorial && !showTutorial && user && (
-        <EventTutorialOverlay
-          onComplete={() => {
-            setShowEventTutorial(false);
-            localStorage.setItem(`event_tutorial_seen_${user.id}`, 'true');
-          }}
-        />
-      )}
-
-
-      {/* Upgrade Dialog */}
-      <UpgradeDialog
-        open={upgradeDialogOpen}
-        onOpenChange={setUpgradeDialogOpen}
-        featureName="les fonctionnalités de planification"
-      />
-    </>
+    </div>
   );
 };
 

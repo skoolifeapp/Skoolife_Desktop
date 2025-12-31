@@ -174,7 +174,7 @@ const formatLocalDate = (date: Date): string => {
 };
 
 const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initialStartTime, initialEndTime }: AddEventDialogProps) => {
-  const { user, subscriptionTier } = useAuth();
+  const { user } = useAuth();
   const [saving, setSaving] = useState(false);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [pendingLinks, setPendingLinks] = useState<PendingLink[]>([]);
@@ -183,10 +183,8 @@ const AddEventDialog = ({ open, onOpenChange, onEventAdded, initialDate, initial
   const [showLinkInput, setShowLinkInput] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Filter event types based on subscription tier
-  const EVENT_TYPES = ALL_EVENT_TYPES.filter(type => 
-    !type.majorOnly || subscriptionTier === 'major'
-  );
+  // All event types are available
+  const EVENT_TYPES = ALL_EVENT_TYPES;
   
   // Visio state
   const [generatedVisioLink, setGeneratedVisioLink] = useState<string | null>(null);
