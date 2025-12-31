@@ -28,6 +28,8 @@ const AdminStats = lazy(() => import("./pages/AdminStats"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const AdminSchools = lazy(() => import("./pages/AdminSchools"));
 const AdminSchoolDetail = lazy(() => import("./pages/AdminSchoolDetail"));
+const SchoolsLanding = lazy(() => import("./pages/SchoolsLanding"));
+const SchoolsContact = lazy(() => import("./pages/SchoolsContact"));
 const Invite = lazy(() => import("./pages/Invite"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
 const CancelSubscription = lazy(() => import("./pages/CancelSubscription"));
@@ -85,6 +87,8 @@ const App = () => (
                       <Route path="/about" element={<About />} />
                       <Route path="/legal" element={<Legal />} />
                       <Route path="/privacy" element={<Privacy />} />
+                      <Route path="/schools" element={<SchoolsLanding />} />
+                      <Route path="/schools/contact" element={<SchoolsContact />} />
                       <Route path="/post-checkout" element={<PostCheckout />} />
                       <Route path="/onboarding" element={<Onboarding />} />
 

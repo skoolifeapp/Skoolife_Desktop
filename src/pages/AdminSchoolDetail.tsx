@@ -51,8 +51,10 @@ import {
   Clock,
   BookOpen,
   Trash2,
-  Mail
+  CreditCard
 } from "lucide-react";
+import { ImportCSVDialog } from "@/components/ImportCSVDialog";
+import { SCHOOL_STRIPE_PRODUCTS, SchoolTier } from "@/config/stripeSchools";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -357,58 +359,61 @@ export default function AdminSchoolDetail() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle>Membres de l'école</CardTitle>
-                    <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
-                      <DialogTrigger asChild>
-                        <Button size="sm" className="gap-2">
-                          <Plus className="h-4 w-4" />
-                          Ajouter
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Ajouter un membre</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <Label>Email de l'utilisateur *</Label>
-                            <Input
-                              type="email"
-                              value={newMember.email}
-                              onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
-                              placeholder="eleve@email.com"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                              L'utilisateur doit déjà avoir un compte Skoolife
-                            </p>
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Rôle</Label>
-                            <Select
-                              value={newMember.role}
-                              onValueChange={(value) => setNewMember({ ...newMember, role: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {MEMBER_ROLES.map(role => (
-                                  <SelectItem key={role.value} value={role.value}>
-                                    {role.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <Button 
-                            onClick={handleAddMember} 
-                            className="w-full"
-                            disabled={!newMember.email}
-                          >
-                            Ajouter le membre
+                    <div className="flex gap-2">
+                      <ImportCSVDialog schoolId={id!} onImportComplete={fetchSchoolData} />
+                      <Dialog open={isAddMemberOpen} onOpenChange={setIsAddMemberOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="sm" className="gap-2">
+                            <Plus className="h-4 w-4" />
+                            Ajouter
                           </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Ajouter un membre</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <Label>Email de l'utilisateur *</Label>
+                              <Input
+                                type="email"
+                                value={newMember.email}
+                                onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                                placeholder="eleve@email.com"
+                              />
+                              <p className="text-xs text-muted-foreground">
+                                L'utilisateur doit déjà avoir un compte Skoolife
+                              </p>
+                            </div>
+                            <div className="space-y-2">
+                              <Label>Rôle</Label>
+                              <Select
+                                value={newMember.role}
+                                onValueChange={(value) => setNewMember({ ...newMember, role: value })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {MEMBER_ROLES.map(role => (
+                                    <SelectItem key={role.value} value={role.value}>
+                                      {role.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <Button 
+                              onClick={handleAddMember} 
+                              className="w-full"
+                              disabled={!newMember.email}
+                            >
+                              Ajouter le membre
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>

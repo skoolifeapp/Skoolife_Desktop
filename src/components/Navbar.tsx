@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Calendar, BarChart3, BookOpen, Settings, Timer } from 'lucide-react';
+import { Calendar, BarChart3, BookOpen, Settings, Timer, Building2 } from 'lucide-react';
 const LOGO_URL = '/logo.png';
 import { useAuth } from '@/hooks/useAuth';
 const features = [
@@ -17,6 +17,7 @@ const Navbar = () => {
   const { user } = useAuth();
   const isHome = location.pathname === '/';
   const isPricing = location.pathname === '/pricing';
+  const isSchools = location.pathname.startsWith('/schools');
   const [showFeatures, setShowFeatures] = useState(false);
 
   const isAbout = location.pathname === '/about';
@@ -110,6 +111,18 @@ const Navbar = () => {
             }`}
           >
             À propos
+          </Link>
+          
+          <Link 
+            to="/schools" 
+            className={`px-3 py-1.5 text-sm transition-colors rounded-full flex items-center gap-1 ${
+              isSchools 
+                ? 'text-foreground font-medium bg-muted/50' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            <Building2 className="w-3.5 h-3.5" />
+            Écoles
           </Link>
         </div>
         
