@@ -89,17 +89,17 @@ export default function SchoolsLanding() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/schools/contact">
+            <Link to="/schools/auth">
               <Button variant="hero" size="lg" className="gap-2">
-                Demander une démo
+                Inscrire mon établissement
                 <ArrowRight className="w-5 h-5" />
               </Button>
             </Link>
-            <a href="#pricing">
+            <Link to="/schools/contact">
               <Button variant="outline" size="lg">
-                Voir les tarifs
+                Demander une démo
               </Button>
-            </a>
+            </Link>
           </div>
         </div>
 
