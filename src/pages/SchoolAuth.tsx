@@ -65,9 +65,9 @@ const SchoolAuth = () => {
           .select('school_id, role')
           .eq('user_id', data.user.id)
           .eq('role', 'admin_school')
-          .single();
+          .maybeSingle();
 
-        if (membership) {
+        if (membership?.school_id) {
           navigate(`/admin/schools/${membership.school_id}`);
         } else {
           toast.error("Ce compte n'est pas associé à un établissement");
@@ -121,44 +121,20 @@ const SchoolAuth = () => {
           })
           .eq('id', authData.user.id);
 
-        // Create the school
-        const { data: school, error: schoolError } = await supabase
-          .from('schools')
-          .insert({
-            name: schoolName,
-            contact_email: email,
-            subscription_tier: 'trial',
-            is_active: true
-          })
-          .select()
-          .single();
+        // Create school + admin membership via backend function (avoids RLS recursion)
+        const { data: schoolRes, error: schoolCreateError } = await supabase.functions.invoke('create-school', {
+          body: { schoolName }
+        });
 
-        if (schoolError) {
-          console.error('School creation error:', schoolError);
+        if (schoolCreateError || !schoolRes?.schoolId) {
+          console.error('Create school function error:', schoolCreateError);
           toast.error("Erreur lors de la création de l'établissement");
           setLoading(false);
           return;
         }
 
-        // Create school membership as admin
-        const { error: memberError } = await supabase
-          .from('school_members')
-          .insert({
-            school_id: school.id,
-            user_id: authData.user.id,
-            role: 'admin_school',
-            joined_at: now
-          });
-
-        if (memberError) {
-          console.error('Membership creation error:', memberError);
-          toast.error("Erreur lors de l'attribution du rôle admin");
-          setLoading(false);
-          return;
-        }
-
         toast.success('Compte créé avec succès !');
-        navigate(`/admin/schools/${school.id}`);
+        navigate(`/admin/schools/${schoolRes.schoolId}`);
       }
     } catch (err) {
       console.error('Auth error:', err);
