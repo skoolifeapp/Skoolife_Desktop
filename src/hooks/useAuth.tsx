@@ -122,6 +122,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return lifetimeData;
       }
 
+      // Check for school membership with active school subscription
+      const { data: schoolMembership } = await supabase
+        .from('school_members')
+        .select(`
+          school_id,
+          is_active,
+          schools!inner (
+            id,
+            is_active,
+            subscription_tier
+          )
+        `)
+        .eq('user_id', currentSession.user.id)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+
+      // Type assertion for the joined data
+      const schoolData = schoolMembership?.schools as { id: string; is_active: boolean; subscription_tier: string } | null;
+      
+      if (schoolMembership && schoolData?.is_active) {
+        // User is member of an active school - grant Major tier
+        const schoolAccessData = {
+          subscribed: true,
+          is_school_access: true,
+          school_id: schoolMembership.school_id,
+          product_id: null,
+          subscription_end: null,
+        };
+        subscriptionCache.set(cacheKey, { data: schoolAccessData, timestamp: Date.now() });
+        setIsSubscribed(true);
+        setSubscriptionTier('major'); // School access = Major tier
+        setSubscriptionLoading(false);
+        subscriptionCheckInProgress.current = false;
+        return schoolAccessData;
+      }
+
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
           Authorization: `Bearer ${currentSession.access_token}`
