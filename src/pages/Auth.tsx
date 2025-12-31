@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, School } from 'lucide-react';
 const LOGO_URL = '/logo.png';
 
 const Auth = () => {
@@ -21,6 +22,8 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingRedirect, setCheckingRedirect] = useState(false);
+  const [hasSchoolCode, setHasSchoolCode] = useState(false);
+  const [schoolCode, setSchoolCode] = useState('');
   const { signIn, signUp, user, checkIsAdmin } = useAuth();
   const navigate = useNavigate();
 
@@ -98,12 +101,35 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else {
-          // On signup success, update profile with consent timestamps
-          // The profile is created by the trigger, so we wait a moment then update
+          // On signup success, update profile with consent timestamps and handle school code
           setTimeout(async () => {
             const { data: { user: newUser } } = await supabase.auth.getUser();
             if (newUser) {
               const now = new Date().toISOString();
+              
+              // If user has a school code, validate it
+              if (hasSchoolCode && schoolCode.trim()) {
+                const { data: codeResult, error: codeError } = await supabase
+                  .rpc('use_access_code', { 
+                    p_code: schoolCode.trim(), 
+                    p_user_id: newUser.id 
+                  });
+
+                if (codeError) {
+                  console.error('Error validating school code:', codeError);
+                } else {
+                  const result = codeResult as { success: boolean; error?: string; school_name?: string } | null;
+                  if (result?.success) {
+                    // Store in localStorage so onboarding knows to skip pricing
+                    localStorage.setItem('school_access_granted', 'true');
+                    localStorage.setItem('school_name', result.school_name || '');
+                    toast.success(`Bienvenue ! Tu as été ajouté à ${result.school_name}`);
+                  } else {
+                    toast.error(result?.error || 'Code école invalide');
+                  }
+                }
+              }
+
               await supabase
                 .from('profiles')
                 .update({
@@ -280,6 +306,43 @@ const Auth = () => {
                     </>
                   )}
                 </Button>
+
+                {/* School code field - only show on signup */}
+                {!isLogin && (
+                  <div className="space-y-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        id="has-school-code"
+                        checked={hasSchoolCode}
+                        onCheckedChange={(checked) => setHasSchoolCode(checked === true)}
+                        className="mt-0.5"
+                      />
+                      <label
+                        htmlFor="has-school-code"
+                        className="text-sm text-foreground leading-relaxed cursor-pointer flex items-center gap-2"
+                      >
+                        <School className="w-4 h-4 text-primary" />
+                        Mon école m'a fourni un code d'accès
+                      </label>
+                    </div>
+                    
+                    {hasSchoolCode && (
+                      <div className="space-y-2 pl-6">
+                        <Input
+                          id="schoolCode"
+                          placeholder="Ex: ESCP-AB12"
+                          value={schoolCode}
+                          onChange={(e) => setSchoolCode(e.target.value.toUpperCase())}
+                          className="h-10 font-mono tracking-wider"
+                          disabled={loading}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Accède gratuitement à Skoolife via ton établissement
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* CGU/Privacy mention - only show on signup */}
                 {!isLogin && (
