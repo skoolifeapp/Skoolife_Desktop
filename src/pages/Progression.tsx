@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProgressionSkeleton } from '@/components/PageSkeletons';
 import { useAuth } from '@/hooks/useAuth';
-import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   Clock, CheckCircle2, TrendingUp, ChevronLeft, ChevronRight, BookOpen, Minus, Target
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
 
 import { format, startOfWeek, endOfWeek, subWeeks, addWeeks, isSameWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -71,21 +69,10 @@ const Progression = () => {
   
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [allSessions, setAllSessions] = useState<RevisionSession[]>([]);
-  const { user, signOut, subscriptionTier, subscriptionLoading } = useAuth();
-  const { isInviteFreeUser, loading: inviteGateLoading } = useInviteFreeUser();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [cumulativeStats, setCumulativeStats] = useState<CumulativeSubjectStats[]>([]);
-
-  // Redirect free users AND Student tier users (only Major has access)
-  useEffect(() => {
-    if (inviteGateLoading || subscriptionLoading) return;
-    
-    const isStudentTier = subscriptionTier === 'student';
-    if (isInviteFreeUser || isStudentTier) {
-      navigate('/app');
-    }
-  }, [inviteGateLoading, subscriptionLoading, isInviteFreeUser, subscriptionTier, navigate]);
 
   useEffect(() => {
     if (!user) {
@@ -486,69 +473,76 @@ const Progression = () => {
           <Card className="border shadow-sm">
             <CardContent className="p-8 text-center">
               <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground">Aucune session de révision cette semaine</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Génère ton planning pour commencer à suivre ta progression !
+              <h3 className="font-medium mb-1">Pas encore de données</h3>
+              <p className="text-sm text-muted-foreground">
+                Commence à réviser pour voir tes progrès ici
               </p>
             </CardContent>
           </Card>
         )}
       </div>
 
-      {/* Cumulative hours section */}
-      {cumulativeStats.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-semibold">Heures cumulées par Matière</h2>
-          </div>
+      {/* Cumulative progress section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Target className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-semibold">Progrès Global par Matière</h2>
+        </div>
 
-          <Card className="border shadow-sm">
-            <CardContent className="p-5 space-y-4">
-              {cumulativeStats.map((stat) => (
-                <div key={stat.subjectId} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: stat.color }}
-                      />
-                      <span className="font-medium text-sm">{stat.subjectName}</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      {formatHours(stat.doneHours)} / {formatHours(stat.targetHours)}
-                    </span>
-                  </div>
-                  <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
+        {cumulativeStats.length > 0 ? (
+          <div className="space-y-3">
+            {cumulativeStats.map((stat) => (
+              <Card key={stat.subjectId} className="border shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
                     <div 
-                      className="absolute left-0 top-0 h-full rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${stat.percentage}%`,
-                        backgroundColor: stat.color 
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span 
-                      className="text-xs font-medium"
-                      style={{ color: stat.color }}
+                      className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: `${stat.color}20` }}
                     >
-                      {stat.percentage}% effectué
-                    </span>
-                    {stat.objectivePercentage !== null && (
-                      <span className="text-xs text-muted-foreground">
-                        {stat.objectivePercentage}% de l'objectif ({stat.objectiveHours}h)
-                      </span>
-                    )}
+                      <BookOpen className="w-5 h-5" style={{ color: stat.color }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-medium truncate">{stat.subjectName}</h3>
+                        <span className="text-sm text-muted-foreground">
+                          {formatHours(stat.doneHours)} / {formatHours(stat.targetHours)}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{ 
+                            width: `${stat.percentage}%`,
+                            backgroundColor: stat.color 
+                          }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs text-muted-foreground">{stat.percentage}% complété</span>
+                        {stat.objectiveHours && (
+                          <span className="text-xs text-muted-foreground">
+                            Objectif: {stat.objectiveHours}h ({stat.objectivePercentage}%)
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="border shadow-sm">
+            <CardContent className="p-8 text-center">
+              <Target className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <h3 className="font-medium mb-1">Aucune session planifiée</h3>
+              <p className="text-sm text-muted-foreground">
+                Génère ton planning pour suivre ta progression
+              </p>
             </CardContent>
           </Card>
-        </div>
-      )}
-
-
+        )}
+      </div>
     </div>
   );
 };

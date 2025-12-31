@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useInviteFreeUser } from '@/hooks/useInviteFreeUser';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,6 @@ import { Timer, Play, Pause, RotateCcw, Coffee, Brain, BookOpen, Clock, Target }
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-
 
 const WORK_TIME = 25 * 60;
 const SHORT_BREAK = 5 * 60;
@@ -38,18 +36,8 @@ const Pomodoro = () => {
   const [suggestedSessions, setSuggestedSessions] = useState<RevisionSession[]>([]);
   const [selectedSession, setSelectedSession] = useState<RevisionSession | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user, isSubscribed, subscriptionLoading } = useAuth();
-  const { isInviteFreeUser, loading: inviteGateLoading } = useInviteFreeUser();
+  const { user } = useAuth();
   const navigate = useNavigate();
-
-  // Redirect free users and unsubscribed users
-  useEffect(() => {
-    if (inviteGateLoading || subscriptionLoading) return;
-    
-    if (isInviteFreeUser || !isSubscribed) {
-      navigate('/app');
-    }
-  }, [inviteGateLoading, subscriptionLoading, isInviteFreeUser, isSubscribed, navigate]);
 
   useEffect(() => {
     if (!user) {
@@ -433,8 +421,6 @@ const Pomodoro = () => {
           </div>
         </div>
       </div>
-
-      
     </div>
   );
 };

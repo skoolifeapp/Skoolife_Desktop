@@ -14,8 +14,6 @@ import CookieConsent from "@/components/CookieConsent";
 // Lazy load all pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
 const Auth = lazy(() => import("./pages/Auth"));
-const Pricing = lazy(() => import("./pages/Pricing"));
-const PostCheckout = lazy(() => import("./pages/PostCheckout"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -28,8 +26,6 @@ const AdminStats = lazy(() => import("./pages/AdminStats"));
 const AdminAnalytics = lazy(() => import("./pages/AdminAnalytics"));
 const Invite = lazy(() => import("./pages/Invite"));
 const InviteAccept = lazy(() => import("./pages/InviteAccept"));
-const CancelSubscription = lazy(() => import("./pages/CancelSubscription"));
-const Subscription = lazy(() => import("./pages/Subscription"));
 const Pomodoro = lazy(() => import("./pages/Pomodoro"));
 const StudyFiles = lazy(() => import("./pages/StudyFiles"));
 const FeatureCalendar = lazy(() => import("./pages/FeatureCalendar"));
@@ -74,7 +70,6 @@ const App = () => (
                   <Routes>
                       <Route path="/" element={<Index />} />
                       <Route path="/auth" element={<Auth />} />
-                      <Route path="/pricing" element={<Pricing />} />
                       <Route path="/features/calendar" element={<FeatureCalendar />} />
                       <Route path="/features/progression" element={<FeatureProgression />} />
                       <Route path="/features/subjects" element={<FeatureSubjects />} />
@@ -83,18 +78,15 @@ const App = () => (
                       <Route path="/about" element={<About />} />
                       <Route path="/legal" element={<Legal />} />
                       <Route path="/privacy" element={<Privacy />} />
-                      <Route path="/post-checkout" element={<PostCheckout />} />
                       <Route path="/onboarding" element={<Onboarding />} />
 
-                      {/* App routes with persistent sidebar - no Suspense here, handled in AppLayout */}
+                      {/* App routes with persistent sidebar */}
                       <Route element={<AppLayout />}>
                         <Route path="/app" element={<Dashboard />} />
                         <Route path="/settings" element={<Settings />} />
                         <Route path="/progression" element={<Progression />} />
                         <Route path="/subjects" element={<Subjects />} />
                         <Route path="/profile" element={<Profile />} />
-                        <Route path="/subscription" element={<Subscription />} />
-                        <Route path="/cancel" element={<CancelSubscription />} />
                         <Route path="/pomodoro" element={<Pomodoro />} />
                         <Route path="/study-files" element={<StudyFiles />} />
                       </Route>
@@ -105,7 +97,6 @@ const App = () => (
                       <Route path="/admin/analytics" element={<AdminAnalytics />} />
                       <Route path="/invite/:token" element={<Invite />} />
                       <Route path="/invite-accept/:token" element={<InviteAccept />} />
-                      <Route path="/cancel" element={<CancelSubscription />} />
                       <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
