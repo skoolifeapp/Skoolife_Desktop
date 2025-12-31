@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Building2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Building2, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -29,7 +29,7 @@ const STUDENT_COUNTS = [
 ];
 
 export default function CreateInstitution() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -44,6 +44,14 @@ export default function CreateInstitution() {
     city: '',
     postalCode: '',
   });
+
+  // Redirect to auth if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast.error('Vous devez être connecté pour créer un établissement');
+      navigate('/auth?redirect=/institution/create');
+    }
+  }, [authLoading, user, navigate]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -110,25 +118,31 @@ export default function CreateInstitution() {
       <Navbar />
       
       <main className="container max-w-2xl mx-auto px-4 py-12 pt-24">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Retour
-        </Button>
+        {authLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => navigate(-1)}
+              className="mb-6"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Retour
+            </Button>
 
-        <Card>
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-              <Building2 className="w-8 h-8 text-primary" />
-            </div>
-            <CardTitle className="text-2xl">Créer votre établissement</CardTitle>
-            <CardDescription>
-              {step === 1 ? 'Informations de base' : 'Coordonnées'}
-            </CardDescription>
-          </CardHeader>
+            <Card>
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Building2 className="w-8 h-8 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Créer votre établissement</CardTitle>
+                <CardDescription>
+                  {step === 1 ? 'Informations de base' : 'Coordonnées'}
+                </CardDescription>
+              </CardHeader>
 
           <CardContent>
             {/* Progress indicator */}
@@ -275,6 +289,8 @@ export default function CreateInstitution() {
             )}
           </CardContent>
         </Card>
+          </>
+        )}
       </main>
 
       <Footer />
