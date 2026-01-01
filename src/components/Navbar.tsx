@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, BarChart3, BookOpen, Settings, Timer } from 'lucide-react';
 const LOGO_URL = '/logo.png';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 const features = [
   { name: 'Calendrier', icon: Calendar, description: 'Planifie tes révisions', path: '/features/calendar' },
   { name: 'Progression', icon: BarChart3, description: 'Suis tes progrès', path: '/features/progression' },
@@ -15,6 +16,7 @@ const features = [
 const Navbar = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const isHome = location.pathname === '/';
   const isPricing = location.pathname === '/pricing';
   const [showFeatures, setShowFeatures] = useState(false);
@@ -23,6 +25,9 @@ const Navbar = () => {
   
   // Redirect to /app if user is logged in, otherwise to /
   const logoLink = user ? '/app' : '/';
+  
+  // On mobile, redirect to desktop-only page instead of auth
+  const authLink = isMobile ? '/desktop-only' : '/auth';
 
   return (
     <header className="fixed left-0 right-0 z-[100] top-0 flex justify-center px-4 py-4">
@@ -114,7 +119,7 @@ const Navbar = () => {
         </div>
         
         {/* CTA Button */}
-        <Link to="/auth" className="ml-2">
+        <Link to={authLink} className="ml-2">
           <Button variant="default" size="sm" className="rounded-full text-xs md:text-sm px-4">
             Se connecter
           </Button>
