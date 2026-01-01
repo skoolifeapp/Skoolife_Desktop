@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 const LOGO_URL = '/logo.png';
@@ -12,12 +13,16 @@ import Footer from '@/components/Footer';
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!loading && user) {
       navigate('/app');
     }
   }, [user, loading, navigate]);
+
+  // On mobile, redirect to desktop-only page instead of auth
+  const ctaLink = isMobile ? '/desktop-only' : '/auth?mode=signup';
 
 
   return (
@@ -52,7 +57,7 @@ const Index = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8 md:mt-10">
-            <Link to="/auth?mode=signup">
+            <Link to={ctaLink}>
               <Button variant="hero" size="lg" className="md:text-base px-8">
                 Commencer gratuitement
                 <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />

@@ -2,9 +2,12 @@ import { Check, Calendar, Brain, Clock, Target, Timer, Play, Pause, RotateCcw, C
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 const LOGO_URL = '/logo.png';
 
 const LandingFeatures = () => {
+  const isMobile = useIsMobile();
+  const ctaLink = isMobile ? '/desktop-only' : '/auth?mode=signup';
   return (
     <section className="relative py-20 md:py-32 bg-background">
       {/* Intro Section */}
@@ -517,7 +520,7 @@ const LandingFeatures = () => {
           Skoolife planifie tout pour toi, 
           tu te concentres sur ce qui compte vraiment : apprendre.
         </h2>
-        <Link to="/auth?mode=signup">
+        <Link to={ctaLink}>
           <Button variant="hero" size="lg" className="md:text-base px-8">
             Commencer gratuitement
             <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
