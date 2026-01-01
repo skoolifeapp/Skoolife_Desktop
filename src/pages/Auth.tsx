@@ -57,8 +57,24 @@ const Auth = () => {
           // User already onboarded, go to app
           navigate('/app');
         } else {
-          // New user: send to pricing page to select subscription
-          navigate('/pricing');
+          // Check if user has school access (free via school code)
+          const schoolAccessGranted = localStorage.getItem('school_access_granted') === 'true';
+          
+          // Also check if user is a school member in the database
+          const { data: schoolMember } = await supabase
+            .from('school_members')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('is_active', true)
+            .maybeSingle();
+          
+          if (schoolAccessGranted || schoolMember) {
+            // School user: skip pricing, go directly to onboarding
+            navigate('/onboarding');
+          } else {
+            // New user without school: send to pricing page to select subscription
+            navigate('/pricing');
+          }
         }
         
         setCheckingRedirect(false);
