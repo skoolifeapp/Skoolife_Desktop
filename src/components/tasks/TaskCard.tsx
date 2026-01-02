@@ -57,7 +57,7 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className={cn(
-            "p-3 mb-2 cursor-grab active:cursor-grabbing transition-all",
+            "group p-3 mb-2 cursor-grab active:cursor-grabbing transition-all",
             "hover:shadow-md border-border/50",
             snapshot.isDragging && "shadow-lg rotate-2 scale-105",
             task.status === 'done' && "opacity-60"
