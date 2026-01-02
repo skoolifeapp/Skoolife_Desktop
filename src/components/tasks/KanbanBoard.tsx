@@ -170,6 +170,34 @@ export function KanbanBoard() {
     }
   };
 
+  // Handle quick toggle status (checkbox)
+  const handleToggleStatus = async (taskId: string, newStatus: 'todo' | 'done') => {
+    // Optimistic update
+    setTasks((prevTasks) =>
+      prevTasks.map((t) =>
+        t.id === taskId ? { ...t, status: newStatus } : t
+      )
+    );
+
+    try {
+      const headers = await getHeaders();
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/tasks?id=eq.${taskId}`,
+        {
+          method: 'PATCH',
+          headers: { ...headers, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to update task');
+    } catch (error) {
+      console.error('Error toggling task status:', error);
+      toast.error('Erreur lors de la mise à jour');
+      fetchData(); // Revert on error
+    }
+  };
+
   // Handle task creation/update
   const handleTaskSubmit = async (taskData: Partial<Task>) => {
     if (!user) return;
@@ -326,6 +354,7 @@ export function KanbanBoard() {
             onAddTask={handleAddTask}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
+            onToggleStatus={handleToggleStatus}
           />
           <KanbanColumn
             id="in_progress"
@@ -334,6 +363,7 @@ export function KanbanBoard() {
             onAddTask={handleAddTask}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
+            onToggleStatus={handleToggleStatus}
           />
           <KanbanColumn
             id="done"
@@ -342,6 +372,7 @@ export function KanbanBoard() {
             onAddTask={handleAddTask}
             onEditTask={handleEditTask}
             onDeleteTask={handleDeleteTask}
+            onToggleStatus={handleToggleStatus}
           />
         </div>
       </DragDropContext>

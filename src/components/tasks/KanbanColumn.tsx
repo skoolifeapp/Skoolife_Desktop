@@ -11,6 +11,7 @@ interface KanbanColumnProps {
   onAddTask: (status: 'todo' | 'in_progress' | 'done') => void;
   onEditTask: (task: Task) => void;
   onDeleteTask: (taskId: string) => void;
+  onToggleStatus: (taskId: string, newStatus: 'todo' | 'done') => void;
 }
 
 const columnStyles = {
@@ -38,6 +39,7 @@ export function KanbanColumn({
   onAddTask,
   onEditTask,
   onDeleteTask,
+  onToggleStatus,
 }: KanbanColumnProps) {
   const styles = columnStyles[id];
 
@@ -86,6 +88,7 @@ export function KanbanColumn({
                 index={index}
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
+                onToggleStatus={onToggleStatus}
               />
             ))}
             {provided.placeholder}

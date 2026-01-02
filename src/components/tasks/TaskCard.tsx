@@ -2,7 +2,7 @@ import { Draggable } from '@hello-pangea/dnd';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Trash2, Edit2, AlignLeft } from 'lucide-react';
+import { Clock, Trash2, Edit2, AlignLeft, Circle, CheckCircle2 } from 'lucide-react';
 import { format, isPast, isToday } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -31,6 +31,7 @@ interface TaskCardProps {
   index: number;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
+  onToggleStatus: (taskId: string, newStatus: 'todo' | 'done') => void;
 }
 
 const priorityColors = {
@@ -45,7 +46,7 @@ const priorityLabels = {
   high: 'Haute',
 };
 
-export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
+export function TaskCard({ task, index, onEdit, onDelete, onToggleStatus }: TaskCardProps) {
   const isOverdue = task.due_date && isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date)) && task.status !== 'done';
   const isDueToday = task.due_date && isToday(new Date(task.due_date));
 
@@ -67,6 +68,23 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
           <div className="space-y-2">
             {/* Header with title and actions */}
             <div className="flex items-start justify-between gap-2">
+              {/* Checkbox toggle */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleStatus(task.id, task.status === 'done' ? 'todo' : 'done');
+                }}
+                className={cn(
+                  "flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity",
+                  task.status === 'done' && "opacity-100"
+                )}
+              >
+                {task.status === 'done' ? (
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                ) : (
+                  <Circle className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+                )}
+              </button>
               <h4 className={cn(
                 "font-medium text-sm leading-tight flex-1",
                 task.status === 'done' && "line-through text-muted-foreground"
