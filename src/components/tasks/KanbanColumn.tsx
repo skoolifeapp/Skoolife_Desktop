@@ -43,7 +43,7 @@ export function KanbanColumn({
 
   return (
     <div className={cn(
-      "flex flex-col rounded-xl border-l-4 min-h-[400px] w-full min-w-[280px]",
+      "flex flex-col rounded-xl border-l-4 h-[calc(100vh-280px)] w-full min-w-[280px]",
       styles.bg,
       styles.accent
     )}>
@@ -75,7 +75,7 @@ export function KanbanColumn({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={cn(
-              "flex-1 p-2 transition-colors overflow-y-auto",
+              "flex-1 p-2 transition-colors overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
               snapshot.isDraggingOver && "bg-primary/10"
             )}
           >
