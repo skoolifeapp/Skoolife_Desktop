@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -47,8 +48,20 @@ const priorityLabels = {
 };
 
 export function TaskCard({ task, index, onEdit, onDelete, onToggleStatus }: TaskCardProps) {
+  const [isAnimating, setIsAnimating] = useState<'left' | 'right' | null>(null);
   const isOverdue = task.due_date && isPast(new Date(task.due_date)) && !isToday(new Date(task.due_date)) && task.status !== 'done';
   const isDueToday = task.due_date && isToday(new Date(task.due_date));
+
+  const handleToggleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newStatus = task.status === 'done' ? 'todo' : 'done';
+    // Animate left when going to todo, right when going to done
+    setIsAnimating(newStatus === 'done' ? 'right' : 'left');
+    // Trigger the actual status change after animation starts
+    setTimeout(() => {
+      onToggleStatus(task.id, newStatus);
+    }, 150);
+  };
 
   return (
     <Draggable draggableId={task.id} index={index}>
@@ -59,10 +72,12 @@ export function TaskCard({ task, index, onEdit, onDelete, onToggleStatus }: Task
           {...provided.dragHandleProps}
           onClick={() => onEdit(task)}
           className={cn(
-            "group p-3 mb-2 cursor-pointer active:cursor-grabbing transition-all",
+            "group p-3 mb-2 cursor-pointer active:cursor-grabbing transition-all duration-300",
             "hover:shadow-md border-border/50",
             snapshot.isDragging && "shadow-lg rotate-2 scale-105 cursor-grabbing",
-            task.status === 'done' && "opacity-60"
+            task.status === 'done' && "opacity-60",
+            isAnimating === 'right' && "translate-x-full opacity-0",
+            isAnimating === 'left' && "-translate-x-full opacity-0"
           )}
         >
           <div className="space-y-2">
@@ -70,10 +85,7 @@ export function TaskCard({ task, index, onEdit, onDelete, onToggleStatus }: Task
             <div className="flex items-start justify-between gap-2">
               {/* Checkbox toggle */}
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleStatus(task.id, task.status === 'done' ? 'todo' : 'done');
-                }}
+                onClick={handleToggleClick}
                 className={cn(
                   "flex-shrink-0 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity",
                   task.status === 'done' && "opacity-100"
