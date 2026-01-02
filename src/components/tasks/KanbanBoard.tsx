@@ -17,6 +17,18 @@ interface Subject {
   color: string;
 }
 
+// Helper to get Supabase REST API headers
+const getHeaders = async () => {
+  const session = await supabase.auth.getSession();
+  return {
+    'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    'Authorization': `Bearer ${session.data.session?.access_token}`,
+    'Content-Type': 'application/json',
+  };
+};
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
 export function KanbanBoard() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -29,27 +41,44 @@ export function KanbanBoard() {
 
   // Fetch tasks and subjects
   const fetchData = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
-      const [tasksRes, subjectsRes] = await Promise.all([
-        supabase
-          .from('tasks')
-          .select('*, subject:subjects(id, name, color)')
-          .eq('user_id', user.id)
-          .order('position', { ascending: true }),
-        supabase
-          .from('subjects')
-          .select('id, name, color')
-          .eq('user_id', user.id)
-          .eq('status', 'active'),
-      ]);
+      // Fetch subjects using Supabase client
+      const { data: subjectsData, error: subjectsError } = await supabase
+        .from('subjects')
+        .select('id, name, color')
+        .eq('user_id', user.id)
+        .eq('status', 'active');
 
-      if (tasksRes.error) throw tasksRes.error;
-      if (subjectsRes.error) throw subjectsRes.error;
+      if (subjectsError) throw subjectsError;
 
-      setTasks(tasksRes.data as Task[]);
-      setSubjects(subjectsRes.data || []);
+      const subjectsList = subjectsData || [];
+      setSubjects(subjectsList);
+
+      // Fetch tasks using REST API to bypass TypeScript type issues
+      const headers = await getHeaders();
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/tasks?user_id=eq.${user.id}&order=position.asc`,
+        { headers }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const rawTasks = await response.json();
+      
+      // Map subjects to tasks
+      const tasksWithSubjects = rawTasks.map((task: any) => ({
+        ...task,
+        subject: subjectsList.find(s => s.id === task.subject_id) || null,
+      }));
+
+      setTasks(tasksWithSubjects);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Erreur lors du chargement des tâches');
@@ -123,12 +152,17 @@ export function KanbanBoard() {
         newPosition = (tasksInColumn[destination.index - 1].position + tasksInColumn[destination.index].position) / 2;
       }
 
-      const { error } = await supabase
-        .from('tasks')
-        .update({ status: newStatus, position: newPosition })
-        .eq('id', taskId);
+      const headers = await getHeaders();
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/tasks?id=eq.${taskId}`,
+        {
+          method: 'PATCH',
+          headers: { ...headers, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ status: newStatus, position: newPosition }),
+        }
+      );
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update task');
     } catch (error) {
       console.error('Error updating task:', error);
       toast.error('Erreur lors de la mise à jour');
@@ -141,21 +175,27 @@ export function KanbanBoard() {
     if (!user) return;
 
     try {
+      const headers = await getHeaders();
+
       if (taskData.id) {
         // Update existing task
-        const { error } = await supabase
-          .from('tasks')
-          .update({
-            title: taskData.title,
-            description: taskData.description,
-            priority: taskData.priority,
-            subject_id: taskData.subject_id,
-            due_date: taskData.due_date,
-            status: taskData.status,
-          })
-          .eq('id', taskData.id);
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/tasks?id=eq.${taskData.id}`,
+          {
+            method: 'PATCH',
+            headers: { ...headers, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+              title: taskData.title,
+              description: taskData.description,
+              priority: taskData.priority,
+              subject_id: taskData.subject_id,
+              due_date: taskData.due_date,
+              status: taskData.status,
+            }),
+          }
+        );
 
-        if (error) throw error;
+        if (!response.ok) throw new Error('Failed to update task');
         toast.success('Tâche modifiée');
       } else {
         // Create new task
@@ -163,18 +203,25 @@ export function KanbanBoard() {
           .filter((t) => t.status === taskData.status)
           .reduce((max, t) => Math.max(max, t.position), 0);
 
-        const { error } = await supabase.from('tasks').insert({
-          user_id: user.id,
-          title: taskData.title,
-          description: taskData.description,
-          priority: taskData.priority,
-          subject_id: taskData.subject_id,
-          due_date: taskData.due_date,
-          status: taskData.status,
-          position: maxPosition + 1,
-        });
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/tasks`,
+          {
+            method: 'POST',
+            headers: { ...headers, 'Prefer': 'return=minimal' },
+            body: JSON.stringify({
+              user_id: user.id,
+              title: taskData.title,
+              description: taskData.description,
+              priority: taskData.priority,
+              subject_id: taskData.subject_id,
+              due_date: taskData.due_date,
+              status: taskData.status,
+              position: maxPosition + 1,
+            }),
+          }
+        );
 
-        if (error) throw error;
+        if (!response.ok) throw new Error('Failed to create task');
         toast.success('Tâche créée');
       }
 
@@ -189,8 +236,16 @@ export function KanbanBoard() {
   // Handle task deletion
   const handleDeleteTask = async (taskId: string) => {
     try {
-      const { error } = await supabase.from('tasks').delete().eq('id', taskId);
-      if (error) throw error;
+      const headers = await getHeaders();
+      const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/tasks?id=eq.${taskId}`,
+        {
+          method: 'DELETE',
+          headers,
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to delete task');
 
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
       toast.success('Tâche supprimée');
