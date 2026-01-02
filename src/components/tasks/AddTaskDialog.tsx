@@ -39,7 +39,8 @@ export function AddTaskDialog({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
-  const [subjectId, setSubjectId] = useState<string>('');
+  // Radix Select n'accepte pas value="" sur SelectItem, on utilise un sentinel.
+  const [subjectId, setSubjectId] = useState<string>('none');
   const [dueDate, setDueDate] = useState<Date | undefined>();
   const [status, setStatus] = useState<'todo' | 'in_progress' | 'done'>(initialStatus);
 
@@ -48,14 +49,14 @@ export function AddTaskDialog({
       setTitle(editingTask.title);
       setDescription(editingTask.description || '');
       setPriority(editingTask.priority);
-      setSubjectId(editingTask.subject_id || '');
+      setSubjectId(editingTask.subject_id ?? 'none');
       setDueDate(editingTask.due_date ? new Date(editingTask.due_date) : undefined);
       setStatus(editingTask.status);
     } else {
       setTitle('');
       setDescription('');
       setPriority('medium');
-      setSubjectId('');
+      setSubjectId('none');
       setDueDate(undefined);
       setStatus(initialStatus);
     }
@@ -70,7 +71,7 @@ export function AddTaskDialog({
       title: title.trim(),
       description: description.trim() || null,
       priority,
-      subject_id: subjectId || null,
+      subject_id: subjectId === 'none' ? null : subjectId,
       due_date: dueDate ? format(dueDate, 'yyyy-MM-dd') : null,
       status,
     });
@@ -120,7 +121,7 @@ export function AddTaskDialog({
                 <SelectValue placeholder="Aucune matière" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucune matière</SelectItem>
+                <SelectItem value="none">Aucune matière</SelectItem>
                 {subjects.map((subject) => (
                   <SelectItem key={subject.id} value={subject.id}>
                     <div className="flex items-center gap-2">
