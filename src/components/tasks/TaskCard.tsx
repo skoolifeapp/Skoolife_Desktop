@@ -56,10 +56,11 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
+          onClick={() => onEdit(task)}
           className={cn(
-            "group p-3 mb-2 cursor-grab active:cursor-grabbing transition-all",
+            "group p-3 mb-2 cursor-pointer active:cursor-grabbing transition-all",
             "hover:shadow-md border-border/50",
-            snapshot.isDragging && "shadow-lg rotate-2 scale-105",
+            snapshot.isDragging && "shadow-lg rotate-2 scale-105 cursor-grabbing",
             task.status === 'done' && "opacity-60"
           )}
         >
