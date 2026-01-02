@@ -77,9 +77,11 @@ export function KanbanColumn({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={cn(
-              "flex-1 p-2 transition-colors overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
-              snapshot.isDraggingOver && "bg-primary/10"
+              "flex-1 p-2 transition-colors overflow-y-auto overflow-x-visible scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent",
+              snapshot.isDraggingOver && "bg-primary/10",
+              "[&_.z-50]:overflow-visible"
             )}
+            style={{ isolation: 'auto' }}
           >
             {tasks.map((task, index) => (
               <TaskCard

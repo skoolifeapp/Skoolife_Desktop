@@ -76,10 +76,11 @@ export function TaskCard({ task, index, onEdit, onDelete, onToggleStatus }: Task
             "hover:shadow-md border-border/50",
             snapshot.isDragging && "shadow-lg rotate-2 scale-105 cursor-grabbing",
             task.status === 'done' && "opacity-60",
-            isAnimating && "z-50 relative shadow-xl scale-105",
-            isAnimating === 'right' && "translate-x-full opacity-0",
-            isAnimating === 'left' && "-translate-x-full opacity-0"
+            isAnimating && "!fixed z-[9999] shadow-2xl scale-105 pointer-events-none",
+            isAnimating === 'right' && "translate-x-[200%] opacity-0",
+            isAnimating === 'left' && "-translate-x-[200%] opacity-0"
           )}
+          style={isAnimating ? { width: 'inherit' } : undefined}
         >
           <div className="space-y-2">
             {/* Header with title and actions */}
