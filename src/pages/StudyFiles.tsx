@@ -395,6 +395,7 @@ export default function StudyFiles() {
     if (subscriptionTier !== 'major') return;
 
     let dragCounter = 0;
+    let isProcessing = false;
 
     const handleDragEnter = (e: DragEvent) => {
       e.preventDefault();
@@ -425,13 +426,18 @@ export default function StudyFiles() {
       dragCounter = 0;
       setIsDragging(false);
       
+      // Prevent double processing
+      if (isProcessing) return;
+      
       const droppedFiles = Array.from(e.dataTransfer?.files || []);
       if (droppedFiles.length === 0) return;
 
+      isProcessing = true;
       const result = await uploadMultipleFiles(droppedFiles, currentFolder || undefined);
       if (result.length > 0) {
         await loadData();
       }
+      isProcessing = false;
     };
 
     document.addEventListener('dragenter', handleDragEnter);
@@ -625,7 +631,7 @@ export default function StudyFiles() {
           <div className="bg-background border-2 border-dashed border-primary rounded-2xl p-12 text-center">
             <Upload className="w-16 h-16 mx-auto mb-4 text-primary" />
             <p className="text-lg font-medium">Dépose tes fichiers ici</p>
-            <p className="text-sm text-muted-foreground mt-1">Tous les types de fichiers sont acceptés</p>
+            <p className="text-sm text-muted-foreground mt-1">Formats acceptés : PDF, Word</p>
           </div>
         </div>
       )}
@@ -678,9 +684,11 @@ export default function StudyFiles() {
               id="file-upload-input"
               type="file"
               multiple
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={handleFileUpload}
               className="hidden"
             />
+            <p className="text-[10px] text-muted-foreground">PDF, Word</p>
           </div>
         </div>
 

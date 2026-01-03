@@ -14,8 +14,13 @@ export interface StudyFile {
   updated_at: string;
 }
 
-// No file type restrictions - accept all files
-// No file size limit
+// Allowed file types: PDF and Word documents only
+const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx'];
+
+const isAllowedFileType = (filename: string): boolean => {
+  const ext = filename.split('.').pop()?.toLowerCase() || '';
+  return ALLOWED_EXTENSIONS.includes(ext);
+};
 
 export interface UploadProgress {
   current: number;
@@ -42,6 +47,12 @@ export function useStudyFiles() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('Vous devez être connecté pour importer un fichier');
+        return null;
+      }
+
+      // Check file type
+      if (!isAllowedFileType(file.name)) {
+        toast.error('Format non supporté. Uniquement PDF et Word.');
         return null;
       }
 
@@ -97,8 +108,20 @@ export function useStudyFiles() {
     files: File[],
     folderName?: string
   ): Promise<StudyFile[]> => {
+    // Filter to only allowed file types
+    const allowedFiles = files.filter(f => isAllowedFileType(f.name));
+    const rejectedCount = files.length - allowedFiles.length;
+    
+    if (rejectedCount > 0) {
+      toast.error(`${rejectedCount} fichier(s) ignoré(s). Uniquement PDF et Word.`);
+    }
+    
+    if (allowedFiles.length === 0) {
+      return [];
+    }
+    
     setUploading(true);
-    setUploadProgress({ current: 0, total: files.length, currentFileName: files[0]?.name || '' });
+    setUploadProgress({ current: 0, total: allowedFiles.length, currentFileName: allowedFiles[0]?.name || '' });
     
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -110,9 +133,9 @@ export function useStudyFiles() {
       const uploaded: StudyFile[] = [];
       
       // Upload files sequentially to track progress accurately
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        setUploadProgress({ current: i, total: files.length, currentFileName: file.name });
+      for (let i = 0; i < allowedFiles.length; i++) {
+        const file = allowedFiles[i];
+        setUploadProgress({ current: i, total: allowedFiles.length, currentFileName: file.name });
         
         const fileExt = getFileExtension(file.name);
         const fileId = crypto.randomUUID();
