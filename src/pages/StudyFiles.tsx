@@ -390,66 +390,62 @@ export default function StudyFiles() {
     }
   }, [subscriptionTier, loadData]);
 
-  // Global drag & drop handlers - using ref for stable callback
-  const handleDropRef = useCallback(async (droppedFiles: File[]) => {
-    if (droppedFiles.length === 0) return;
-    const result = await uploadMultipleFiles(droppedFiles, currentFolder || undefined);
-    if (result.length > 0) {
-      await loadData();
-    }
-  }, [currentFolder, uploadMultipleFiles, loadData]);
-
+  // Global drag & drop handlers
   useEffect(() => {
     if (subscriptionTier !== 'major') return;
 
+    let dragCounter = 0;
+
     const handleDragEnter = (e: DragEvent) => {
       e.preventDefault();
-      // Only react to files from outside (not internal file drags)
-      if (e.dataTransfer?.types.includes('Files') && !e.dataTransfer?.types.includes('application/json')) {
+      e.stopPropagation();
+      dragCounter++;
+      if (e.dataTransfer?.types.includes('Files')) {
         setIsDragging(true);
-      }
-    };
-
-    const handleDragOver = (e: DragEvent) => {
-      e.preventDefault();
-      // Keep showing overlay while dragging
-      if (e.dataTransfer?.types.includes('Files') && !e.dataTransfer?.types.includes('application/json')) {
-        e.dataTransfer.dropEffect = 'copy';
       }
     };
 
     const handleDragLeave = (e: DragEvent) => {
       e.preventDefault();
-      // Only hide if leaving the document entirely
-      if (e.relatedTarget === null || (e.relatedTarget as Node)?.nodeName === 'HTML') {
+      e.stopPropagation();
+      dragCounter--;
+      if (dragCounter === 0) {
         setIsDragging(false);
       }
     };
 
-    const handleDrop = (e: DragEvent) => {
+    const handleDragOver = (e: DragEvent) => {
       e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const handleDrop = async (e: DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dragCounter = 0;
       setIsDragging(false);
       
-      // Only process file drops (not internal file moves)
-      if (e.dataTransfer?.types.includes('application/json')) return;
-      
       const droppedFiles = Array.from(e.dataTransfer?.files || []);
-      handleDropRef(droppedFiles);
+      if (droppedFiles.length === 0) return;
+
+      const result = await uploadMultipleFiles(droppedFiles, currentFolder || undefined);
+      if (result.length > 0) {
+        await loadData();
+      }
     };
 
-    // Use capture phase to catch events before they bubble
-    document.addEventListener('dragenter', handleDragEnter, true);
-    document.addEventListener('dragover', handleDragOver, true);
-    document.addEventListener('dragleave', handleDragLeave, true);
-    document.addEventListener('drop', handleDrop, true);
+    document.addEventListener('dragenter', handleDragEnter);
+    document.addEventListener('dragleave', handleDragLeave);
+    document.addEventListener('dragover', handleDragOver);
+    document.addEventListener('drop', handleDrop);
 
     return () => {
-      document.removeEventListener('dragenter', handleDragEnter, true);
-      document.removeEventListener('dragover', handleDragOver, true);
-      document.removeEventListener('dragleave', handleDragLeave, true);
-      document.removeEventListener('drop', handleDrop, true);
+      document.removeEventListener('dragenter', handleDragEnter);
+      document.removeEventListener('dragleave', handleDragLeave);
+      document.removeEventListener('dragover', handleDragOver);
+      document.removeEventListener('drop', handleDrop);
     };
-  }, [subscriptionTier, handleDropRef]);
+  }, [subscriptionTier, currentFolder, uploadMultipleFiles, loadData]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(event.target.files || []);
