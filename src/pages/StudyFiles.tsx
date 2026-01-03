@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useStudyFiles, StudyFile } from '@/hooks/useStudyFiles';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -45,6 +46,7 @@ import {
   Folder,
   X,
   File,
+  Check,
   FileImage,
   FileVideo,
   FileAudio,
@@ -101,7 +103,7 @@ const StudyFilesPaywall = () => {
   );
 };
 
-// iCloud-style file item with drag support
+// iCloud-style file item with drag support and multi-select
 const FileItem = ({
   file,
   onOpen,
@@ -111,7 +113,10 @@ const FileItem = ({
   onDelete,
   folders,
   onDragStart,
-  onDragEnd
+  onDragEnd,
+  isSelected,
+  onSelect,
+  selectionMode
 }: {
   file: StudyFile;
   onOpen: () => void;
@@ -122,6 +127,9 @@ const FileItem = ({
   folders: string[];
   onDragStart?: () => void;
   onDragEnd?: () => void;
+  isSelected: boolean;
+  onSelect: () => void;
+  selectionMode: boolean;
 }) => {
   const { icon: FileIcon, color, bg } = getFileIcon(file.file_type);
 
@@ -135,13 +143,41 @@ const FileItem = ({
     onDragEnd?.();
   };
 
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect();
+  };
+
   return (
     <div 
-      className="group relative flex flex-col items-center p-3 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
+      className={cn(
+        "group relative flex flex-col items-center p-3 rounded-xl transition-colors cursor-pointer",
+        isSelected ? "bg-primary/10 ring-2 ring-primary" : "hover:bg-muted/50"
+      )}
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
+      {/* Checkbox - visible on hover or in selection mode */}
+      <div 
+        className={cn(
+          "absolute top-1.5 left-1.5 z-10 transition-opacity",
+          selectionMode || isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        )}
+        onClick={handleCheckboxClick}
+      >
+        <div 
+          className={cn(
+            "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors cursor-pointer",
+            isSelected 
+              ? "bg-primary border-primary" 
+              : "bg-background/80 border-muted-foreground/40 hover:border-primary"
+          )}
+        >
+          {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+        </div>
+      </div>
+
       {/* Icon */}
       <div 
         className={cn("w-16 h-16 rounded-xl flex items-center justify-center mb-2", bg)}
@@ -164,62 +200,64 @@ const FileItem = ({
         {formatFileSize(file.file_size)}
       </p>
 
-      {/* Actions dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <MoreHorizontal className="w-3.5 h-3.5" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={onOpen}>
-            <ExternalLink className="w-3.5 h-3.5 mr-2" />
-            <span className="text-xs">Ouvrir</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={onDownload}>
-            <Download className="w-3.5 h-3.5 mr-2" />
-            <span className="text-xs">Télécharger</span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onRename}>
-            <Edit2 className="w-3.5 h-3.5 mr-2" />
-            <span className="text-xs">Renommer</span>
-          </DropdownMenuItem>
-          {folders.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <DropdownMenuItem>
-                  <FolderOpen className="w-3.5 h-3.5 mr-2" />
-                  <span className="text-xs">Déplacer vers...</span>
-                </DropdownMenuItem>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="left">
-                {file.folder_name && (
-                  <DropdownMenuItem onClick={() => onMove(null)}>
-                    <X className="w-3.5 h-3.5 mr-2" />
-                    <span className="text-xs">Retirer du dossier</span>
+      {/* Actions dropdown - hidden when in selection mode */}
+      {!selectionMode && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <MoreHorizontal className="w-3.5 h-3.5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={onOpen}>
+              <ExternalLink className="w-3.5 h-3.5 mr-2" />
+              <span className="text-xs">Ouvrir</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onDownload}>
+              <Download className="w-3.5 h-3.5 mr-2" />
+              <span className="text-xs">Télécharger</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onRename}>
+              <Edit2 className="w-3.5 h-3.5 mr-2" />
+              <span className="text-xs">Renommer</span>
+            </DropdownMenuItem>
+            {folders.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <DropdownMenuItem>
+                    <FolderOpen className="w-3.5 h-3.5 mr-2" />
+                    <span className="text-xs">Déplacer vers...</span>
                   </DropdownMenuItem>
-                )}
-                {folders.filter(f => f !== file.folder_name).map(folder => (
-                  <DropdownMenuItem key={folder} onClick={() => onMove(folder)}>
-                    <Folder className="w-3.5 h-3.5 mr-2" />
-                    <span className="text-xs">{folder}</span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
-            <Trash2 className="w-3.5 h-3.5 mr-2" />
-            <span className="text-xs">Supprimer</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="left">
+                  {file.folder_name && (
+                    <DropdownMenuItem onClick={() => onMove(null)}>
+                      <X className="w-3.5 h-3.5 mr-2" />
+                      <span className="text-xs">Retirer du dossier</span>
+                    </DropdownMenuItem>
+                  )}
+                  {folders.filter(f => f !== file.folder_name).map(folder => (
+                    <DropdownMenuItem key={folder} onClick={() => onMove(folder)}>
+                      <Folder className="w-3.5 h-3.5 mr-2" />
+                      <span className="text-xs">{folder}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+              <Trash2 className="w-3.5 h-3.5 mr-2" />
+              <span className="text-xs">Supprimer</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   );
 };
@@ -369,6 +407,50 @@ export default function StudyFiles() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [newFilename, setNewFilename] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
+  
+  // Multi-select state
+  const [selectedFileIds, setSelectedFileIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [bulkMoveDialogOpen, setBulkMoveDialogOpen] = useState(false);
+  
+  const selectionMode = selectedFileIds.size > 0;
+  
+  const toggleFileSelection = (fileId: string) => {
+    setSelectedFileIds(prev => {
+      const next = new Set(prev);
+      if (next.has(fileId)) {
+        next.delete(fileId);
+      } else {
+        next.add(fileId);
+      }
+      return next;
+    });
+  };
+  
+  const clearSelection = () => {
+    setSelectedFileIds(new Set());
+  };
+  
+  const handleBulkDelete = async () => {
+    for (const fileId of selectedFileIds) {
+      const file = files.find(f => f.id === fileId);
+      if (file) {
+        await deleteFile(file);
+      }
+    }
+    clearSelection();
+    setBulkDeleteDialogOpen(false);
+    await loadData();
+  };
+  
+  const handleBulkMove = async (folderName: string | null) => {
+    for (const fileId of selectedFileIds) {
+      await moveToFolder(fileId, folderName);
+    }
+    clearSelection();
+    setBulkMoveDialogOpen(false);
+    await loadData();
+  };
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -707,7 +789,35 @@ export default function StudyFiles() {
       )}
 
       <div className="space-y-4 p-6">
+        {/* Selection bar */}
+        {selectionMode && (
+          <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-lg px-4 py-2">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium">
+                {selectedFileIds.size} fichier{selectedFileIds.size > 1 ? 's' : ''} sélectionné{selectedFileIds.size > 1 ? 's' : ''}
+              </span>
+              <Button variant="ghost" size="sm" onClick={clearSelection} className="h-7 text-xs">
+                <X className="w-3.5 h-3.5 mr-1" />
+                Annuler
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              {folders.length > 0 && (
+                <Button variant="outline" size="sm" onClick={() => setBulkMoveDialogOpen(true)} className="h-7 text-xs gap-1">
+                  <FolderOpen className="w-3.5 h-3.5" />
+                  Déplacer
+                </Button>
+              )}
+              <Button variant="destructive" size="sm" onClick={() => setBulkDeleteDialogOpen(true)} className="h-7 text-xs gap-1">
+                <Trash2 className="w-3.5 h-3.5" />
+                Supprimer
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
+        {!selectionMode && (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-xl font-semibold">Mes fiches</h1>
@@ -740,6 +850,7 @@ export default function StudyFiles() {
             <p className="text-[10px] text-muted-foreground">PDF, Word</p>
           </div>
         </div>
+        )}
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-1 text-xs">
@@ -838,6 +949,9 @@ export default function StudyFiles() {
                       setDraggedFileId(null);
                       setIsDraggingFile(false);
                     }}
+                    isSelected={selectedFileIds.has(file.id)}
+                    onSelect={() => toggleFileSelection(file.id)}
+                    selectionMode={selectionMode}
                   />
                 ))}
               </div>
@@ -985,6 +1099,64 @@ export default function StudyFiles() {
             </Button>
             <Button variant="destructive" size="sm" onClick={handleDeleteFolderConfirm}>
               Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk delete dialog */}
+      <Dialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">Supprimer {selectedFileIds.size} fichier{selectedFileIds.size > 1 ? 's' : ''} ?</DialogTitle>
+            <DialogDescription className="text-xs">
+              Cette action est irréversible. Les fichiers sélectionnés seront définitivement supprimés.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" size="sm" onClick={() => setBulkDeleteDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk move dialog */}
+      <Dialog open={bulkMoveDialogOpen} onOpenChange={setBulkMoveDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base">Déplacer {selectedFileIds.size} fichier{selectedFileIds.size > 1 ? 's' : ''}</DialogTitle>
+            <DialogDescription className="text-xs">
+              Choisissez le dossier de destination.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2 h-9 text-xs"
+              onClick={() => handleBulkMove(null)}
+            >
+              <X className="w-3.5 h-3.5" />
+              Retirer du dossier (racine)
+            </Button>
+            {folders.map(folder => (
+              <Button
+                key={folder}
+                variant="outline"
+                className="w-full justify-start gap-2 h-9 text-xs"
+                onClick={() => handleBulkMove(folder)}
+              >
+                <Folder className="w-3.5 h-3.5" />
+                {folder}
+              </Button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" size="sm" onClick={() => setBulkMoveDialogOpen(false)}>
+              Annuler
             </Button>
           </DialogFooter>
         </DialogContent>
