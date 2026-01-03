@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -33,6 +33,11 @@ export function useStudyFiles() {
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
 
+  // Prevent duplicate uploads when drag & drop fires twice (or when user drops twice quickly)
+  const inFlightKeysRef = useRef<Set<string>>(new Set());
+
+  const getFileKey = (file: File) => `${file.name}:${file.size}:${file.lastModified}`;
+
   const getFileExtension = (filename: string): string => {
     return filename.split('.').pop()?.toLowerCase() || '';
   };
@@ -41,8 +46,9 @@ export function useStudyFiles() {
     file: File,
     folderName?: string
   ): Promise<StudyFile | null> => {
+    let fileKey: string | null = null;
     setUploading(true);
-    
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -55,6 +61,12 @@ export function useStudyFiles() {
         toast.error('Format non supporté. Uniquement PDF et Word.');
         return null;
       }
+
+      fileKey = getFileKey(file);
+      if (inFlightKeysRef.current.has(fileKey)) {
+        return null;
+      }
+      inFlightKeysRef.current.add(fileKey);
 
       const fileExt = getFileExtension(file.name);
       const fileId = crypto.randomUUID();
@@ -100,6 +112,9 @@ export function useStudyFiles() {
       toast.error('Erreur lors de l\'upload');
       return null;
     } finally {
+      if (fileKey) {
+        inFlightKeysRef.current.delete(fileKey);
+      }
       setUploading(false);
     }
   }, []);
@@ -111,18 +126,31 @@ export function useStudyFiles() {
     // Filter to only allowed file types
     const allowedFiles = files.filter(f => isAllowedFileType(f.name));
     const rejectedCount = files.length - allowedFiles.length;
-    
+
     if (rejectedCount > 0) {
       toast.error(`${rejectedCount} fichier(s) ignoré(s). Uniquement PDF et Word.`);
     }
-    
+
     if (allowedFiles.length === 0) {
       return [];
     }
-    
+
+    // Dedupe within the selection itself (same file dropped twice in the same event)
+    const seen = new Set<string>();
+    const dedupedFiles = allowedFiles.filter((f) => {
+      const key = getFileKey(f);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
     setUploading(true);
-    setUploadProgress({ current: 0, total: allowedFiles.length, currentFileName: 'Préparation...' });
-    
+    setUploadProgress({
+      current: 0,
+      total: dedupedFiles.length,
+      currentFileName: dedupedFiles[0]?.name || 'Préparation...'
+    });
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -130,48 +158,62 @@ export function useStudyFiles() {
         return [];
       }
 
+      // Reserve keys (prevents a second concurrent call from uploading the same file again)
+      const uniqueFiles = dedupedFiles.filter((f) => {
+        const key = getFileKey(f);
+        if (inFlightKeysRef.current.has(key)) return false;
+        inFlightKeysRef.current.add(key);
+        return true;
+      });
+
+      if (uniqueFiles.length === 0) {
+        return [];
+      }
+
       // Upload all files in parallel for maximum speed
       let completed = 0;
-      
-      const uploadPromises = allowedFiles.map(async (file) => {
-        const fileExt = getFileExtension(file.name);
-        const fileId = crypto.randomUUID();
-        const storagePath = `${user.id}/${fileId}-${file.name}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('study-files')
-          .upload(storagePath, file);
+      const uploadPromises = uniqueFiles.map(async (file) => {
+        const key = getFileKey(file);
 
-        if (uploadError) {
-          console.error('Upload error for', file.name, uploadError);
+        try {
+          const fileExt = getFileExtension(file.name);
+          const fileId = crypto.randomUUID();
+          const storagePath = `${user.id}/${fileId}-${file.name}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('study-files')
+            .upload(storagePath, file);
+
+          if (uploadError) {
+            console.error('Upload error for', file.name, uploadError);
+            return null;
+          }
+
+          const { data, error } = await supabase
+            .from('study_files')
+            .insert({
+              user_id: user.id,
+              filename: file.name,
+              file_type: fileExt || 'unknown',
+              file_size: file.size,
+              storage_path: storagePath,
+              folder_name: folderName || null
+            })
+            .select()
+            .single();
+
+          if (error) {
+            await supabase.storage.from('study-files').remove([storagePath]);
+            return null;
+          }
+
+          return data as StudyFile;
+        } finally {
+          inFlightKeysRef.current.delete(key);
           completed++;
-          setUploadProgress({ current: completed, total: allowedFiles.length, currentFileName: file.name });
-          return null;
+          setUploadProgress({ current: completed, total: uniqueFiles.length, currentFileName: file.name });
         }
-
-        const { data, error } = await supabase
-          .from('study_files')
-          .insert({
-            user_id: user.id,
-            filename: file.name,
-            file_type: fileExt || 'unknown',
-            file_size: file.size,
-            storage_path: storagePath,
-            folder_name: folderName || null
-          })
-          .select()
-          .single();
-
-        if (error) {
-          await supabase.storage.from('study-files').remove([storagePath]);
-          completed++;
-          setUploadProgress({ current: completed, total: allowedFiles.length, currentFileName: file.name });
-          return null;
-        }
-
-        completed++;
-        setUploadProgress({ current: completed, total: allowedFiles.length, currentFileName: file.name });
-        return data as StudyFile;
       });
 
       const results = await Promise.all(uploadPromises);

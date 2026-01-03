@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useStudyFiles, StudyFile } from '@/hooks/useStudyFiles';
@@ -356,6 +356,8 @@ export default function StudyFiles() {
   const [isDragging, setIsDragging] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [draggedFileId, setDraggedFileId] = useState<string | null>(null);
+  const dropProcessingRef = useRef(false);
+  const [progressCenterX, setProgressCenterX] = useState<number | null>(null);
 
   // Dialogs
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -390,17 +392,64 @@ export default function StudyFiles() {
     }
   }, [subscriptionTier, loadData]);
 
-  // Global drag & drop handlers
+  // Keep progress centered in the content area (not including the sidebar)
+  useEffect(() => {
+    const el = document.getElementById('study-files-container');
+    if (!el) return;
+
+    const update = () => {
+      const rect = el.getBoundingClientRect();
+      setProgressCenterX(rect.left + rect.width / 2);
+    };
+
+    update();
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener('resize', update);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  const handleDropFiles = useCallback(async (droppedFiles: File[]) => {
+    if (dropProcessingRef.current) return;
+
+    dropProcessingRef.current = true;
+    try {
+      const result = await uploadMultipleFiles(droppedFiles, currentFolder || undefined);
+      if (result.length > 0) {
+        await loadData();
+      }
+    } finally {
+      dropProcessingRef.current = false;
+    }
+  }, [uploadMultipleFiles, currentFolder, loadData]);
+
+  const handleOverlayDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const droppedFiles = Array.from(e.dataTransfer?.files || []);
+    setIsDragging(false);
+
+    if (droppedFiles.length === 0) return;
+    await handleDropFiles(droppedFiles);
+  }, [handleDropFiles]);
+
+  // Global drag handlers (upload is handled only by the overlay drop to avoid duplicates)
   useEffect(() => {
     if (subscriptionTier !== 'major') return;
 
     let dragCounter = 0;
-    let isProcessing = false;
 
     const handleDragEnter = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
       dragCounter++;
+
       if (e.dataTransfer?.types.includes('Files')) {
         setIsDragging(true);
       }
@@ -420,38 +469,25 @@ export default function StudyFiles() {
       e.stopPropagation();
     };
 
-    const handleDrop = async (e: DragEvent) => {
+    const handleDropPrevent = (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
       dragCounter = 0;
       setIsDragging(false);
-      
-      // Prevent double processing
-      if (isProcessing) return;
-      
-      const droppedFiles = Array.from(e.dataTransfer?.files || []);
-      if (droppedFiles.length === 0) return;
-
-      isProcessing = true;
-      const result = await uploadMultipleFiles(droppedFiles, currentFolder || undefined);
-      if (result.length > 0) {
-        await loadData();
-      }
-      isProcessing = false;
     };
 
     document.addEventListener('dragenter', handleDragEnter);
     document.addEventListener('dragleave', handleDragLeave);
     document.addEventListener('dragover', handleDragOver);
-    document.addEventListener('drop', handleDrop);
+    document.addEventListener('drop', handleDropPrevent);
 
     return () => {
       document.removeEventListener('dragenter', handleDragEnter);
       document.removeEventListener('dragleave', handleDragLeave);
       document.removeEventListener('dragover', handleDragOver);
-      document.removeEventListener('drop', handleDrop);
+      document.removeEventListener('drop', handleDropPrevent);
     };
-  }, [subscriptionTier, currentFolder, uploadMultipleFiles, loadData]);
+  }, [subscriptionTier]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(event.target.files || []);
@@ -627,7 +663,14 @@ export default function StudyFiles() {
     <div id="study-files-container" className="relative min-h-full">
       {/* Global drag overlay */}
       {isDragging && (
-        <div className="fixed inset-0 z-50 bg-primary/10 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+        <div
+          className="fixed inset-0 z-50 bg-primary/10 backdrop-blur-sm flex items-center justify-center"
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDrop={handleOverlayDrop}
+        >
           <div className="bg-background border-2 border-dashed border-primary rounded-2xl p-12 text-center">
             <Upload className="w-16 h-16 mx-auto mb-4 text-primary" />
             <p className="text-lg font-medium">Dépose tes fichiers ici</p>
@@ -636,9 +679,15 @@ export default function StudyFiles() {
         </div>
       )}
 
-      {/* Upload progress bar - centered relative to main content */}
+      {/* Upload progress bar (centered in the content area) */}
       {uploading && uploadProgress && (
-        <div className="fixed bottom-4 right-4 md:right-8 z-50 bg-background border rounded-xl shadow-lg p-4 w-80 animate-fade-in">
+        <div
+          className="fixed bottom-4 z-50 bg-background border rounded-xl shadow-lg p-4 w-80 animate-fade-in"
+          style={{
+            left: progressCenterX ? `${progressCenterX}px` : '50%',
+            transform: 'translateX(-50%)',
+          }}
+        >
           <div className="flex items-center gap-3 mb-2">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
               <Upload className="w-4 h-4 text-primary animate-pulse" />
@@ -650,8 +699,8 @@ export default function StudyFiles() {
               </p>
             </div>
           </div>
-          <Progress 
-            value={((uploadProgress.current + 1) / uploadProgress.total) * 100} 
+          <Progress
+            value={((uploadProgress.current + 1) / uploadProgress.total) * 100}
             className="h-2"
           />
         </div>
