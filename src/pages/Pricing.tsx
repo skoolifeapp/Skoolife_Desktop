@@ -14,12 +14,12 @@ import {
   Target, 
   BookOpen, 
   Settings, 
-  Users, 
-  Video, 
   BarChart3, 
   Sparkles,
   MessageCircle,
-  Percent
+  Timer,
+  FolderOpen,
+  ListTodo
 } from 'lucide-react';
 const LOGO_URL = '/logo.png';
 import { SUBSCRIPTION_TIERS } from '@/config/stripe';
@@ -33,8 +33,8 @@ const PLANS = {
       { text: 'Planning intelligent qui s\'adapte à toi', icon: Calendar },
       { text: 'Génération de tes sessions de révisions', icon: Sparkles },
       { text: 'Organise toutes tes matières facilement', icon: BookOpen },
-      { text: 'Importe ton emploi du temps en 1 clic', icon: Calendar },
-      { text: 'Timer Pomodoro pour rester focus', icon: Target },
+      { text: 'Timer Pomodoro pour rester focus', icon: Timer },
+      { text: 'Paramètres personnalisés', icon: Settings },
       { text: 'Support réactif par chat', icon: MessageCircle },
     ],
     popular: false,
@@ -43,11 +43,9 @@ const PLANS = {
     ...SUBSCRIPTION_TIERS.major,
     features: [
       { text: 'Tout de Student +', icon: Check, highlight: true },
-      { text: 'Invite tes potes à réviser ensemble', icon: Users },
-      { text: 'Appels vidéo intégrés directement', icon: Video },
       { text: 'Statistiques détaillées de progression', icon: BarChart3 },
-      { text: 'Sessions de groupe motivantes', icon: Users },
-      { text: 'Suis tes performances par matière', icon: Target },
+      { text: 'Gestionnaire de fiches "Mes fiches"', icon: FolderOpen },
+      { text: 'To-Do list avec tableau Kanban', icon: ListTodo },
     ],
     popular: true,
   },
