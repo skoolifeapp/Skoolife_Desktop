@@ -55,13 +55,11 @@ import {
   FileArchive,
   Presentation,
   ChevronRight,
-  Home,
-  Highlighter
+  Home
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { PDFAnnotationViewer } from '@/components/pdf/PDFAnnotationViewer';
 
 // File type icon mapping
 const getFileIcon = (fileType: string) => {
@@ -415,9 +413,6 @@ export default function StudyFiles() {
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [bulkMoveDialogOpen, setBulkMoveDialogOpen] = useState(false);
   
-  // PDF Annotation viewer state
-  const [annotationViewer, setAnnotationViewer] = useState<{ file: StudyFile; url: string } | null>(null);
-  
   const selectionMode = selectedFileIds.size > 0;
   
   const toggleFileSelection = (fileId: string) => {
@@ -590,19 +585,7 @@ export default function StudyFiles() {
   const handleOpenFile = async (file: StudyFile) => {
     const url = await getFileUrl(file.storage_path);
     if (url) {
-      // If it's a PDF, open the annotation viewer
-      if (file.file_type.toLowerCase() === 'pdf') {
-        setAnnotationViewer({ file, url });
-      } else {
-        window.open(url, '_blank');
-      }
-    }
-  };
-  
-  const handleOpenWithAnnotations = async (file: StudyFile) => {
-    const url = await getFileUrl(file.storage_path);
-    if (url) {
-      setAnnotationViewer({ file, url });
+      window.open(url, '_blank');
     }
   };
 
@@ -1178,16 +1161,6 @@ export default function StudyFiles() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* PDF Annotation Viewer */}
-      {annotationViewer && (
-        <PDFAnnotationViewer
-          fileId={annotationViewer.file.id}
-          fileUrl={annotationViewer.url}
-          fileName={annotationViewer.file.filename}
-          onClose={() => setAnnotationViewer(null)}
-        />
-      )}
     </div>
   );
 }

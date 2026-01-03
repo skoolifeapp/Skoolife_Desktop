@@ -388,53 +388,6 @@ export type Database = {
           },
         ]
       }
-      file_annotations: {
-        Row: {
-          annotation_type: string
-          color: string
-          content: string | null
-          created_at: string
-          file_id: string
-          id: string
-          page_number: number
-          position: Json
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          annotation_type: string
-          color?: string
-          content?: string | null
-          created_at?: string
-          file_id: string
-          id?: string
-          page_number: number
-          position: Json
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          annotation_type?: string
-          color?: string
-          content?: string | null
-          created_at?: string
-          file_id?: string
-          id?: string
-          page_number?: number
-          position?: Json
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "file_annotations_file_id_fkey"
-            columns: ["file_id"]
-            isOneToOne: false
-            referencedRelation: "study_files"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       notifications: {
         Row: {
           created_at: string
