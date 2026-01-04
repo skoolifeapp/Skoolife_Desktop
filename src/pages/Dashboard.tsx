@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO, startOfDay, startOfMonth } from 'date-fns';
+import { format, startOfWeek, addDays, addWeeks, subWeeks, isSameDay, parseISO, startOfDay, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import ImportCalendarDialog from '@/components/ImportCalendarDialog';
 import EditSessionDialog from '@/components/EditSessionDialog';
@@ -976,8 +976,30 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-bold">
-              Semaine du {format(weekStart, 'dd MMM', { locale: fr })}
+              {calendarView === 'week' 
+                ? `Semaine du ${format(weekStart, 'dd MMM', { locale: fr })}`
+                : format(currentMonth, 'MMMM yyyy', { locale: fr }).charAt(0).toUpperCase() + format(currentMonth, 'MMMM yyyy', { locale: fr }).slice(1)
+              }
             </h2>
+            {/* View toggle */}
+            <div className="flex items-center bg-muted rounded-lg p-1">
+              <Button
+                variant={calendarView === 'week' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={() => setCalendarView('week')}
+              >
+                Semaine
+              </Button>
+              <Button
+                variant={calendarView === 'month' ? 'secondary' : 'ghost'}
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={() => setCalendarView('month')}
+              >
+                Mois
+              </Button>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button 
@@ -1040,7 +1062,7 @@ const Dashboard = () => {
                 </AlertDialogContent>
               </AlertDialog>
             )}
-            {calendarView === 'week' && (
+            {calendarView === 'week' ? (
               <>
                 <Button 
                   variant="outline" 
@@ -1060,6 +1082,30 @@ const Dashboard = () => {
                   variant="outline" 
                   size="icon"
                   onClick={() => setWeekStart(addWeeks(weekStart, 1))}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => setCurrentMonth(addDays(startOfMonth(currentMonth), -1))}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setCurrentMonth(startOfMonth(new Date()))}
+                >
+                  Aujourd'hui
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => setCurrentMonth(addDays(endOfMonth(currentMonth), 1))}
                 >
                   <ChevronRight className="w-4 h-4" />
                 </Button>
