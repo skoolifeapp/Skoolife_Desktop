@@ -43,6 +43,14 @@ const About = lazy(() => import("./pages/About"));
 const Legal = lazy(() => import("./pages/Legal"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const DesktopOnly = lazy(() => import("./pages/DesktopOnly"));
+// B2B School pages
+const SchoolLanding = lazy(() => import("./pages/SchoolLanding"));
+const SchoolDashboard = lazy(() => import("./pages/SchoolDashboard"));
+const SchoolStudents = lazy(() => import("./pages/SchoolStudents"));
+const SchoolCohorts = lazy(() => import("./pages/SchoolCohorts"));
+const SchoolAccessCodes = lazy(() => import("./pages/SchoolAccessCodes"));
+const SchoolAnalytics = lazy(() => import("./pages/SchoolAnalytics"));
+const SchoolSettings = lazy(() => import("./pages/SchoolSettings"));
 
 // Optimized QueryClient with caching
 const queryClient = new QueryClient({
@@ -110,6 +118,16 @@ const App = () => (
                       <Route path="/invite/:token" element={<Invite />} />
                       <Route path="/invite-accept/:token" element={<InviteAccept />} />
                       <Route path="/cancel" element={<CancelSubscription />} />
+                      
+                      {/* B2B School routes */}
+                      <Route path="/etablissements" element={<SchoolLanding />} />
+                      <Route path="/school" element={<SchoolDashboard />} />
+                      <Route path="/school/students" element={<SchoolStudents />} />
+                      <Route path="/school/cohorts" element={<SchoolCohorts />} />
+                      <Route path="/school/codes" element={<SchoolAccessCodes />} />
+                      <Route path="/school/analytics" element={<SchoolAnalytics />} />
+                      <Route path="/school/settings" element={<SchoolSettings />} />
+                      
                       <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
