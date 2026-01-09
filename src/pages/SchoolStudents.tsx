@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useSchoolAdmin } from '@/hooks/useSchoolAdmin';
 import SchoolSidebar from '@/components/school/SchoolSidebar';
+import { AddStudentsDialog } from '@/components/school/AddStudentsDialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,11 +27,11 @@ import {
 import { 
   Search, 
   Download, 
-  Filter,
   CheckCircle2,
   Clock,
   Users,
-  GraduationCap
+  GraduationCap,
+  UserPlus
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -44,6 +45,7 @@ const SchoolStudents = () => {
   const [selectedCohort, setSelectedCohort] = useState<string>('all');
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -144,10 +146,16 @@ const SchoolStudents = () => {
               {studentMembers.length} élèves inscrits • {activeCount} actifs
             </p>
           </div>
-          <Button onClick={exportToCSV} variant="outline" className="gap-2">
-            <Download className="w-4 h-4" />
-            Exporter CSV
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setAddDialogOpen(true)} className="gap-2">
+              <UserPlus className="w-4 h-4" />
+              Ajouter des élèves
+            </Button>
+            <Button onClick={exportToCSV} variant="outline" className="gap-2">
+              <Download className="w-4 h-4" />
+              Exporter CSV
+            </Button>
+          </div>
         </div>
 
         {/* Stats cards */}
@@ -330,6 +338,15 @@ const SchoolStudents = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Add Students Dialog */}
+        <AddStudentsDialog
+          open={addDialogOpen}
+          onOpenChange={setAddDialogOpen}
+          schoolId={school?.id || ''}
+          cohorts={cohorts}
+          classes={classes}
+        />
       </div>
     </SchoolSidebar>
   );
