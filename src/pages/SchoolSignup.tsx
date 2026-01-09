@@ -118,9 +118,9 @@ const SchoolSignup = () => {
       const { data: school, error: schoolError } = await supabase
         .from('schools')
         .insert({
-          name: formData.schoolName,
-          contact_email: email,
-          school_type: formData.schoolType || null,
+          name: parsed.data.schoolName,
+          contact_email: emailForSchool,
+          school_type: parsed.data.schoolType ?? null,
           subscription_tier: 'demo',
           subscription_start_date: new Date().toISOString().split('T')[0],
           subscription_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -132,7 +132,6 @@ const SchoolSignup = () => {
       if (schoolError) {
         console.error('School creation error:', schoolError);
         toast.error('Erreur lors de la création de l\'établissement');
-        setLoading(false);
         return;
       }
 
@@ -141,7 +140,7 @@ const SchoolSignup = () => {
         .from('school_members')
         .insert({
           school_id: school.id,
-          user_id: newUser.id,
+          user_id: user.id,
           role: 'admin_school',
           is_active: true,
           joined_at: new Date().toISOString(),
@@ -150,7 +149,6 @@ const SchoolSignup = () => {
       if (memberError) {
         console.error('Member creation error:', memberError);
         toast.error('Erreur lors de la configuration du compte');
-        setLoading(false);
         return;
       }
 
@@ -162,7 +160,7 @@ const SchoolSignup = () => {
           cgu_accepted_at: new Date().toISOString(),
           privacy_accepted_at: new Date().toISOString(),
         })
-        .eq('id', newUser.id);
+        .eq('id', user.id);
 
       // Success - redirect to school dashboard
       toast.success('Bienvenue sur votre espace établissement !');
