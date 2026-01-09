@@ -84,6 +84,28 @@ const Subscription = () => {
         return;
       }
 
+      // School access (Major offert par l'établissement)
+      // Same as in useAuth: don't join schools table (students may not be allowed to read it).
+      const { data: schoolMembership } = await supabase
+        .from('school_members')
+        .select('school_id')
+        .eq('user_id', session.user.id)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+
+      if (schoolMembership?.school_id) {
+        setSubscriptionData({
+          subscription_end: null,
+          subscription_status: 'school',
+          cancel_at_period_end: false,
+          // @ts-expect-error - extra field for UI
+          is_school_access: true,
+        });
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke("check-subscription", {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -211,6 +233,8 @@ const Subscription = () => {
   const tierInfo = TIER_INFO[subscriptionTier as keyof typeof TIER_INFO] || TIER_INFO.student;
   const TierIcon = tierInfo.icon;
   const isLifetime = subscriptionData?.is_lifetime;
+  // @ts-expect-error - added for UI
+  const isSchoolAccess = (subscriptionData as any)?.is_school_access === true;
   const nextBillingDate = subscriptionData?.subscription_end
     ? format(new Date(subscriptionData.subscription_end), "d MMMM yyyy", { locale: fr })
     : null;
@@ -235,11 +259,15 @@ const Subscription = () => {
                 <div>
                   <CardTitle className="text-xl">{tierInfo.name}</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    {isLifetime ? "Accès à vie" : "Abonnement mensuel"}
+                    {isSchoolAccess ? "Accès offert par ton établissement" : isLifetime ? "Accès à vie" : "Abonnement mensuel"}
                   </p>
                 </div>
               </div>
-              {isLifetime ? (
+              {isSchoolAccess ? (
+                <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20">
+                  Offert
+                </Badge>
+              ) : isLifetime ? (
                 <Badge className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white hover:from-amber-600 hover:to-yellow-600">
                   À vie ✨
                 </Badge>
@@ -251,6 +279,15 @@ const Subscription = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* School message */}
+            {isSchoolAccess && (
+              <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+                <p className="text-sm text-green-700 dark:text-green-400 font-medium">
+                  🎉 Ton accès <strong>Major</strong> est activé gratuitement grâce à ton établissement. Aucun paiement requis.
+                </p>
+              </div>
+            )}
+
             {/* Lifetime message */}
             {isLifetime && (
               <div className="p-4 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-amber-200 dark:border-amber-800 rounded-xl">
@@ -260,8 +297,8 @@ const Subscription = () => {
               </div>
             )}
 
-            {/* Price - only show if not lifetime */}
-            {!isLifetime && (
+            {/* Price - only show if not lifetime / not school */}
+            {!isLifetime && !isSchoolAccess && (
               <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl">
                 <CreditCard className="w-5 h-5 text-muted-foreground" />
                 <div>
@@ -271,8 +308,8 @@ const Subscription = () => {
               </div>
             )}
 
-            {/* Next billing date - only show if not lifetime */}
-            {!isLifetime && nextBillingDate && (
+            {/* Next billing date - only show if not lifetime / not school */}
+            {!isLifetime && !isSchoolAccess && nextBillingDate && (
               <div className="flex items-center gap-3 p-4 bg-secondary/50 rounded-xl">
                 <Calendar className="w-5 h-5 text-muted-foreground" />
                 <div>
@@ -284,7 +321,7 @@ const Subscription = () => {
               </div>
             )}
 
-            {!isLifetime && isCanceled && (
+            {!isLifetime && !isSchoolAccess && isCanceled && (
               <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl">
                 <p className="text-sm text-destructive">
                   Ton abonnement a été annulé. Tu conserves l'accès jusqu'à la fin de ta période payée.
