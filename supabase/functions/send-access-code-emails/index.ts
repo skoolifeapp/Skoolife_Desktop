@@ -102,7 +102,7 @@ serve(async (req) => {
                 
                 <!-- Logo -->
                 <div style="text-align: center; margin-bottom: 32px;">
-                  <img src="https://app.skoolife.fr/images/email-logo.png" alt="Skoolife" style="width: 64px; height: 64px; border-radius: 16px;" />
+                  <img src="https://app.skoolife.fr/logo.png" alt="Skoolife" style="width: 64px; height: 64px; border-radius: 16px;" />
                 </div>
 
                 <h1 style="color: #18181b; font-size: 26px; margin: 0 0 32px 0; text-align: center; font-weight: 700;">

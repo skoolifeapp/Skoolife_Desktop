@@ -122,28 +122,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return lifetimeData;
       }
 
-      // Check for school membership with active school subscription
+      // Check for school membership (free Major access)
+      // Note: we intentionally do NOT join the schools table here, because students
+      // may not have permission to read school rows (RLS), which would break access.
       const { data: schoolMembership } = await supabase
         .from('school_members')
-        .select(`
-          school_id,
-          is_active,
-          schools!inner (
-            id,
-            is_active,
-            subscription_tier
-          )
-        `)
+        .select('school_id')
         .eq('user_id', currentSession.user.id)
         .eq('is_active', true)
         .limit(1)
         .maybeSingle();
 
-      // Type assertion for the joined data
-      const schoolData = schoolMembership?.schools as { id: string; is_active: boolean; subscription_tier: string } | null;
-      
-      if (schoolMembership && schoolData?.is_active) {
-        // User is member of an active school - grant Major tier
+      if (schoolMembership?.school_id) {
         const schoolAccessData = {
           subscribed: true,
           is_school_access: true,
@@ -153,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
         subscriptionCache.set(cacheKey, { data: schoolAccessData, timestamp: Date.now() });
         setIsSubscribed(true);
-        setSubscriptionTier('major'); // School access = Major tier
+        setSubscriptionTier('major');
         setSubscriptionLoading(false);
         subscriptionCheckInProgress.current = false;
         return schoolAccessData;
