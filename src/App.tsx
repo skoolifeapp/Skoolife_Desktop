@@ -45,6 +45,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const DesktopOnly = lazy(() => import("./pages/DesktopOnly"));
 // B2B School pages
 const SchoolLanding = lazy(() => import("./pages/SchoolLanding"));
+const SchoolSignup = lazy(() => import("./pages/SchoolSignup"));
 const SchoolDashboard = lazy(() => import("./pages/SchoolDashboard"));
 const SchoolStudents = lazy(() => import("./pages/SchoolStudents"));
 const SchoolCohorts = lazy(() => import("./pages/SchoolCohorts"));
@@ -121,6 +122,7 @@ const App = () => (
                       
                       {/* B2B School routes */}
                       <Route path="/etablissements" element={<SchoolLanding />} />
+                      <Route path="/etablissements/inscription" element={<SchoolSignup />} />
                       <Route path="/school" element={<SchoolDashboard />} />
                       <Route path="/school/students" element={<SchoolStudents />} />
                       <Route path="/school/cohorts" element={<SchoolCohorts />} />

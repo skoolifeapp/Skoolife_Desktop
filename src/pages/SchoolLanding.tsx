@@ -173,18 +173,18 @@ const SchoolLanding = () => {
               <Button 
                 size="lg" 
                 className="gap-2 text-lg px-8"
-                onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => navigate('/etablissements/inscription')}
               >
-                Demander une démo
+                Essayer gratuitement 14 jours
                 <ArrowRight className="w-5 h-5" />
               </Button>
               <Button 
                 size="lg" 
                 variant="outline"
                 className="gap-2 text-lg px-8"
-                onClick={() => navigate('/pricing')}
+                onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}
               >
-                Voir les tarifs
+                Demander une démo
               </Button>
             </div>
 

@@ -1,0 +1,437 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { Building2, Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+
+const LOGO_URL = '/logo.png';
+
+const SCHOOL_TYPES = [
+  { value: 'prepa', label: 'Classe préparatoire' },
+  { value: 'ecole_commerce', label: 'École de commerce' },
+  { value: 'ecole_ingenieur', label: 'École d\'ingénieurs' },
+  { value: 'universite', label: 'Université' },
+  { value: 'bts_iut', label: 'BTS / IUT' },
+  { value: 'autre', label: 'Autre' },
+];
+
+const SchoolSignup = () => {
+  const navigate = useNavigate();
+  const { user, signUp } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState<'form' | 'success'>('form');
+  
+  const [formData, setFormData] = useState({
+    schoolName: '',
+    contactEmail: '',
+    contactPhone: '',
+    schoolType: '',
+    password: '',
+  });
+
+  // Redirect if already logged in as school admin
+  useEffect(() => {
+    const checkSchoolAdmin = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('school_members')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('role', 'admin_school')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (data) {
+        navigate('/school');
+      }
+    };
+
+    checkSchoolAdmin();
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.schoolName || !formData.contactEmail || !formData.password) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast.error('Le mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Step 1: Create user account
+      const { error: signUpError } = await signUp(formData.contactEmail, formData.password);
+      
+      if (signUpError) {
+        if (signUpError.message.includes('already registered')) {
+          toast.error('Cet email est déjà utilisé. Connectez-vous ou utilisez un autre email.');
+        } else {
+          toast.error(signUpError.message);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Wait for user to be created
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Get the new user
+      const { data: { user: newUser } } = await supabase.auth.getUser();
+      
+      if (!newUser) {
+        toast.error('Erreur lors de la création du compte');
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Create the school with trial subscription
+      const { data: school, error: schoolError } = await supabase
+        .from('schools')
+        .insert({
+          name: formData.schoolName,
+          contact_email: formData.contactEmail,
+          contact_phone: formData.contactPhone || null,
+          school_type: formData.schoolType || null,
+          subscription_tier: 'trial',
+          subscription_start_date: new Date().toISOString().split('T')[0],
+          // 14-day trial
+          subscription_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          is_active: true,
+        })
+        .select()
+        .single();
+
+      if (schoolError) {
+        console.error('School creation error:', schoolError);
+        toast.error('Erreur lors de la création de l\'établissement');
+        setLoading(false);
+        return;
+      }
+
+      // Step 3: Add user as school admin
+      const { error: memberError } = await supabase
+        .from('school_members')
+        .insert({
+          school_id: school.id,
+          user_id: newUser.id,
+          role: 'admin_school',
+          is_active: true,
+          joined_at: new Date().toISOString(),
+        });
+
+      if (memberError) {
+        console.error('Member creation error:', memberError);
+        toast.error('Erreur lors de la configuration du compte admin');
+        setLoading(false);
+        return;
+      }
+
+      // Step 4: Update profile
+      await supabase
+        .from('profiles')
+        .update({
+          is_onboarding_complete: true,
+          cgu_accepted_at: new Date().toISOString(),
+          privacy_accepted_at: new Date().toISOString(),
+        })
+        .eq('id', newUser.id);
+
+      // Success!
+      setStep('success');
+      toast.success('Compte créé avec succès !');
+
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Une erreur est survenue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (step === 'success') {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <header className="p-6">
+          <Link to="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <img src={LOGO_URL} alt="Skoolife" className="w-10 h-10 rounded-xl" />
+            <span className="text-xl font-bold text-foreground">Skoolife</span>
+          </Link>
+        </header>
+
+        <main className="flex-1 flex items-center justify-center px-4 pb-20">
+          <div className="w-full max-w-md text-center space-y-6 animate-slide-up">
+            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            </div>
+            
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold text-foreground">
+                Bienvenue sur Skoolife !
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Votre compte établissement a été créé avec succès.
+              </p>
+            </div>
+
+            <Card className="text-left">
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">1</span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Période d'essai : 14 jours</p>
+                    <p className="text-sm text-muted-foreground">Accès complet à toutes les fonctionnalités</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">2</span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Créez vos cohortes et classes</p>
+                    <p className="text-sm text-muted-foreground">Organisez vos élèves par promotion</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-primary">3</span>
+                  </div>
+                  <div>
+                    <p className="font-medium">Générez des codes d'accès</p>
+                    <p className="text-sm text-muted-foreground">Partagez-les à vos élèves pour leur donner accès</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button 
+              size="lg" 
+              className="w-full gap-2"
+              onClick={() => navigate('/school')}
+            >
+              Accéder à mon dashboard
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="p-6">
+        <Link to="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <img src={LOGO_URL} alt="Skoolife" className="w-10 h-10 rounded-xl" />
+          <span className="text-xl font-bold text-foreground">Skoolife</span>
+        </Link>
+      </header>
+
+      {/* Main content */}
+      <main className="flex-1 flex items-center justify-center px-4 pb-20">
+        <div className="w-full max-w-lg space-y-8 animate-slide-up">
+          {/* Hero text */}
+          <div className="text-center space-y-3">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-primary font-medium text-sm mb-2">
+              <Building2 className="w-4 h-4" />
+              Essai gratuit 14 jours
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+              Créez votre compte établissement
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Accédez immédiatement à votre dashboard pour gérer vos élèves
+            </p>
+          </div>
+
+          {/* Signup card */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-primary" />
+                Inscription établissement
+              </CardTitle>
+              <CardDescription>
+                Créez votre compte en quelques secondes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="schoolName">Nom de l'établissement *</Label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="schoolName"
+                      placeholder="Ex: ESCP Business School"
+                      value={formData.schoolName}
+                      onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
+                      className="pl-10 h-12"
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="schoolType">Type d'établissement</Label>
+                  <Select
+                    value={formData.schoolType}
+                    onValueChange={(value) => setFormData({ ...formData, schoolType: value })}
+                    disabled={loading}
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Sélectionner..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SCHOOL_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail">Email admin *</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="contactEmail"
+                        type="email"
+                        placeholder="admin@ecole.fr"
+                        value={formData.contactEmail}
+                        onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                        className="pl-10 h-12"
+                        disabled={loading}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactPhone">Téléphone</Label>
+                    <Input
+                      id="contactPhone"
+                      type="tel"
+                      placeholder="01 23 45 67 89"
+                      value={formData.contactPhone}
+                      onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+                      className="h-12"
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Mot de passe *</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="pl-10 pr-10 h-12"
+                      disabled={loading}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Minimum 6 caractères</p>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  variant="hero" 
+                  size="lg" 
+                  className="w-full"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Création en cours...
+                    </>
+                  ) : (
+                    <>
+                      Créer mon compte établissement
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+
+                <p className="text-xs text-muted-foreground text-center leading-relaxed pt-2">
+                  En créant un compte, j'accepte les{' '}
+                  <Link to="/legal" className="text-primary hover:underline font-medium">
+                    CGU
+                  </Link>{' '}
+                  et la{' '}
+                  <Link to="/privacy" className="text-primary hover:underline font-medium">
+                    Politique de Confidentialité
+                  </Link>.
+                </p>
+              </form>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Déjà un compte établissement ?{' '}
+                  <Link to="/auth" className="text-primary hover:underline font-medium">
+                    Se connecter
+                  </Link>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Benefits */}
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-foreground">14 jours</p>
+              <p className="text-xs text-muted-foreground">Essai gratuit</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-foreground">Illimité</p>
+              <p className="text-xs text-muted-foreground">Élèves en trial</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-foreground">0€</p>
+              <p className="text-xs text-muted-foreground">Sans engagement</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default SchoolSignup;
