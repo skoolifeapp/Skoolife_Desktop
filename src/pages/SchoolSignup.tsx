@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Building2, Mail, Lock, ArrowRight, Loader2, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { Building2, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 
 const LOGO_URL = '/logo.png';
 
@@ -23,65 +23,42 @@ const SCHOOL_TYPES = [
 
 const SchoolSignup = () => {
   const navigate = useNavigate();
-  const { user, signUp } = useAuth();
+  const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [step, setStep] = useState<'form' | 'success'>('form');
   
   const [formData, setFormData] = useState({
     schoolName: '',
-    contactEmail: '',
-    contactPhone: '',
     schoolType: '',
-    password: '',
   });
 
-  // Redirect if already logged in as school admin
-  useEffect(() => {
-    const checkSchoolAdmin = async () => {
-      if (!user) return;
-
-      const { data } = await supabase
-        .from('school_members')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('role', 'admin_school')
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (data) {
-        navigate('/school');
-      }
+  const generateDemoCredentials = () => {
+    const randomId = Math.random().toString(36).substring(2, 10);
+    return {
+      email: `demo-${randomId}@skoolife.test`,
+      password: `Demo${randomId}!2024`,
     };
-
-    checkSchoolAdmin();
-  }, [user, navigate]);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.schoolName || !formData.contactEmail || !formData.password) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast.error('Le mot de passe doit contenir au moins 6 caractères');
+    if (!formData.schoolName) {
+      toast.error('Veuillez entrer le nom de votre établissement');
       return;
     }
 
     setLoading(true);
 
     try {
-      // Step 1: Create user account
-      const { error: signUpError } = await signUp(formData.contactEmail, formData.password);
+      // Generate demo credentials
+      const { email, password } = generateDemoCredentials();
+
+      // Step 1: Create demo user account
+      const { error: signUpError } = await signUp(email, password);
       
       if (signUpError) {
-        if (signUpError.message.includes('already registered')) {
-          toast.error('Cet email est déjà utilisé. Connectez-vous ou utilisez un autre email.');
-        } else {
-          toast.error(signUpError.message);
-        }
+        console.error('Signup error:', signUpError);
+        toast.error('Erreur lors de la création du compte démo');
         setLoading(false);
         return;
       }
@@ -90,8 +67,8 @@ const SchoolSignup = () => {
       let attempts = 0;
       let newUser = null;
       
-      while (attempts < 10 && !newUser) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+      while (attempts < 15 && !newUser) {
+        await new Promise(resolve => setTimeout(resolve, 400));
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           newUser = session.user;
@@ -110,10 +87,9 @@ const SchoolSignup = () => {
         .from('schools')
         .insert({
           name: formData.schoolName,
-          contact_email: formData.contactEmail,
-          contact_phone: formData.contactPhone || null,
+          contact_email: email,
           school_type: formData.schoolType || null,
-          subscription_tier: 'trial',
+          subscription_tier: 'demo',
           subscription_start_date: new Date().toISOString().split('T')[0],
           subscription_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           is_active: true,
@@ -141,7 +117,7 @@ const SchoolSignup = () => {
 
       if (memberError) {
         console.error('Member creation error:', memberError);
-        toast.error('Erreur lors de la configuration du compte admin');
+        toast.error('Erreur lors de la configuration du compte');
         setLoading(false);
         return;
       }
@@ -156,9 +132,9 @@ const SchoolSignup = () => {
         })
         .eq('id', newUser.id);
 
-      // Success!
-      setStep('success');
-      toast.success('Compte créé avec succès !');
+      // Success - redirect to school dashboard
+      toast.success('Bienvenue sur votre espace établissement !');
+      navigate('/school');
 
     } catch (error) {
       console.error('Error:', error);
@@ -167,77 +143,6 @@ const SchoolSignup = () => {
       setLoading(false);
     }
   };
-
-  if (step === 'success') {
-    return (
-      <div className="min-h-screen bg-background flex flex-col">
-        <header className="p-6">
-          <Link to="/" className="inline-flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src={LOGO_URL} alt="Skoolife" className="w-10 h-10 rounded-xl" />
-            <span className="text-xl font-bold text-foreground">Skoolife</span>
-          </Link>
-        </header>
-
-        <main className="flex-1 flex items-center justify-center px-4 pb-20">
-          <div className="w-full max-w-md text-center space-y-6 animate-slide-up">
-            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-10 h-10 text-green-600" />
-            </div>
-            
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold text-foreground">
-                Bienvenue sur Skoolife !
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                Votre compte établissement a été créé avec succès.
-              </p>
-            </div>
-
-            <Card className="text-left">
-              <CardContent className="pt-6 space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-bold text-primary">1</span>
-                  </div>
-                  <div>
-                    <p className="font-medium">Période d'essai : 14 jours</p>
-                    <p className="text-sm text-muted-foreground">Accès complet à toutes les fonctionnalités</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-bold text-primary">2</span>
-                  </div>
-                  <div>
-                    <p className="font-medium">Créez vos cohortes et classes</p>
-                    <p className="text-sm text-muted-foreground">Organisez vos élèves par promotion</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-bold text-primary">3</span>
-                  </div>
-                  <div>
-                    <p className="font-medium">Générez des codes d'accès</p>
-                    <p className="text-sm text-muted-foreground">Partagez-les à vos élèves pour leur donner accès</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Button 
-              size="lg" 
-              className="w-full gap-2"
-              onClick={() => navigate('/school')}
-            >
-              Accéder à mon dashboard
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -251,18 +156,18 @@ const SchoolSignup = () => {
 
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center px-4 pb-20">
-        <div className="w-full max-w-lg space-y-8 animate-slide-up">
+        <div className="w-full max-w-md space-y-8 animate-slide-up">
           {/* Hero text */}
           <div className="text-center space-y-3">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-primary font-medium text-sm mb-2">
-              <Building2 className="w-4 h-4" />
-              Essai gratuit 14 jours
+              <Sparkles className="w-4 h-4" />
+              Accès immédiat
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-              Créez votre compte établissement
+              Testez Skoolife
             </h1>
             <p className="text-muted-foreground text-lg">
-              Accédez immédiatement à votre dashboard pour gérer vos élèves
+              Découvrez la plateforme en 30 secondes
             </p>
           </div>
 
@@ -271,16 +176,16 @@ const SchoolSignup = () => {
             <CardHeader className="pb-4">
               <CardTitle className="text-xl flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-primary" />
-                Inscription établissement
+                Votre établissement
               </CardTitle>
               <CardDescription>
-                Créez votre compte en quelques secondes
+                Un seul champ et c'est parti !
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="schoolName">Nom de l'établissement *</Label>
+                  <Label htmlFor="schoolName">Nom de l'établissement</Label>
                   <div className="relative">
                     <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
@@ -290,13 +195,13 @@ const SchoolSignup = () => {
                       onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
                       className="pl-10 h-12"
                       disabled={loading}
-                      required
+                      autoFocus
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="schoolType">Type d'établissement</Label>
+                  <Label htmlFor="schoolType">Type (optionnel)</Label>
                   <Select
                     value={formData.schoolType}
                     onValueChange={(value) => setFormData({ ...formData, schoolType: value })}
@@ -315,67 +220,6 @@ const SchoolSignup = () => {
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="contactEmail">Email admin *</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="contactEmail"
-                        type="email"
-                        placeholder="admin@ecole.fr"
-                        value={formData.contactEmail}
-                        onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-                        className="pl-10 h-12"
-                        disabled={loading}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="contactPhone">Téléphone</Label>
-                    <Input
-                      id="contactPhone"
-                      type="tel"
-                      placeholder="01 23 45 67 89"
-                      value={formData.contactPhone}
-                      onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
-                      className="h-12"
-                      disabled={loading}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Mot de passe *</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="••••••••"
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="pl-10 pr-10 h-12"
-                      disabled={loading}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Minimum 6 caractères</p>
-                </div>
-
                 <Button 
                   type="submit" 
                   variant="hero" 
@@ -390,14 +234,14 @@ const SchoolSignup = () => {
                     </>
                   ) : (
                     <>
-                      Créer mon compte établissement
+                      Tester maintenant
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </Button>
 
                 <p className="text-xs text-muted-foreground text-center leading-relaxed pt-2">
-                  En créant un compte, j'accepte les{' '}
+                  En testant, j'accepte les{' '}
                   <Link to="/legal" className="text-primary hover:underline font-medium">
                     CGU
                   </Link>{' '}
@@ -407,31 +251,22 @@ const SchoolSignup = () => {
                   </Link>.
                 </p>
               </form>
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Déjà un compte établissement ?{' '}
-                  <Link to="/auth" className="text-primary hover:underline font-medium">
-                    Se connecter
-                  </Link>
-                </p>
-              </div>
             </CardContent>
           </Card>
 
           {/* Benefits */}
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="space-y-1">
-              <p className="text-2xl font-bold text-foreground">14 jours</p>
-              <p className="text-xs text-muted-foreground">Essai gratuit</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-2xl font-bold text-foreground">Illimité</p>
-              <p className="text-xs text-muted-foreground">Élèves en trial</p>
-            </div>
-            <div className="space-y-1">
               <p className="text-2xl font-bold text-foreground">0€</p>
-              <p className="text-xs text-muted-foreground">Sans engagement</p>
+              <p className="text-xs text-muted-foreground">Gratuit</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-foreground">30s</p>
+              <p className="text-xs text-muted-foreground">Pour tester</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-foreground">100%</p>
+              <p className="text-xs text-muted-foreground">Fonctionnalités</p>
             </div>
           </div>
         </div>

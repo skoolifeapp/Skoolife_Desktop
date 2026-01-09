@@ -175,7 +175,7 @@ const SchoolLanding = () => {
                 className="gap-2 text-lg px-8"
                 onClick={() => navigate('/etablissements/inscription')}
               >
-                Essayer gratuitement 14 jours
+                Tester gratuitement
                 <ArrowRight className="w-5 h-5" />
               </Button>
               <Button 
