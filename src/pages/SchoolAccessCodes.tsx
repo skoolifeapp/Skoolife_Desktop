@@ -144,7 +144,7 @@ const SchoolAccessCodes = () => {
   const totalUses = accessCodes.reduce((acc, c) => acc + (c.current_uses || 0), 0);
 
   return (
-    <SchoolSidebar schoolName={school?.name}>
+    <SchoolSidebar>
       <div className="p-6 md:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

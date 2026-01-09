@@ -134,7 +134,7 @@ const SchoolStudents = () => {
   const pendingCount = studentMembers.filter(s => !s.profile?.is_onboarding_complete).length;
 
   return (
-    <SchoolSidebar schoolName={school?.name}>
+    <SchoolSidebar>
       <div className="p-6 md:p-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
