@@ -119,7 +119,7 @@ const STUDY_DOMAINS: Record<string, string[]> = {
 const Onboarding = () => {
   const [loading, setLoading] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refreshSubscription } = useAuth();
   const navigate = useNavigate();
 
   // User data
@@ -215,6 +215,11 @@ const Onboarding = () => {
       // Clean up localStorage
       localStorage.removeItem('school_access_granted');
       localStorage.removeItem('school_name');
+
+      // Refresh subscription status before navigating so Major access shows instantly
+      if (hasSchoolAccess) {
+        await refreshSubscription();
+      }
 
       const pendingInviteToken = localStorage.getItem('pending_invite_token');
       if (pendingInviteToken) {
