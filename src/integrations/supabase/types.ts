@@ -608,6 +608,84 @@ export type Database = {
           },
         ]
       }
+      school_expected_students: {
+        Row: {
+          class_id: string | null
+          cohort_id: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string
+          first_name: string | null
+          id: string
+          is_registered: boolean | null
+          last_name: string | null
+          registered_user_id: string | null
+          school_id: string
+        }
+        Insert: {
+          class_id?: string | null
+          cohort_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          first_name?: string | null
+          id?: string
+          is_registered?: boolean | null
+          last_name?: string | null
+          registered_user_id?: string | null
+          school_id: string
+        }
+        Update: {
+          class_id?: string | null
+          cohort_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          first_name?: string | null
+          id?: string
+          is_registered?: boolean | null
+          last_name?: string | null
+          registered_user_id?: string | null
+          school_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "school_expected_students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_expected_students_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_expected_students_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_expected_students_registered_user_id_fkey"
+            columns: ["registered_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "school_expected_students_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "schools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       school_leads: {
         Row: {
           contact_email: string
