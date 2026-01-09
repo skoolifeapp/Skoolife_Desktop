@@ -140,14 +140,26 @@ const Navbar = () => {
           >
             À propos
           </Link>
+          
+          {/* Établissements link - visible for everyone */}
+          <Link 
+            to="/etablissements" 
+            className={`px-3 py-1.5 text-sm transition-colors rounded-full ${
+              location.pathname === '/etablissements' 
+                ? 'text-foreground font-medium bg-muted/50' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+          >
+            Établissements
+          </Link>
         </div>
         
-        {/* Espace établissement - School admins only */}
+        {/* Dashboard école - School admins only */}
         {isSchoolAdmin && !isMobile && (
           <Link to="/school">
             <Button variant="outline" size="sm" className="rounded-full text-xs md:text-sm px-4 gap-2">
               <Building2 className="w-4 h-4" />
-              Espace établissement
+              Mon établissement
             </Button>
           </Link>
         )}
