@@ -68,6 +68,7 @@ const SchoolAccessCodes = () => {
   const [expectedStudents, setExpectedStudents] = useState<ExpectedStudent[]>([]);
   const [sendEmail, setSendEmail] = useState(true);
   const [isSendingEmails, setIsSendingEmails] = useState(false);
+  const [resendingCodeId, setResendingCodeId] = useState<string | null>(null);
   const [newCode, setNewCode] = useState({
     code: '',
     cohortId: 'none',
@@ -186,6 +187,34 @@ const SchoolAccessCodes = () => {
   const copyToClipboard = (code: string) => {
     navigator.clipboard.writeText(code);
     toast.success('Code copié !');
+  };
+
+  const handleResendEmails = async (accessCode: typeof accessCodes[0]) => {
+    setResendingCodeId(accessCode.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-access-code-emails', {
+        body: {
+          schoolId: school?.id,
+          schoolName: school?.name,
+          code: accessCode.code,
+          cohortId: accessCode.cohort_id || undefined,
+          classId: accessCode.class_id || undefined,
+        }
+      });
+
+      if (error) {
+        console.error('Email error:', error);
+        toast.error('Erreur lors de l\'envoi des emails');
+      } else if (data?.sentCount > 0) {
+        toast.success(`${data.sentCount} email${data.sentCount > 1 ? 's' : ''} envoyé${data.sentCount > 1 ? 's' : ''} !`);
+      } else {
+        toast.info('Aucun élève trouvé pour ce code');
+      }
+    } catch (err) {
+      console.error('Failed to send emails:', err);
+      toast.error('Erreur lors de l\'envoi des emails');
+    }
+    setResendingCodeId(null);
   };
 
   const filteredClasses = newCode.cohortId !== 'none'
@@ -460,7 +489,7 @@ const SchoolAccessCodes = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-4">
                         <div className="text-right">
                           <p className="text-sm text-muted-foreground">Utilisations</p>
                           <p className="font-medium">
@@ -475,6 +504,22 @@ const SchoolAccessCodes = () => {
                             </div>
                           )}
                         </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleResendEmails(code)}
+                          disabled={resendingCodeId === code.id || !code.is_active}
+                          className="gap-2"
+                        >
+                          {resendingCodeId === code.id ? (
+                            'Envoi...'
+                          ) : (
+                            <>
+                              <Mail className="w-4 h-4" />
+                              Renvoyer
+                            </>
+                          )}
+                        </Button>
                         <div className="flex items-center gap-2">
                           <Label htmlFor={`toggle-${code.id}`} className="text-sm text-muted-foreground">
                             {code.is_active ? 'Actif' : 'Inactif'}
