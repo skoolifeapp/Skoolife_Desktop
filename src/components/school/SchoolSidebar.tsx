@@ -198,7 +198,7 @@ const SchoolSidebar = ({ children }: SchoolSidebarProps) => {
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start gap-2 text-sm"
-                    onClick={() => { setProfileMenuOpen(false); navigate('/profile'); }}
+                    onClick={() => { setProfileMenuOpen(false); navigate('/school/profile'); }}
                   >
                     <User className="w-4 h-4" />
                     Compte
@@ -252,7 +252,7 @@ const SchoolSidebar = ({ children }: SchoolSidebarProps) => {
                       variant="ghost"
                       size="sm"
                       className="w-full justify-start gap-2 text-sm"
-                      onClick={() => { setProfileMenuOpen(false); navigate('/profile'); }}
+                      onClick={() => { setProfileMenuOpen(false); navigate('/school/profile'); }}
                     >
                       <User className="w-4 h-4" />
                       Compte

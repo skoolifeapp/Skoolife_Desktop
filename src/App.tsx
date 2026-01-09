@@ -54,6 +54,7 @@ const SchoolCohorts = lazy(() => import("./pages/SchoolCohorts"));
 const SchoolAccessCodes = lazy(() => import("./pages/SchoolAccessCodes"));
 const SchoolAnalytics = lazy(() => import("./pages/SchoolAnalytics"));
 const SchoolSettings = lazy(() => import("./pages/SchoolSettings"));
+const SchoolProfile = lazy(() => import("./pages/SchoolProfile"));
 
 // Optimized QueryClient with caching
 const queryClient = new QueryClient({
@@ -133,6 +134,7 @@ const App = () => (
                       <Route path="/school/codes" element={<SchoolAccessCodes />} />
                       <Route path="/school/analytics" element={<SchoolAnalytics />} />
                       <Route path="/school/settings" element={<SchoolSettings />} />
+                      <Route path="/school/profile" element={<SchoolProfile />} />
                       
                       <Route path="*" element={<NotFound />} />
                   </Routes>
