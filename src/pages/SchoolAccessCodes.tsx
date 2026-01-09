@@ -28,6 +28,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Plus, 
   Key, 
@@ -35,7 +36,9 @@ import {
   Users,
   Calendar,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Mail,
+  Send
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -63,6 +66,8 @@ const SchoolAccessCodes = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [expectedStudents, setExpectedStudents] = useState<ExpectedStudent[]>([]);
+  const [sendEmail, setSendEmail] = useState(true);
+  const [isSendingEmails, setIsSendingEmails] = useState(false);
   const [newCode, setNewCode] = useState({
     code: '',
     cohortId: 'none',
@@ -130,11 +135,42 @@ const SchoolAccessCodes = () => {
 
     if (error) {
       toast.error('Erreur lors de la création du code');
-    } else {
-      toast.success('Code créé avec succès !');
-      setIsDialogOpen(false);
-      setNewCode({ code: '', cohortId: 'none', classId: 'none', expiresAt: '' });
+      setIsCreating(false);
+      return;
     }
+    
+    toast.success('Code créé avec succès !');
+
+    // Send emails if option is checked
+    if (sendEmail && calculatedMaxUses > 0) {
+      setIsSendingEmails(true);
+      try {
+        const { data, error: emailError } = await supabase.functions.invoke('send-access-code-emails', {
+          body: {
+            schoolId: school?.id,
+            schoolName: school?.name,
+            code: newCode.code,
+            cohortId: newCode.cohortId !== 'none' ? newCode.cohortId : undefined,
+            classId: newCode.classId !== 'none' ? newCode.classId : undefined,
+          }
+        });
+
+        if (emailError) {
+          console.error('Email error:', emailError);
+          toast.error('Erreur lors de l\'envoi des emails');
+        } else if (data?.sentCount > 0) {
+          toast.success(`${data.sentCount} email${data.sentCount > 1 ? 's' : ''} envoyé${data.sentCount > 1 ? 's' : ''} !`);
+        }
+      } catch (err) {
+        console.error('Failed to send emails:', err);
+        toast.error('Erreur lors de l\'envoi des emails');
+      }
+      setIsSendingEmails(false);
+    }
+
+    setIsDialogOpen(false);
+    setNewCode({ code: '', cohortId: 'none', classId: 'none', expiresAt: '' });
+    setSendEmail(true);
     setIsCreating(false);
   };
 
@@ -281,13 +317,33 @@ const SchoolAccessCodes = () => {
                     />
                   </div>
                 </div>
+                {calculatedMaxUses > 0 && (
+                  <div className="flex items-center gap-3 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                    <Checkbox
+                      id="sendEmail"
+                      checked={sendEmail}
+                      onCheckedChange={(checked) => setSendEmail(checked === true)}
+                    />
+                    <label htmlFor="sendEmail" className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Mail className="w-4 h-4 text-primary" />
+                      <span>Envoyer le code par email aux {calculatedMaxUses} élève{calculatedMaxUses > 1 ? 's' : ''}</span>
+                    </label>
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Annuler
                 </Button>
-                <Button onClick={handleCreateCode} disabled={isCreating}>
-                  {isCreating ? 'Création...' : 'Créer le code'}
+                <Button onClick={handleCreateCode} disabled={isCreating || isSendingEmails} className="gap-2">
+                  {isCreating || isSendingEmails ? (
+                    isSendingEmails ? 'Envoi des emails...' : 'Création...'
+                  ) : (
+                    <>
+                      {sendEmail && calculatedMaxUses > 0 && <Send className="w-4 h-4" />}
+                      Créer {sendEmail && calculatedMaxUses > 0 ? 'et envoyer' : 'le code'}
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
