@@ -125,7 +125,7 @@ const Index = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <Link to={ctaLink} onClick={triggerConfetti}>
-              <Button variant="hero" size="lg" className="md:text-base px-8 group">
+              <Button variant="default" size="lg" className="md:text-base px-8 group">
                 Commencer gratuitement
                 <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1" />
               </Button>
