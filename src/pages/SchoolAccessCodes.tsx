@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useSchoolAdmin } from '@/hooks/useSchoolAdmin';
+import { supabase } from '@/integrations/supabase/client';
 import SchoolSidebar from '@/components/school/SchoolSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,12 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+type ExpectedStudent = {
+  id: string;
+  cohort_id: string | null;
+  class_id: string | null;
+};
+
 const SchoolAccessCodes = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -55,11 +62,11 @@ const SchoolAccessCodes = () => {
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [expectedStudents, setExpectedStudents] = useState<ExpectedStudent[]>([]);
   const [newCode, setNewCode] = useState({
     code: '',
     cohortId: 'none',
     classId: 'none',
-    maxUses: '100',
     expiresAt: '',
   });
 
@@ -74,6 +81,30 @@ const SchoolAccessCodes = () => {
       navigate('/app');
     }
   }, [loading, isSchoolAdmin, user, navigate]);
+
+  // Fetch expected students to count them
+  useEffect(() => {
+    const fetchExpectedStudents = async () => {
+      if (!school?.id) return;
+      const { data } = await supabase
+        .from('school_expected_students')
+        .select('id, cohort_id, class_id')
+        .eq('school_id', school.id);
+      if (data) setExpectedStudents(data);
+    };
+    fetchExpectedStudents();
+  }, [school?.id]);
+
+  // Calculate max uses based on selection
+  const calculatedMaxUses = useMemo(() => {
+    if (newCode.classId !== 'none') {
+      return expectedStudents.filter(s => s.class_id === newCode.classId).length;
+    }
+    if (newCode.cohortId !== 'none') {
+      return expectedStudents.filter(s => s.cohort_id === newCode.cohortId).length;
+    }
+    return expectedStudents.length;
+  }, [expectedStudents, newCode.cohortId, newCode.classId]);
 
   const generateRandomCode = () => {
     const schoolPrefix = school?.name?.slice(0, 4).toUpperCase().replace(/[^A-Z]/g, '') || 'SKOO';
@@ -93,7 +124,7 @@ const SchoolAccessCodes = () => {
       code: newCode.code,
       cohortId: newCode.cohortId !== 'none' ? newCode.cohortId : undefined,
       classId: newCode.classId !== 'none' ? newCode.classId : undefined,
-      maxUses: parseInt(newCode.maxUses) || 100,
+      maxUses: calculatedMaxUses || 1,
       expiresAt: newCode.expiresAt || undefined,
     });
 
@@ -102,7 +133,7 @@ const SchoolAccessCodes = () => {
     } else {
       toast.success('Code créé avec succès !');
       setIsDialogOpen(false);
-      setNewCode({ code: '', cohortId: 'none', classId: 'none', maxUses: '100', expiresAt: '' });
+      setNewCode({ code: '', cohortId: 'none', classId: 'none', expiresAt: '' });
     }
     setIsCreating(false);
   };
@@ -233,14 +264,12 @@ const SchoolAccessCodes = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="maxUses">Utilisations max</Label>
-                    <Input
-                      id="maxUses"
-                      type="number"
-                      min="1"
-                      value={newCode.maxUses}
-                      onChange={(e) => setNewCode({ ...newCode, maxUses: e.target.value })}
-                    />
+                    <Label>Élèves concernés</Label>
+                    <div className="flex items-center gap-2 h-10 px-3 bg-muted rounded-md border">
+                      <Users className="w-4 h-4 text-muted-foreground" />
+                      <span className="font-medium">{calculatedMaxUses}</span>
+                      <span className="text-muted-foreground text-sm">élève{calculatedMaxUses > 1 ? 's' : ''}</span>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="expiresAt">Date d'expiration</Label>
