@@ -29,7 +29,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Clock, Loader2, RotateCcw, Settings as SettingsIcon } from 'lucide-react';
+import { Clock, Loader2, RotateCcw, Settings as SettingsIcon, Play } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 
 
@@ -66,6 +66,8 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [savingPreferences, setSavingPreferences] = useState(false);
   const [resettingOnboarding, setResettingOnboarding] = useState(false);
+  const [resettingVideoTutorial, setResettingVideoTutorial] = useState(false);
+  const [isSchoolStudent, setIsSchoolStudent] = useState(false);
 
   const [preferences, setPreferences] = useState<PreferencesData>({
     weekly_revision_hours: 10,
@@ -104,11 +106,13 @@ const Settings = () => {
     try {
       const [prefsRes, profileRes] = await Promise.all([
         supabase.from('user_preferences').select('*').eq('user_id', user.id).maybeSingle(),
-        supabase.from('profiles').select('weekly_revision_hours').eq('id', user.id).single(),
+        supabase.from('profiles').select('weekly_revision_hours, signed_up_via_invite').eq('id', user.id).single(),
       ]);
 
       const prefsData = prefsRes.data;
       const profileData = profileRes.data;
+
+      setIsSchoolStudent(profileData?.signed_up_via_invite || false);
 
       setPreferences({
         weekly_revision_hours: profileData?.weekly_revision_hours || 10,
@@ -401,6 +405,43 @@ const Settings = () => {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+
+              {/* Video Tutorial Reset - Only for school students */}
+              {isSchoolStudent && (
+                <div className="pt-4 border-t border-border">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Revoir la vidéo de présentation de Skoolife.
+                  </p>
+                  <Button 
+                    variant="outline"
+                    disabled={resettingVideoTutorial}
+                    onClick={async () => {
+                      if (!user) return;
+                      setResettingVideoTutorial(true);
+                      try {
+                        await supabase
+                          .from('profiles')
+                          .update({ has_seen_video_tutorial: false })
+                          .eq('id', user.id);
+                        toast.success('Tutoriel vidéo réinitialisé');
+                        navigate('/app');
+                      } catch (err) {
+                        console.error(err);
+                        toast.error("Erreur lors de la réinitialisation");
+                      } finally {
+                        setResettingVideoTutorial(false);
+                      }
+                    }}
+                  >
+                    {resettingVideoTutorial ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Play className="w-4 h-4 mr-2" />
+                    )}
+                    Revoir le tutoriel vidéo
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
