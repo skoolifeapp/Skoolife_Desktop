@@ -2,9 +2,11 @@ import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useSchoolAdmin } from '@/hooks/useSchoolAdmin';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import SchoolSidebar from '@/components/school/SchoolSidebar';
 import { AddStudentsDialog } from '@/components/school/AddStudentsDialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,7 +33,8 @@ import {
   Clock,
   Users,
   GraduationCap,
-  UserPlus
+  UserPlus,
+  XCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -39,13 +42,37 @@ import { fr } from 'date-fns/locale';
 const SchoolStudents = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { loading, isSchoolAdmin, school, members, cohorts, classes } = useSchoolAdmin();
+  const { loading, isSchoolAdmin, school, cohorts, classes } = useSchoolAdmin();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCohort, setSelectedCohort] = useState<string>('all');
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+
+  // Fetch expected students from school_expected_students
+  const { data: expectedStudents = [], refetch: refetchStudents } = useQuery({
+    queryKey: ['school-expected-students', school?.id],
+    queryFn: async () => {
+      if (!school?.id) return [];
+      const { data, error } = await supabase
+        .from('school_expected_students')
+        .select(`
+          *,
+          cohort:cohorts(id, name),
+          class:classes(id, name),
+          registered_profile:profiles!school_expected_students_registered_user_id_fkey(
+            id, first_name, last_name, email, is_onboarding_complete
+          )
+        `)
+        .eq('school_id', school.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!school?.id,
+  });
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -59,18 +86,16 @@ const SchoolStudents = () => {
     }
   }, [loading, isSchoolAdmin, user, navigate]);
 
-  const studentMembers = useMemo(() => {
-    return members.filter(m => m.role === 'student');
-  }, [members]);
-
   const filteredStudents = useMemo(() => {
-    return studentMembers.filter(student => {
+    return expectedStudents.filter(student => {
       // Search filter
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch = !searchQuery || 
-        student.profile?.first_name?.toLowerCase().includes(searchLower) ||
-        student.profile?.last_name?.toLowerCase().includes(searchLower) ||
-        student.profile?.email?.toLowerCase().includes(searchLower);
+        student.email?.toLowerCase().includes(searchLower) ||
+        student.first_name?.toLowerCase().includes(searchLower) ||
+        student.last_name?.toLowerCase().includes(searchLower) ||
+        student.registered_profile?.first_name?.toLowerCase().includes(searchLower) ||
+        student.registered_profile?.last_name?.toLowerCase().includes(searchLower);
 
       // Cohort filter
       const matchesCohort = selectedCohort === 'all' || student.cohort_id === selectedCohort;
@@ -79,14 +104,13 @@ const SchoolStudents = () => {
       const matchesClass = selectedClass === 'all' || student.class_id === selectedClass;
 
       // Status filter
-      const isActive = student.profile?.is_onboarding_complete;
       const matchesStatus = statusFilter === 'all' || 
-        (statusFilter === 'active' && isActive) ||
-        (statusFilter === 'pending' && !isActive);
+        (statusFilter === 'registered' && student.is_registered) ||
+        (statusFilter === 'not_registered' && !student.is_registered);
 
       return matchesSearch && matchesCohort && matchesClass && matchesStatus;
     });
-  }, [studentMembers, searchQuery, selectedCohort, selectedClass, statusFilter]);
+  }, [expectedStudents, searchQuery, selectedCohort, selectedClass, statusFilter]);
 
   const filteredClasses = useMemo(() => {
     if (selectedCohort === 'all') return classes;
@@ -94,15 +118,15 @@ const SchoolStudents = () => {
   }, [classes, selectedCohort]);
 
   const exportToCSV = () => {
-    const headers = ['Prénom', 'Nom', 'Email', 'Cohorte', 'Classe', 'Statut', 'Date inscription'];
+    const headers = ['Email', 'Prénom', 'Nom', 'Cohorte', 'Classe', 'Statut', 'Date ajout'];
     const rows = filteredStudents.map(student => [
-      student.profile?.first_name || '',
-      student.profile?.last_name || '',
-      student.profile?.email || '',
+      student.email || '',
+      student.registered_profile?.first_name || student.first_name || '',
+      student.registered_profile?.last_name || student.last_name || '',
       student.cohort?.name || '',
       student.class?.name || '',
-      student.profile?.is_onboarding_complete ? 'Actif' : 'En attente',
-      student.joined_at ? format(new Date(student.joined_at), 'dd/MM/yyyy') : '',
+      student.is_registered ? 'Inscrit' : 'Non inscrit',
+      student.created_at ? format(new Date(student.created_at), 'dd/MM/yyyy') : '',
     ]);
 
     const csvContent = [headers, ...rows]
@@ -132,8 +156,8 @@ const SchoolStudents = () => {
     return null;
   }
 
-  const activeCount = studentMembers.filter(s => s.profile?.is_onboarding_complete).length;
-  const pendingCount = studentMembers.filter(s => !s.profile?.is_onboarding_complete).length;
+  const registeredCount = expectedStudents.filter(s => s.is_registered).length;
+  const notRegisteredCount = expectedStudents.filter(s => !s.is_registered).length;
 
   return (
     <SchoolSidebar>
@@ -143,7 +167,7 @@ const SchoolStudents = () => {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Élèves</h1>
             <p className="text-muted-foreground">
-              {studentMembers.length} élèves inscrits • {activeCount} actifs
+              {expectedStudents.length} élèves dans la base • {registeredCount} inscrits sur Skoolife
             </p>
           </div>
           <div className="flex gap-2">
@@ -167,7 +191,7 @@ const SchoolStudents = () => {
                   <Users className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{studentMembers.length}</p>
+                  <p className="text-2xl font-bold">{expectedStudents.length}</p>
                   <p className="text-sm text-muted-foreground">Total</p>
                 </div>
               </div>
@@ -180,8 +204,8 @@ const SchoolStudents = () => {
                   <CheckCircle2 className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{activeCount}</p>
-                  <p className="text-sm text-muted-foreground">Actifs</p>
+                  <p className="text-2xl font-bold">{registeredCount}</p>
+                  <p className="text-sm text-muted-foreground">Inscrits</p>
                 </div>
               </div>
             </CardContent>
@@ -193,8 +217,8 @@ const SchoolStudents = () => {
                   <Clock className="w-5 h-5 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{pendingCount}</p>
-                  <p className="text-sm text-muted-foreground">En attente</p>
+                  <p className="text-2xl font-bold">{notRegisteredCount}</p>
+                  <p className="text-sm text-muted-foreground">Non inscrits</p>
                 </div>
               </div>
             </CardContent>
@@ -208,7 +232,7 @@ const SchoolStudents = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  placeholder="Rechercher un élève..."
+                  placeholder="Rechercher par email ou nom..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -249,8 +273,8 @@ const SchoolStudents = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="active">Actifs</SelectItem>
-                  <SelectItem value="pending">En attente</SelectItem>
+                  <SelectItem value="registered">Inscrits</SelectItem>
+                  <SelectItem value="not_registered">Non inscrits</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -274,11 +298,12 @@ const SchoolStudents = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Élève</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Nom</TableHead>
                     <TableHead>Cohorte</TableHead>
                     <TableHead>Classe</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Inscription</TableHead>
+                    <TableHead>Statut Skoolife</TableHead>
+                    <TableHead>Ajouté le</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -286,22 +311,34 @@ const SchoolStudents = () => {
                     <TableRow key={student.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="text-primary font-medium text-sm">
-                              {student.profile?.first_name?.[0] || student.profile?.email?.[0]?.toUpperCase() || '?'}
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            student.is_registered 
+                              ? 'bg-green-100 dark:bg-green-900/30' 
+                              : 'bg-muted'
+                          }`}>
+                            <span className={`font-medium text-xs ${
+                              student.is_registered 
+                                ? 'text-green-700 dark:text-green-400' 
+                                : 'text-muted-foreground'
+                            }`}>
+                              {student.email?.[0]?.toUpperCase() || '?'}
                             </span>
                           </div>
-                          <div>
-                            <p className="font-medium">
-                              {student.profile?.first_name && student.profile?.last_name
-                                ? `${student.profile.first_name} ${student.profile.last_name}`
-                                : 'Non renseigné'}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {student.profile?.email || '-'}
-                            </p>
-                          </div>
+                          <span className="font-medium text-sm">{student.email}</span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {student.is_registered && student.registered_profile ? (
+                          <span>
+                            {student.registered_profile.first_name} {student.registered_profile.last_name}
+                          </span>
+                        ) : student.first_name || student.last_name ? (
+                          <span className="text-muted-foreground">
+                            {student.first_name} {student.last_name}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {student.cohort?.name || (
@@ -314,21 +351,21 @@ const SchoolStudents = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {student.profile?.is_onboarding_complete ? (
+                        {student.is_registered ? (
                           <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Actif
+                            Inscrit
                           </Badge>
                         ) : (
-                          <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-                            <Clock className="w-3 h-3 mr-1" />
-                            En attente
+                          <Badge variant="secondary" className="bg-muted text-muted-foreground">
+                            <XCircle className="w-3 h-3 mr-1" />
+                            Non inscrit
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {student.joined_at 
-                          ? format(new Date(student.joined_at), 'dd MMM yyyy', { locale: fr })
+                      <TableCell className="text-muted-foreground text-sm">
+                        {student.created_at 
+                          ? format(new Date(student.created_at), 'dd MMM yyyy', { locale: fr })
                           : '-'}
                       </TableCell>
                     </TableRow>
@@ -346,6 +383,7 @@ const SchoolStudents = () => {
           schoolId={school?.id || ''}
           cohorts={cohorts}
           classes={classes}
+          onSuccess={refetchStudents}
         />
       </div>
     </SchoolSidebar>
