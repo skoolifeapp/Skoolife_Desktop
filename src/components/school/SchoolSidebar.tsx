@@ -20,7 +20,8 @@ import {
   PanelLeft,
   Bell,
   Lock,
-  AlertTriangle
+  AlertTriangle,
+  Clock
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -132,31 +133,6 @@ const SchoolSidebar = ({ children }: SchoolSidebarProps) => {
           </Link>
         </div>
 
-        {/* Trial Banner */}
-        {!sidebarCollapsed && (isTrialActive || isTrialExpired) && (
-          <div className={cn(
-            "mb-4 p-3 rounded-lg text-xs",
-            isTrialExpired 
-              ? "bg-destructive/10 border border-destructive/20" 
-              : "bg-primary/10 border border-primary/20"
-          )}>
-            {isTrialExpired ? (
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-destructive">Essai terminé</p>
-                  <p className="text-muted-foreground mt-0.5">Contactez-nous pour continuer</p>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <p className="font-medium text-primary">{daysRemaining} jour{daysRemaining > 1 ? 's' : ''} restant{daysRemaining > 1 ? 's' : ''}</p>
-                <p className="text-muted-foreground mt-0.5">Période d'essai gratuit</p>
-              </div>
-            )}
-          </div>
-        )}
-
         {sidebarCollapsed ? (
           <nav className="flex-1 space-y-1">
             {NAV_ITEMS.map((item) => renderNavItem(item))}
@@ -194,6 +170,21 @@ const SchoolSidebar = ({ children }: SchoolSidebarProps) => {
                     <p className="text-sm font-medium">Administrateur</p>
                     <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                   </div>
+                  {/* Trial info */}
+                  {(isTrialActive || isTrialExpired) && (
+                    <div className={cn(
+                      "mx-2 mb-2 px-2 py-1.5 rounded text-xs flex items-center gap-2",
+                      isTrialExpired 
+                        ? "bg-destructive/10 text-destructive" 
+                        : "bg-primary/10 text-primary"
+                    )}>
+                      {isTrialExpired ? (
+                        <><AlertTriangle className="w-3 h-3" /> Essai terminé</>
+                      ) : (
+                        <><Clock className="w-3 h-3" /> {daysRemaining}j restants</>
+                      )}
+                    </div>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -248,6 +239,21 @@ const SchoolSidebar = ({ children }: SchoolSidebarProps) => {
                       <p className="text-sm font-medium">Administrateur</p>
                       <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                     </div>
+                    {/* Trial info */}
+                    {(isTrialActive || isTrialExpired) && (
+                      <div className={cn(
+                        "mx-2 mb-2 px-2 py-1.5 rounded text-xs flex items-center gap-2",
+                        isTrialExpired 
+                          ? "bg-destructive/10 text-destructive" 
+                          : "bg-primary/10 text-primary"
+                      )}>
+                        {isTrialExpired ? (
+                          <><AlertTriangle className="w-3 h-3" /> Essai terminé</>
+                        ) : (
+                          <><Clock className="w-3 h-3" /> {daysRemaining}j restants</>
+                        )}
+                      </div>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
