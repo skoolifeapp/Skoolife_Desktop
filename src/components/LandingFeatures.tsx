@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef } from 'react';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -34,6 +35,19 @@ const staggerContainer = {
 const LandingFeatures = () => {
   const isMobile = useIsMobile();
   const ctaLink = isMobile ? '/desktop-only' : '/auth?mode=signup';
+  const sectionRef = useRef<HTMLElement>(null);
+  
+  // Parallax for floating decorations
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
+  
+  const blob1Y = useTransform(scrollYProgress, [0, 1], [-100, 200]);
+  const blob2Y = useTransform(scrollYProgress, [0, 1], [50, -150]);
+  const blob3Y = useTransform(scrollYProgress, [0, 1], [-50, 100]);
+  const blob1X = useTransform(scrollYProgress, [0, 1], [0, 50]);
+  const blob2X = useTransform(scrollYProgress, [0, 1], [0, -30]);
 
   // Mobile version - Simple feature cards
   if (isMobile) {
@@ -190,10 +204,26 @@ const LandingFeatures = () => {
 
   // Desktop version - Full mockups
   return (
-    <section className="relative py-20 md:py-32 bg-background">
+    <section ref={sectionRef} className="relative py-20 md:py-32 bg-background overflow-hidden">
+      {/* Parallax background decorations */}
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div 
+          style={{ y: blob1Y, x: blob1X }}
+          className="absolute top-40 -left-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl"
+        />
+        <motion.div 
+          style={{ y: blob2Y, x: blob2X }}
+          className="absolute top-1/3 -right-32 w-96 h-96 bg-accent/15 rounded-full blur-3xl"
+        />
+        <motion.div 
+          style={{ y: blob3Y }}
+          className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-primary/8 rounded-full blur-3xl"
+        />
+      </div>
+
       {/* Intro Section */}
       <motion.div 
-        className="max-w-4xl mx-auto px-4 text-center mb-20 md:mb-32"
+        className="relative max-w-4xl mx-auto px-4 text-center mb-20 md:mb-32"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
@@ -213,7 +243,7 @@ const LandingFeatures = () => {
 
       {/* Feature 1: Calendrier Intelligent */}
       <motion.div 
-        className="max-w-6xl mx-auto px-4 mb-20 md:mb-32"
+        className="relative max-w-6xl mx-auto px-4 mb-20 md:mb-32"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
@@ -225,7 +255,7 @@ const LandingFeatures = () => {
 
       {/* Feature 3: Pomodoro */}
       <motion.div 
-        className="max-w-6xl mx-auto px-4 mb-20 md:mb-32"
+        className="relative max-w-6xl mx-auto px-4 mb-20 md:mb-32"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
@@ -237,7 +267,7 @@ const LandingFeatures = () => {
 
       {/* Feature 4: Two cards row */}
       <motion.div 
-        className="max-w-6xl mx-auto px-4 mb-20 md:mb-32"
+        className="relative max-w-6xl mx-auto px-4 mb-20 md:mb-32"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
@@ -249,7 +279,7 @@ const LandingFeatures = () => {
 
       {/* Final CTA Quote */}
       <motion.div 
-        className="max-w-5xl mx-auto px-4 text-center"
+        className="relative max-w-5xl mx-auto px-4 text-center"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
