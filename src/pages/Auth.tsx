@@ -137,36 +137,27 @@ const Auth = () => {
       } else {
         // Student signup flow (school signup is separate page)
         if (hasSchoolCode && schoolCode.trim()) {
-          // Validate school code BEFORE signup
-          const { data: accessCode } = await supabase
-            .from('access_codes')
-            .select('school_id')
-            .eq('code', schoolCode.trim().toUpperCase())
-            .eq('is_active', true)
-            .maybeSingle();
+          // Validate school code + email BEFORE signup (server-side to bypass RLS)
+          const { data: validationResult, error: validationError } = await supabase.functions.invoke(
+            'validate-access-code',
+            {
+              body: {
+                code: schoolCode.trim(),
+                email: email.trim(),
+              },
+            }
+          );
 
-          if (!accessCode) {
-            showError('Code école invalide ou expiré', 'Code invalide');
+          if (validationError) {
+            console.error('Error validating school code/email:', validationError);
+            showError("Impossible de valider le code pour le moment. Réessaie dans quelques secondes.", 'Erreur');
             setLoading(false);
             return;
           }
 
-          // Check if email is in expected students for this school
-          const { data: expectedStudent } = await supabase
-            .from('school_expected_students')
-            .select('id, is_registered')
-            .eq('school_id', accessCode.school_id)
-            .ilike('email', email.trim())
-            .maybeSingle();
-
-          if (!expectedStudent) {
-            showError("Ton adresse email n'est pas autorisée à utiliser ce code. Inscris-toi avec l'email sur lequel tu as reçu le code d'accès.", "Email non autorisé");
-            setLoading(false);
-            return;
-          }
-
-          if (expectedStudent.is_registered) {
-            showError("Cet email a déjà été utilisé pour s'inscrire avec ce code.", "Email déjà utilisé");
+          const result = validationResult as { ok: boolean; title?: string; error?: string } | null;
+          if (!result?.ok) {
+            showError(result?.error || 'Code école invalide', result?.title || 'Erreur');
             setLoading(false);
             return;
           }
