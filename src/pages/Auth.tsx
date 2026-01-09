@@ -109,38 +109,51 @@ const Auth = () => {
           }
         }
       } else {
+        // If user has a school code, pre-set the flag so redirect logic goes to onboarding
+        if (hasSchoolCode && schoolCode.trim()) {
+          localStorage.setItem('pending_school_code', schoolCode.trim());
+          localStorage.setItem('school_access_granted', 'true');
+        }
+
         const { error } = await signUp(email, password);
         if (error) {
+          // Clear the flags if signup fails
+          localStorage.removeItem('pending_school_code');
+          localStorage.removeItem('school_access_granted');
+          
           if (error.message.includes('already registered')) {
             toast.error('Cet email est déjà utilisé');
           } else {
             toast.error(error.message);
           }
         } else {
-          // On signup success, update profile with consent timestamps and handle school code
+          // On signup success, validate school code and update profile
           setTimeout(async () => {
             const { data: { user: newUser } } = await supabase.auth.getUser();
             if (newUser) {
               const now = new Date().toISOString();
               
-              // If user has a school code, validate it
-              if (hasSchoolCode && schoolCode.trim()) {
+              // If user has a pending school code, validate it
+              const pendingCode = localStorage.getItem('pending_school_code');
+              if (pendingCode) {
                 const { data: codeResult, error: codeError } = await supabase
                   .rpc('use_access_code', { 
-                    p_code: schoolCode.trim(), 
+                    p_code: pendingCode, 
                     p_user_id: newUser.id 
                   });
 
+                localStorage.removeItem('pending_school_code');
+
                 if (codeError) {
                   console.error('Error validating school code:', codeError);
+                  localStorage.removeItem('school_access_granted');
                 } else {
                   const result = codeResult as { success: boolean; error?: string; school_name?: string } | null;
                   if (result?.success) {
-                    // Store in localStorage so onboarding knows to skip pricing
-                    localStorage.setItem('school_access_granted', 'true');
                     localStorage.setItem('school_name', result.school_name || '');
                     toast.success(`Bienvenue ! Tu as été ajouté à ${result.school_name}`);
                   } else {
+                    localStorage.removeItem('school_access_granted');
                     toast.error(result?.error || 'Code école invalide');
                   }
                 }
