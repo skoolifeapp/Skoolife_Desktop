@@ -5,6 +5,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import confetti from 'canvas-confetti';
 const LOGO_URL = '/logo.png';
 import StackedCardsLayout from '@/components/StackedCardsLayout';
 import LandingFeatures from '@/components/LandingFeatures';
@@ -58,7 +59,14 @@ const Index = () => {
   // On mobile, redirect to desktop-only page instead of auth
   const ctaLink = isMobile ? '/desktop-only' : '/auth?mode=signup';
 
-
+  const handleCtaClick = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#F9C74F', '#F4B41A', '#FFD93D', '#FF8C00']
+    });
+  };
   return (
     <div className="min-h-screen bg-background" ref={containerRef}>
       <Navbar />
@@ -122,7 +130,7 @@ const Index = () => {
             variants={fadeInUp}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <Link to={ctaLink}>
+            <Link to={ctaLink} onClick={handleCtaClick}>
               <Button variant="hero" size="lg" className="md:text-base px-8 group">
                 Commencer gratuitement
                 <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1" />
