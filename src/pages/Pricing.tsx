@@ -27,6 +27,7 @@ import { SUBSCRIPTION_TIERS } from '@/config/stripe';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ParallaxBackground from '@/components/ParallaxBackground';
+import { useConfetti } from '@/hooks/useConfetti';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -75,8 +76,11 @@ const Pricing = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const { triggerConfetti } = useConfetti();
 
   const handleSelectPlan = async (planKey: 'student' | 'major') => {
+    triggerConfetti();
+    
     // Redirect to auth if not logged in
     if (!user) {
       navigate('/auth?mode=signup');

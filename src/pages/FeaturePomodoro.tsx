@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import FeatureSidebar from '@/components/FeatureSidebar';
 import ParallaxBackground from '@/components/ParallaxBackground';
+import { useConfetti } from '@/hooks/useConfetti';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -232,6 +233,8 @@ const StaticPomodoroCard = () => (
 );
 
 const FeaturePomodoro = () => {
+  const { triggerConfetti } = useConfetti();
+  
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -275,7 +278,7 @@ const FeaturePomodoro = () => {
             variants={fadeInUp}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <Link to="/auth?mode=signup">
+            <Link to="/auth?mode=signup" onClick={triggerConfetti}>
               <Button variant="outline" size="lg" className="rounded-full px-6 group">
                 Commencer à réviser efficacement
                 <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
