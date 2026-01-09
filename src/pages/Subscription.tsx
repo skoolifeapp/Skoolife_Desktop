@@ -49,6 +49,7 @@ const Subscription = () => {
     cancel_at_period_end?: boolean;
     is_lifetime?: boolean;
     lifetime_tier?: string | null;
+    is_school_access?: boolean;
   } | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [reactivateLoading, setReactivateLoading] = useState(false);
@@ -99,7 +100,6 @@ const Subscription = () => {
           subscription_end: null,
           subscription_status: 'school',
           cancel_at_period_end: false,
-          // @ts-expect-error - extra field for UI
           is_school_access: true,
         });
         setLoading(false);
@@ -233,8 +233,7 @@ const Subscription = () => {
   const tierInfo = TIER_INFO[subscriptionTier as keyof typeof TIER_INFO] || TIER_INFO.student;
   const TierIcon = tierInfo.icon;
   const isLifetime = subscriptionData?.is_lifetime;
-  // @ts-expect-error - added for UI
-  const isSchoolAccess = (subscriptionData as any)?.is_school_access === true;
+  const isSchoolAccess = subscriptionData?.is_school_access === true;
   const nextBillingDate = subscriptionData?.subscription_end
     ? format(new Date(subscriptionData.subscription_end), "d MMMM yyyy", { locale: fr })
     : null;
