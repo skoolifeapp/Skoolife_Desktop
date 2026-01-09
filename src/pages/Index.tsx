@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 const LOGO_URL = '/logo.png';
 import StackedCardsLayout from '@/components/StackedCardsLayout';
 import LandingFeatures from '@/components/LandingFeatures';
@@ -39,6 +39,15 @@ const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Parallax scroll effects
+  const { scrollY } = useScroll();
+  const blob1Y = useTransform(scrollY, [0, 500], [0, 150]);
+  const blob2Y = useTransform(scrollY, [0, 500], [0, -100]);
+  const blob3Y = useTransform(scrollY, [0, 500], [0, 80]);
+  const blob1Scale = useTransform(scrollY, [0, 300], [1, 1.2]);
+  const blob2Scale = useTransform(scrollY, [0, 300], [1, 0.9]);
 
   useEffect(() => {
     if (!loading && user) {
@@ -51,29 +60,32 @@ const Index = () => {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" ref={containerRef}>
       <Navbar />
 
       {/* Hero */}
       <main className="relative pt-16 md:pt-20">
-        {/* Background decorations - smaller on mobile */}
+        {/* Background decorations with parallax */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, ease: "easeOut" }}
+            style={{ y: blob1Y, scale: blob1Scale }}
             className="absolute top-20 left-5 md:left-10 w-48 md:w-72 h-48 md:h-72 bg-primary/20 rounded-full blur-3xl animate-pulse-soft" 
           />
           <motion.div 
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
+            style={{ y: blob2Y, scale: blob2Scale }}
             className="absolute top-40 right-5 md:right-20 w-64 md:w-96 h-64 md:h-96 bg-accent/20 rounded-full blur-3xl animate-pulse-soft delay-1000" 
           />
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.5, delay: 0.4 }}
+            style={{ y: blob3Y }}
             className="absolute bottom-20 left-1/3 w-40 md:w-64 h-40 md:h-64 bg-primary/10 rounded-full blur-3xl" 
           />
         </div>
