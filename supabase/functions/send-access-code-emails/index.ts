@@ -131,14 +131,14 @@ serve(async (req) => {
                   Comment l'utiliser ?
                 </p>
                 <ol style="color: #3f3f46; font-size: 15px; line-height: 2; padding-left: 20px; margin: 0 0 32px 0;">
-                  <li>Rendez-vous sur <a href="https://app.skoolife.fr/auth" style="color: #D97706; font-weight: 500; text-decoration: none;">app.skoolife.fr/auth</a></li>
+                  <li>Rendez-vous sur <a href="https://app.skoolife.fr/auth?mode=signup" style="color: #D97706; font-weight: 500; text-decoration: none;">app.skoolife.fr</a></li>
                   <li>Créez votre compte</li>
-                  <li>Entrez le code ci-dessus lors de l'inscription</li>
+                  <li>Cliquez sur "Mon école m'a fourni un code" et entrez le code ci-dessus</li>
                 </ol>
                 
                 <!-- CTA Button -->
                 <div style="text-align: center; margin: 0 0 40px 0;">
-                  <a href="https://app.skoolife.fr/auth" style="display: inline-block; background: #FFC107; color: #18181b; text-decoration: none; padding: 16px 40px; border-radius: 10px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 12px rgba(255,193,7,0.3);">
+                  <a href="https://app.skoolife.fr/auth?mode=signup" style="display: inline-block; background: #FFC107; color: #18181b; text-decoration: none; padding: 16px 40px; border-radius: 10px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 12px rgba(255,193,7,0.3);">
                     Créer mon compte
                   </a>
                 </div>
