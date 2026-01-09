@@ -60,12 +60,6 @@ const SchoolSidebar = ({ children, schoolName }: SchoolSidebarProps) => {
           <span className="font-bold text-xl text-foreground">Skoolife</span>
         </Link>
         
-        {schoolName && (
-          <div className="flex items-center gap-2 px-2 py-2 mb-6 rounded-lg bg-primary/10">
-            <GraduationCap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary truncate">{schoolName}</span>
-          </div>
-        )}
 
         <nav className="flex-1 space-y-1">
           {NAV_ITEMS.map((item) => (
