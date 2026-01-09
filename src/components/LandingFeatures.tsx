@@ -3,6 +3,33 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { motion } from 'framer-motion';
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 40 },
+  visible: { opacity: 1, y: 0 }
+};
+
+const fadeInLeft = {
+  hidden: { opacity: 0, x: -60 },
+  visible: { opacity: 1, x: 0 }
+};
+
+const fadeInRight = {
+  hidden: { opacity: 0, x: 60 },
+  visible: { opacity: 1, x: 0 }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1
+    }
+  }
+};
 
 const LandingFeatures = () => {
   const isMobile = useIsMobile();
@@ -13,7 +40,14 @@ const LandingFeatures = () => {
     return (
       <section className="relative py-16 bg-background">
         {/* Intro Section */}
-        <div className="max-w-4xl mx-auto px-4 text-center mb-12">
+        <motion.div 
+          className="max-w-4xl mx-auto px-4 text-center mb-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={fadeInUp}
+          transition={{ duration: 0.6 }}
+        >
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight font-heading mb-4">
             Révise plus intelligemment,
             <br />
@@ -23,12 +57,22 @@ const LandingFeatures = () => {
             De la génération automatique de ton planning à l'analyse de ta progression, 
             Skoolife t'accompagne pour optimiser chaque minute de révision.
           </p>
-        </div>
+        </motion.div>
 
         {/* Features List - Mobile optimized */}
-        <div className="max-w-lg mx-auto px-4 space-y-4">
+        <motion.div 
+          className="max-w-lg mx-auto px-4 space-y-4"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+        >
           {/* Feature 1 */}
-          <div className="bg-card rounded-xl border border-border p-5">
+          <motion.div 
+            className="bg-card rounded-xl border border-border p-5"
+            variants={fadeInUp}
+            transition={{ duration: 0.5 }}
+          >
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Calendar className="w-5 h-5 text-primary" />
@@ -45,10 +89,14 @@ const LandingFeatures = () => {
               <Check className="w-4 h-4 text-primary flex-shrink-0" />
               <span>Gagne du temps chaque semaine</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Feature 2 */}
-          <div className="bg-card rounded-xl border border-border p-5">
+          <motion.div 
+            className="bg-card rounded-xl border border-border p-5"
+            variants={fadeInUp}
+            transition={{ duration: 0.5 }}
+          >
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Timer className="w-5 h-5 text-primary" />
@@ -65,10 +113,14 @@ const LandingFeatures = () => {
               <Check className="w-4 h-4 text-primary flex-shrink-0" />
               <span>Reste concentré plus longtemps</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Feature 3 */}
-          <div className="bg-card rounded-xl border border-border p-5">
+          <motion.div 
+            className="bg-card rounded-xl border border-border p-5"
+            variants={fadeInUp}
+            transition={{ duration: 0.5 }}
+          >
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <Target className="w-5 h-5 text-primary" />
@@ -85,10 +137,14 @@ const LandingFeatures = () => {
               <Check className="w-4 h-4 text-primary flex-shrink-0" />
               <span>Atteins tes objectifs de révision</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Feature 4 */}
-          <div className="bg-card rounded-xl border border-border p-5">
+          <motion.div 
+            className="bg-card rounded-xl border border-border p-5"
+            variants={fadeInUp}
+            transition={{ duration: 0.5 }}
+          >
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                 <GraduationCap className="w-5 h-5 text-primary" />
@@ -105,22 +161,29 @@ const LandingFeatures = () => {
               <Check className="w-4 h-4 text-primary flex-shrink-0" />
               <span>Ne rate plus aucun examen</span>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Final CTA */}
-        <div className="max-w-lg mx-auto px-4 text-center mt-12">
+        <motion.div 
+          className="max-w-lg mx-auto px-4 text-center mt-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={fadeInUp}
+          transition={{ duration: 0.6 }}
+        >
           <h2 className="text-xl font-bold text-foreground leading-tight font-heading mb-6">
             Arrête de stresser pour tes révisions. 
             Skoolife planifie tout pour toi.
           </h2>
           <Link to={ctaLink}>
-            <Button variant="hero" size="lg" className="px-6">
+            <Button variant="hero" size="lg" className="px-6 group">
               Commencer gratuitement
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
-        </div>
+        </motion.div>
       </section>
     );
   }
@@ -129,7 +192,14 @@ const LandingFeatures = () => {
   return (
     <section className="relative py-20 md:py-32 bg-background">
       {/* Intro Section */}
-      <div className="max-w-4xl mx-auto px-4 text-center mb-20 md:mb-32">
+      <motion.div 
+        className="max-w-4xl mx-auto px-4 text-center mb-20 md:mb-32"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInUp}
+        transition={{ duration: 0.7 }}
+      >
         <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground leading-tight font-heading mb-6">
           Révise plus intelligemment,
           <br />
@@ -139,37 +209,65 @@ const LandingFeatures = () => {
           De la génération automatique de ton planning à l'analyse de ta progression, 
           Skoolife t'accompagne pour optimiser chaque minute de révision.
         </p>
-      </div>
+      </motion.div>
 
       {/* Feature 1: Calendrier Intelligent */}
-      <div className="max-w-6xl mx-auto px-4 mb-20 md:mb-32">
+      <motion.div 
+        className="max-w-6xl mx-auto px-4 mb-20 md:mb-32"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInLeft}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      >
         <DesktopCalendarFeature />
-      </div>
+      </motion.div>
 
       {/* Feature 3: Pomodoro */}
-      <div className="max-w-6xl mx-auto px-4 mb-20 md:mb-32">
+      <motion.div 
+        className="max-w-6xl mx-auto px-4 mb-20 md:mb-32"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInRight}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      >
         <DesktopPomodoroFeature />
-      </div>
+      </motion.div>
 
       {/* Feature 4: Two cards row */}
-      <div className="max-w-6xl mx-auto px-4 mb-20 md:mb-32">
+      <motion.div 
+        className="max-w-6xl mx-auto px-4 mb-20 md:mb-32"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInUp}
+        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      >
         <DesktopProgressAndSubjectsFeatures />
-      </div>
+      </motion.div>
 
       {/* Final CTA Quote */}
-      <div className="max-w-5xl mx-auto px-4 text-center">
+      <motion.div 
+        className="max-w-5xl mx-auto px-4 text-center"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInUp}
+        transition={{ duration: 0.7 }}
+      >
         <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight font-heading mb-8">
           Arrête de stresser pour tes révisions. 
           Skoolife planifie tout pour toi, 
           tu te concentres sur ce qui compte vraiment : apprendre.
         </h2>
         <Link to={ctaLink}>
-          <Button variant="hero" size="lg" className="md:text-base px-8">
+          <Button variant="hero" size="lg" className="md:text-base px-8 group">
             Commencer gratuitement
-            <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+            <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1" />
           </Button>
         </Link>
-      </div>
+      </motion.div>
     </section>
   );
 };

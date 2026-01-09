@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import { StaticCalendarCard, StaticProgressionCard, StaticSubjectsCard, StaticSettingsCard } from './StaticAppCards';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Calendar, BarChart3, GraduationCap, Settings } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Context to allow sidebar to change active card
 interface LandingPreviewContextType {
@@ -184,23 +185,35 @@ const StackedCardsLayout = () => {
             const isActive = index === activeIndex;
             
             return (
-              <div
+              <motion.div
                 key={card.id}
                 onClick={() => handleCardClick(index)}
                 className={`absolute inset-x-0 rounded-xl md:rounded-2xl bg-white dark:bg-card border border-border/20 overflow-hidden
-                  transition-all duration-500 ease-out
                   ${!isActive ? 'cursor-pointer hover:opacity-90' : ''}`}
-                style={{
+                animate={{
                   zIndex: style.zIndex,
-                  transform: style.transform,
+                  y: style.transform.includes('-12px') ? -12 : 
+                     style.transform.includes('-24px') ? -24 : 
+                     style.transform.includes('-36px') ? -36 : 
+                     style.transform.includes('-48px') ? -48 : 0,
+                  scale: style.transform.includes('0.975') ? 0.975 :
+                         style.transform.includes('0.95)') ? 0.95 :
+                         style.transform.includes('0.925') ? 0.925 :
+                         style.transform.includes('0.9)') ? 0.9 : 1,
                   opacity: style.opacity,
+                }}
+                transition={{
+                  duration: 0.5,
+                  ease: [0.22, 1, 0.36, 1]
+                }}
+                style={{
                   height: '540px',
                   top: '40px',
                   boxShadow: '0 8px 40px -10px rgba(0, 0, 0, 0.2)',
                 }}
               >
                 {card.content}
-              </div>
+              </motion.div>
             );
           })}
         </div>
