@@ -97,47 +97,58 @@ serve(async (req) => {
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
             </head>
-            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f5; margin: 0; padding: 40px 20px;">
-              <div style="max-width: 480px; margin: 0 auto; background: white; border-radius: 12px; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #FFFDF7; margin: 0; padding: 40px 20px;">
+              <div style="max-width: 520px; margin: 0 auto; background: white; border-radius: 16px; padding: 48px 40px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); border: 1px solid #FEF3C7;">
+                
+                <!-- Logo -->
                 <div style="text-align: center; margin-bottom: 32px;">
-                  <h1 style="color: #18181b; font-size: 24px; margin: 0;">Bienvenue sur Skoolife ! 🎓</h1>
+                  <div style="display: inline-block; width: 56px; height: 56px; background: #FFC107; border-radius: 14px; line-height: 56px; font-size: 28px; font-weight: bold; color: white;">S</div>
                 </div>
+
+                <h1 style="color: #18181b; font-size: 26px; margin: 0 0 32px 0; text-align: center; font-weight: 700;">
+                  Bienvenue sur Skoolife ! 🎓
+                </h1>
                 
-                <p style="color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                  Bonjour ${firstName},
+                <p style="color: #3f3f46; font-size: 16px; line-height: 1.7; margin: 0 0 16px 0;">
+                  Bonjour <strong>${firstName}</strong>,
                 </p>
                 
-                <p style="color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                  Votre établissement <strong>${schoolName}</strong> vous offre un accès gratuit à Skoolife pour optimiser vos révisions !
+                <p style="color: #3f3f46; font-size: 16px; line-height: 1.7; margin: 0 0 32px 0;">
+                  Votre établissement <strong style="color: #18181b;">${schoolName}</strong> vous offre un accès gratuit à Skoolife pour optimiser vos révisions !
                 </p>
                 
-                <div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 12px; padding: 24px; text-align: center; margin: 32px 0;">
-                  <p style="color: white; font-size: 14px; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 1px;">
+                <!-- Code Box -->
+                <div style="background: #FFC107; border-radius: 14px; padding: 28px 24px; text-align: center; margin: 0 0 32px 0;">
+                  <p style="color: #18181b; font-size: 12px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; opacity: 0.8;">
                     Votre code d'accès
                   </p>
-                  <p style="color: white; font-size: 32px; font-weight: bold; margin: 0; font-family: monospace; letter-spacing: 2px;">
+                  <p style="color: #18181b; font-size: 36px; font-weight: 800; margin: 0; font-family: 'SF Mono', 'Menlo', 'Monaco', monospace; letter-spacing: 3px;">
                     ${code}
                   </p>
                 </div>
                 
-                <p style="color: #3f3f46; font-size: 16px; line-height: 1.6;">
-                  <strong>Comment l'utiliser ?</strong>
+                <p style="color: #18181b; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0; font-weight: 600;">
+                  Comment l'utiliser ?
                 </p>
-                <ol style="color: #3f3f46; font-size: 15px; line-height: 1.8; padding-left: 20px;">
-                  <li>Rendez-vous sur <a href="https://skoolife.app/auth" style="color: #f59e0b;">skoolife.app/auth</a></li>
+                <ol style="color: #3f3f46; font-size: 15px; line-height: 2; padding-left: 20px; margin: 0 0 32px 0;">
+                  <li>Rendez-vous sur <a href="https://skoolife.fr/auth" style="color: #D97706; font-weight: 500; text-decoration: none;">skoolife.fr/auth</a></li>
                   <li>Créez votre compte</li>
                   <li>Entrez le code ci-dessus lors de l'inscription</li>
                 </ol>
                 
-                <div style="text-align: center; margin-top: 32px;">
-                  <a href="https://skoolife.app/auth" style="display: inline-block; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                <!-- CTA Button -->
+                <div style="text-align: center; margin: 0 0 40px 0;">
+                  <a href="https://skoolife.fr/auth" style="display: inline-block; background: #FFC107; color: #18181b; text-decoration: none; padding: 16px 40px; border-radius: 10px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 12px rgba(255,193,7,0.3);">
                     Créer mon compte
                   </a>
                 </div>
                 
-                <p style="color: #71717a; font-size: 13px; text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e4e4e7;">
-                  © ${new Date().getFullYear()} Skoolife - L'app qui booste tes révisions
-                </p>
+                <!-- Footer -->
+                <div style="border-top: 1px solid #F3F4F6; padding-top: 24px; text-align: center;">
+                  <p style="color: #9CA3AF; font-size: 13px; margin: 0;">
+                    © ${new Date().getFullYear()} Skoolife — L'app qui booste tes révisions
+                  </p>
+                </div>
               </div>
             </body>
             </html>
