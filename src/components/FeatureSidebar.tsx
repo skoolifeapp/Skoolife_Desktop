@@ -1,4 +1,4 @@
-import { Calendar, BarChart3, GraduationCap, Settings, Timer } from 'lucide-react';
+import { Calendar, BarChart3, GraduationCap, Settings, Timer, CheckSquare, FileText } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const LOGO_URL = '/logo.png';
@@ -9,6 +9,8 @@ const featureRoutes = [
   '/features/subjects',
   '/features/settings',
   '/features/pomodoro',
+  '/features/todo',
+  '/features/files',
 ];
 
 const FeatureSidebar = () => {
@@ -65,6 +67,18 @@ const FeatureSidebar = () => {
           className={`w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-colors ${getActiveState('/features/pomodoro') ? 'bg-primary-foreground/20' : 'hover:bg-primary-foreground/10'}`}
         >
           <Timer className="w-5 h-5" />
+        </button>
+        <button 
+          onClick={() => handleNavClick(5)}
+          className={`w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-colors ${getActiveState('/features/todo') ? 'bg-primary-foreground/20' : 'hover:bg-primary-foreground/10'}`}
+        >
+          <CheckSquare className="w-5 h-5" />
+        </button>
+        <button 
+          onClick={() => handleNavClick(6)}
+          className={`w-10 h-10 rounded-xl flex items-center justify-center cursor-pointer transition-colors ${getActiveState('/features/files') ? 'bg-primary-foreground/20' : 'hover:bg-primary-foreground/10'}`}
+        >
+          <FileText className="w-5 h-5" />
         </button>
       </div>
 

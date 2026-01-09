@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Calendar, BarChart3, BookOpen, Settings, Timer, Building2 } from 'lucide-react';
+import { Calendar, BarChart3, BookOpen, Settings, Timer, Building2, CheckSquare, FileText } from 'lucide-react';
 const LOGO_URL = '/logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -13,6 +13,8 @@ const features = [
   { name: 'Matières', icon: BookOpen, description: 'Gère tes matières', path: '/features/subjects' },
   { name: 'Paramètres', icon: Settings, description: 'Personnalise ton expérience', path: '/features/settings' },
   { name: 'Pomodoro', icon: Timer, description: 'Révise efficacement', path: '/features/pomodoro' },
+  { name: 'To-Do', icon: CheckSquare, description: 'Gère tes tâches', path: '/features/todo' },
+  { name: 'Mes fiches', icon: FileText, description: 'Stocke tes cours', path: '/features/files' },
 ];
 
 const Navbar = () => {
