@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useSchoolTrial } from '@/hooks/useSchoolTrial';
 import { 
   LayoutDashboard, 
   Users, 
@@ -17,7 +18,9 @@ import {
   HelpCircle,
   PanelLeftClose,
   PanelLeft,
-  Bell
+  Bell,
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -32,12 +35,12 @@ interface SchoolSidebarProps {
 }
 
 const NAV_ITEMS = [
-  { path: '/school', label: 'Vue d\'ensemble', icon: LayoutDashboard },
-  { path: '/school/students', label: 'Élèves', icon: Users },
-  { path: '/school/cohorts', label: 'Cohortes & Classes', icon: FolderTree },
-  { path: '/school/codes', label: 'Codes d\'accès', icon: Key },
-  { path: '/school/analytics', label: 'Analytics', icon: BarChart3 },
-  { path: '/school/settings', label: 'Paramètres', icon: Settings },
+  { path: '/school', label: 'Vue d\'ensemble', icon: LayoutDashboard, alwaysAccessible: true },
+  { path: '/school/students', label: 'Élèves', icon: Users, alwaysAccessible: false },
+  { path: '/school/cohorts', label: 'Cohortes & Classes', icon: FolderTree, alwaysAccessible: false },
+  { path: '/school/codes', label: 'Codes d\'accès', icon: Key, alwaysAccessible: false },
+  { path: '/school/analytics', label: 'Analytics', icon: BarChart3, alwaysAccessible: false },
+  { path: '/school/settings', label: 'Paramètres', icon: Settings, alwaysAccessible: true },
 ];
 
 const SchoolSidebar = ({ children }: SchoolSidebarProps) => {
@@ -48,6 +51,7 @@ const SchoolSidebar = ({ children }: SchoolSidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
+  const { isTrialActive, isTrialExpired, daysRemaining } = useSchoolTrial();
 
   const handleSignOut = async () => {
     await signOut();
@@ -66,7 +70,34 @@ const SchoolSidebar = ({ children }: SchoolSidebarProps) => {
     return item?.label || 'Vue d\'ensemble';
   };
 
+  const isModuleLocked = (item: typeof NAV_ITEMS[0]) => {
+    return isTrialExpired && !item.alwaysAccessible;
+  };
+
   const renderNavItem = (item: typeof NAV_ITEMS[0], isMobile: boolean = false) => {
+    const locked = isModuleLocked(item);
+    
+    if (locked) {
+      return (
+        <div
+          key={item.path}
+          className={cn(
+            "flex items-center gap-2.5 px-3 rounded-lg transition-colors text-sm cursor-not-allowed opacity-50",
+            isMobile ? "py-4" : "py-2",
+            "text-sidebar-foreground/50",
+            !isMobile && sidebarCollapsed && "justify-center px-2"
+          )}
+          title="Module verrouillé - Abonnement expiré"
+        >
+          <item.icon className="w-4 h-4" />
+          {(isMobile || !sidebarCollapsed) && (
+            <span className={cn("flex-1", isMobile && "text-lg")}>{item.label}</span>
+          )}
+          {(isMobile || !sidebarCollapsed) && <Lock className="w-3 h-3" />}
+        </div>
+      );
+    }
+    
     return (
       <Link
         key={item.path}
@@ -100,6 +131,31 @@ const SchoolSidebar = ({ children }: SchoolSidebarProps) => {
             {!sidebarCollapsed && <span className="font-bold text-xl text-sidebar-foreground">Skoolife</span>}
           </Link>
         </div>
+
+        {/* Trial Banner */}
+        {!sidebarCollapsed && (isTrialActive || isTrialExpired) && (
+          <div className={cn(
+            "mb-4 p-3 rounded-lg text-xs",
+            isTrialExpired 
+              ? "bg-destructive/10 border border-destructive/20" 
+              : "bg-primary/10 border border-primary/20"
+          )}>
+            {isTrialExpired ? (
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-destructive">Essai terminé</p>
+                  <p className="text-muted-foreground mt-0.5">Contactez-nous pour continuer</p>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <p className="font-medium text-primary">{daysRemaining} jour{daysRemaining > 1 ? 's' : ''} restant{daysRemaining > 1 ? 's' : ''}</p>
+                <p className="text-muted-foreground mt-0.5">Période d'essai gratuit</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {sidebarCollapsed ? (
           <nav className="flex-1 space-y-1">

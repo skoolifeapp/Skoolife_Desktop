@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Building2, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { ErrorDialog } from '@/components/ErrorDialog';
+import { Building2, ArrowRight, Loader2, Sparkles, Mail, Lock, Eye, EyeOff, User } from 'lucide-react';
 
 const LOGO_URL = '/logo.png';
 
@@ -22,103 +23,79 @@ const SCHOOL_TYPES = [
   { value: 'autre', label: 'Autre' },
 ];
 
-const demoSchoolSchema = z.object({
+const schoolSignupSchema = z.object({
+  email: z.string().email('Email invalide'),
+  password: z.string().min(6, 'Mot de passe trop court (min. 6 caractères)'),
   schoolName: z.string().trim().min(2, 'Nom trop court').max(120, 'Nom trop long'),
   schoolType: z.string().trim().max(60).optional(),
+  contactName: z.string().trim().min(2, 'Nom trop court').optional(),
 });
 
 const SchoolSignup = () => {
   const navigate = useNavigate();
   const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorDialog, setErrorDialog] = useState<{ open: boolean; title: string; message: string }>({ open: false, title: '', message: '' });
   
   const [formData, setFormData] = useState({
+    email: '',
+    password: '',
     schoolName: '',
     schoolType: '',
+    contactName: '',
   });
 
-  const generateDemoCredentials = () => {
-    const randomId = Math.random().toString(36).substring(2, 10);
-    return {
-      email: `demo-${randomId}@skoolife.test`,
-      password: `Demo${randomId}!2024`,
-    };
+  const showError = (message: string, title: string = 'Erreur') => {
+    setErrorDialog({ open: true, title, message });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const parsed = demoSchoolSchema.safeParse({
-      schoolName: formData.schoolName,
-      schoolType: formData.schoolType || undefined,
-    });
+    const parsed = schoolSignupSchema.safeParse(formData);
 
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? 'Formulaire invalide');
+      showError(parsed.error.issues[0]?.message ?? 'Formulaire invalide');
       return;
     }
 
     setLoading(true);
 
     try {
-      const { data: { session: initialSession } } = await supabase.auth.getSession();
+      // Step 1: Create the user account
+      const { error: signUpError } = await signUp(formData.email, formData.password);
+      
+      if (signUpError) {
+        if (signUpError.message.includes('already registered')) {
+          showError('Cet email est déjà utilisé. Connectez-vous via la page de connexion.', 'Email existant');
+        } else {
+          showError(signUpError.message);
+        }
+        setLoading(false);
+        return;
+      }
 
-      let user = initialSession?.user ?? null;
-      let emailForSchool = user?.email ?? '';
+      // Wait for auth session to be established
+      let user = null;
+      let attempts = 0;
+      while (attempts < 15 && !user) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) user = session.user;
+        attempts++;
+      }
 
-      // If the visitor is not logged in, create + sign-in a demo account.
       if (!user) {
-        const creds = generateDemoCredentials();
-
-        const { error: signUpError } = await signUp(creds.email, creds.password);
-        if (signUpError) {
-          console.error('Signup error:', signUpError);
-          toast.error('Impossible de créer un compte démo. Réessayez.');
-          return;
-        }
-
-        // Ensure a session exists (auto-confirm is enabled, but we still guard)
-        const { data: { session: afterSignupSession } } = await supabase.auth.getSession();
-        if (!afterSignupSession?.user) {
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: creds.email,
-            password: creds.password,
-          });
-
-          if (signInError) {
-            console.error('Sign-in error:', signInError);
-            toast.error('Impossible de démarrer la démo.');
-            return;
-          }
-        }
-
-        // Wait for auth session to be fully established
-        let attempts = 0;
-        while (attempts < 10 && !user) {
-          await new Promise((resolve) => setTimeout(resolve, 300));
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user) user = session.user;
-          attempts++;
-        }
-
-        if (!user) {
-          toast.error('Impossible de démarrer la démo. Veuillez réessayer.');
-          return;
-        }
-
-        emailForSchool = user.email ?? creds.email;
+        showError('Impossible de créer le compte. Veuillez réessayer.');
+        setLoading(false);
+        return;
       }
 
-      if (!emailForSchool) {
-        // Should not happen, but schools.contact_email is required.
-        emailForSchool = generateDemoCredentials().email;
-      }
-
-      // Step 2: Create the school with demo subscription
+      // Step 2: Create the school with 14-day trial
       const schoolId = globalThis.crypto?.randomUUID?.() ?? (() => {
         const bytes = globalThis.crypto?.getRandomValues?.(new Uint8Array(16));
         if (!bytes) return null;
-        // RFC4122 v4
         bytes[6] = (bytes[6] & 0x0f) | 0x40;
         bytes[8] = (bytes[8] & 0x3f) | 0x80;
         const hex = Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -126,26 +103,30 @@ const SchoolSignup = () => {
       })();
 
       if (!schoolId) {
-        toast.error('Impossible de générer un identifiant pour la démo');
+        showError('Impossible de générer un identifiant pour l\'établissement');
+        setLoading(false);
         return;
       }
+
+      const trialEndDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
       const { error: schoolError } = await supabase
         .from('schools')
         .insert({
           id: schoolId,
           name: parsed.data.schoolName,
-          contact_email: emailForSchool,
+          contact_email: formData.email,
           school_type: parsed.data.schoolType ?? null,
-          subscription_tier: 'demo',
+          subscription_tier: 'trial',
           subscription_start_date: new Date().toISOString().split('T')[0],
-          subscription_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          subscription_end_date: trialEndDate,
           is_active: true,
         });
 
       if (schoolError) {
         console.error('School creation error:', schoolError);
-        toast.error('Erreur lors de la création de l\'établissement');
+        showError('Erreur lors de la création de l\'établissement');
+        setLoading(false);
         return;
       }
 
@@ -162,7 +143,8 @@ const SchoolSignup = () => {
 
       if (memberError) {
         console.error('Member creation error:', memberError);
-        toast.error('Erreur lors de la configuration du compte');
+        showError('Erreur lors de la configuration du compte');
+        setLoading(false);
         return;
       }
 
@@ -170,6 +152,7 @@ const SchoolSignup = () => {
       await supabase
         .from('profiles')
         .update({
+          first_name: parsed.data.contactName || null,
           is_onboarding_complete: true,
           cgu_accepted_at: new Date().toISOString(),
           privacy_accepted_at: new Date().toISOString(),
@@ -182,7 +165,7 @@ const SchoolSignup = () => {
 
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Une erreur est survenue');
+      showError('Une erreur est survenue');
     } finally {
       setLoading(false);
     }
@@ -205,13 +188,13 @@ const SchoolSignup = () => {
           <div className="text-center space-y-3">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full text-primary font-medium text-sm mb-2">
               <Sparkles className="w-4 h-4" />
-              Accès immédiat
+              14 jours d'essai gratuit
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-              Testez Skoolife
+              Créer votre compte
             </h1>
             <p className="text-muted-foreground text-lg">
-              Découvrez la plateforme en 30 secondes
+              Accédez à votre espace établissement
             </p>
           </div>
 
@@ -220,14 +203,74 @@ const SchoolSignup = () => {
             <CardHeader className="pb-4">
               <CardTitle className="text-xl flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-primary" />
-                Votre établissement
+                Informations
               </CardTitle>
               <CardDescription>
-                Un seul champ et c'est parti !
+                Créez votre compte administrateur
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email professionnel</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="contact@etablissement.fr"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="pl-10 h-12"
+                      disabled={loading}
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div className="space-y-2">
+                  <Label htmlFor="password">Mot de passe</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="pl-10 pr-10 h-12"
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Contact Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="contactName">Votre nom (optionnel)</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="contactName"
+                      placeholder="Jean Dupont"
+                      value={formData.contactName}
+                      onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
+                      className="pl-10 h-12"
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+
+                {/* School Name */}
                 <div className="space-y-2">
                   <Label htmlFor="schoolName">Nom de l'établissement</Label>
                   <div className="relative">
@@ -239,13 +282,13 @@ const SchoolSignup = () => {
                       onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
                       className="pl-10 h-12"
                       disabled={loading}
-                      autoFocus
                     />
                   </div>
                 </div>
 
+                {/* School Type */}
                 <div className="space-y-2">
-                  <Label htmlFor="schoolType">Type (optionnel)</Label>
+                  <Label htmlFor="schoolType">Type d'établissement (optionnel)</Label>
                   <Select
                     value={formData.schoolType}
                     onValueChange={(value) => setFormData({ ...formData, schoolType: value })}
@@ -278,14 +321,14 @@ const SchoolSignup = () => {
                     </>
                   ) : (
                     <>
-                      Tester maintenant
+                      Créer mon compte
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </Button>
 
                 <p className="text-xs text-muted-foreground text-center leading-relaxed pt-2">
-                  En testant, j'accepte les{' '}
+                  En créant un compte, j'accepte les{' '}
                   <Link to="/legal" className="text-primary hover:underline font-medium">
                     CGU
                   </Link>{' '}
@@ -295,26 +338,43 @@ const SchoolSignup = () => {
                   </Link>.
                 </p>
               </form>
+
+              {/* Already have account */}
+              <div className="mt-6 text-center">
+                <Link 
+                  to="/auth?space=school"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Déjà un compte ? Se connecter
+                </Link>
+              </div>
             </CardContent>
           </Card>
 
           {/* Benefits */}
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="space-y-1">
-              <p className="text-2xl font-bold text-foreground">0€</p>
-              <p className="text-xs text-muted-foreground">Gratuit</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-2xl font-bold text-foreground">30s</p>
-              <p className="text-xs text-muted-foreground">Pour tester</p>
+              <p className="text-2xl font-bold text-foreground">14j</p>
+              <p className="text-xs text-muted-foreground">Essai gratuit</p>
             </div>
             <div className="space-y-1">
               <p className="text-2xl font-bold text-foreground">100%</p>
               <p className="text-xs text-muted-foreground">Fonctionnalités</p>
             </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-foreground">0€</p>
+              <p className="text-xs text-muted-foreground">Sans CB</p>
+            </div>
           </div>
         </div>
       </main>
+
+      <ErrorDialog 
+        open={errorDialog.open} 
+        onClose={() => setErrorDialog({ open: false, title: '', message: '' })}
+        title={errorDialog.title}
+        message={errorDialog.message}
+      />
     </div>
   );
 };
