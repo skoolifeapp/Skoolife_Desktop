@@ -115,9 +115,25 @@ const SchoolSignup = () => {
       }
 
       // Step 2: Create the school with demo subscription
-      const { data: school, error: schoolError } = await supabase
+      const schoolId = globalThis.crypto?.randomUUID?.() ?? (() => {
+        const bytes = globalThis.crypto?.getRandomValues?.(new Uint8Array(16));
+        if (!bytes) return null;
+        // RFC4122 v4
+        bytes[6] = (bytes[6] & 0x0f) | 0x40;
+        bytes[8] = (bytes[8] & 0x3f) | 0x80;
+        const hex = Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+        return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+      })();
+
+      if (!schoolId) {
+        toast.error('Impossible de générer un identifiant pour la démo');
+        return;
+      }
+
+      const { error: schoolError } = await supabase
         .from('schools')
         .insert({
+          id: schoolId,
           name: parsed.data.schoolName,
           contact_email: emailForSchool,
           school_type: parsed.data.schoolType ?? null,
@@ -125,9 +141,7 @@ const SchoolSignup = () => {
           subscription_start_date: new Date().toISOString().split('T')[0],
           subscription_end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           is_active: true,
-        })
-        .select()
-        .single();
+        });
 
       if (schoolError) {
         console.error('School creation error:', schoolError);
@@ -139,7 +153,7 @@ const SchoolSignup = () => {
       const { error: memberError } = await supabase
         .from('school_members')
         .insert({
-          school_id: school.id,
+          school_id: schoolId,
           user_id: user.id,
           role: 'admin_school',
           is_active: true,
