@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AddStudentsDialogProps {
   open: boolean;
@@ -48,6 +49,7 @@ export const AddStudentsDialog = ({
   onSuccess
 }: AddStudentsDialogProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [method, setMethod] = useState<Method>('select');
   const [loading, setLoading] = useState(false);
   
@@ -144,63 +146,30 @@ export const AddStudentsDialog = ({
 
     setLoading(true);
     try {
-      // Check which emails already have profiles
-      const { data: existingProfiles } = await supabase
-        .from('profiles')
-        .select('id, email')
-        .in('email', emailList);
+      // Insert all emails into school_expected_students
+      const studentsToInsert = emailList.map(email => ({
+        school_id: schoolId,
+        cohort_id: selectedCohort,
+        class_id: selectedClass || null,
+        email: email,
+        created_by: user?.id,
+      }));
 
-      const existingEmails = new Set(existingProfiles?.map(p => p.email) || []);
-      const profilesMap = new Map(existingProfiles?.map(p => [p.email, p.id]) || []);
+      const { error, data } = await supabase
+        .from('school_expected_students')
+        .upsert(studentsToInsert, { 
+          onConflict: 'school_id,email',
+          ignoreDuplicates: true 
+        })
+        .select();
 
-      // For existing users, create school_members entries
-      const membersToCreate = [];
-      for (const email of emailList) {
-        if (existingEmails.has(email)) {
-          const userId = profilesMap.get(email);
-          if (userId) {
-            membersToCreate.push({
-              school_id: schoolId,
-              cohort_id: selectedCohort,
-              class_id: selectedClass || null,
-              role: 'student',
-              user_id: userId,
-              is_active: true,
-              joined_at: new Date().toISOString(),
-            });
-          }
-        }
-      }
+      if (error) throw error;
 
-      if (membersToCreate.length > 0) {
-        const { error } = await supabase
-          .from('school_members')
-          .upsert(membersToCreate, { 
-            onConflict: 'school_id,user_id',
-            ignoreDuplicates: true 
-          });
-
-        if (error) throw error;
-      }
-
-      const addedCount = membersToCreate.length;
-      const notFoundCount = emailList.length - addedCount;
-
-      if (addedCount > 0 && notFoundCount > 0) {
-        toast.success(`${addedCount} élève(s) ajouté(s)`, {
-          description: `${notFoundCount} email(s) n'ont pas de compte Skoolife`
-        });
-      } else if (addedCount > 0) {
-        toast.success(`${addedCount} élève(s) ajouté(s) avec succès`);
-      } else {
-        toast.warning('Aucun élève ajouté', {
-          description: 'Aucun des emails n\'a de compte Skoolife existant'
-        });
-      }
+      toast.success(`${emailList.length} email(s) ajouté(s) à la base élèves`);
       
       handleClose();
       onSuccess?.();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding students:', error);
       toast.error('Erreur lors de l\'ajout des élèves');
     } finally {
@@ -239,7 +208,7 @@ export const AddStudentsDialog = ({
         <div className="flex-1">
           <p className="font-medium text-sm">Import fichier</p>
           <p className="text-xs text-muted-foreground">
-            Ajoutez des élèves existants via CSV, TXT ou Excel
+            Importez la liste des emails depuis un fichier
           </p>
         </div>
         <ArrowRight className="w-4 h-4 text-muted-foreground" />
@@ -362,10 +331,6 @@ export const AddStudentsDialog = ({
               </>
             )}
           </Button>
-
-          <p className="text-xs text-muted-foreground text-center">
-            Seuls les élèves avec un compte Skoolife existant seront ajoutés
-          </p>
         </>
       )}
     </div>
