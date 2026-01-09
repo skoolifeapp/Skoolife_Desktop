@@ -88,27 +88,58 @@ export const AddStudentsDialog = ({
       .filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
-      setCsvError('Veuillez sélectionner un fichier CSV ou TXT');
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    
+    if (!['csv', 'txt', 'xlsx', 'xls'].includes(extension || '')) {
+      setCsvError('Veuillez sélectionner un fichier CSV, TXT ou Excel (.xlsx, .xls)');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      const emails = parseEmails(text);
-      if (emails.length === 0) {
-        setCsvError('Aucun email valide trouvé dans le fichier');
-      } else {
-        setCsvEmails(emails);
-        setCsvError('');
-      }
-    };
-    reader.readAsText(file);
+    if (extension === 'xlsx' || extension === 'xls') {
+      // Handle Excel files
+      const { read, utils } = await import('xlsx');
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = new Uint8Array(event.target?.result as ArrayBuffer);
+          const workbook = read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows: string[][] = utils.sheet_to_json(firstSheet, { header: 1 });
+          
+          // Extract emails from all cells
+          const allText = rows.flat().join('\n');
+          const emails = parseEmails(allText);
+          
+          if (emails.length === 0) {
+            setCsvError('Aucun email valide trouvé dans le fichier');
+          } else {
+            setCsvEmails(emails);
+            setCsvError('');
+          }
+        } catch {
+          setCsvError('Erreur lors de la lecture du fichier Excel');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      // Handle CSV/TXT files
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        const emails = parseEmails(text);
+        if (emails.length === 0) {
+          setCsvError('Aucun email valide trouvé dans le fichier');
+        } else {
+          setCsvEmails(emails);
+          setCsvError('');
+        }
+      };
+      reader.readAsText(file);
+    }
   };
 
   const handleSendInvitations = async (emailList: string[]) => {
@@ -201,9 +232,9 @@ export const AddStudentsDialog = ({
           <FileUp className="w-6 h-6 text-green-600" />
         </div>
         <div className="flex-1">
-          <p className="font-medium">Import CSV</p>
+          <p className="font-medium">Import fichier</p>
           <p className="text-sm text-muted-foreground">
-            Importez une liste d'emails depuis un fichier
+            Importez depuis CSV, TXT ou Excel
           </p>
         </div>
         <ArrowRight className="w-5 h-5 text-muted-foreground" />
@@ -313,11 +344,11 @@ export const AddStudentsDialog = ({
       </Button>
 
       <div className="space-y-2">
-        <Label>Fichier CSV ou TXT</Label>
+        <Label>Fichier CSV, TXT ou Excel</Label>
         <div className="border-2 border-dashed border-border rounded-xl p-6 text-center">
           <input
             type="file"
-            accept=".csv,.txt"
+            accept=".csv,.txt,.xlsx,.xls"
             onChange={handleFileUpload}
             className="hidden"
             id="csv-upload"
@@ -325,7 +356,7 @@ export const AddStudentsDialog = ({
           <label htmlFor="csv-upload" className="cursor-pointer">
             <FileUp className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
             <p className="font-medium">Cliquez pour sélectionner un fichier</p>
-            <p className="text-sm text-muted-foreground">CSV ou TXT avec un email par ligne</p>
+            <p className="text-sm text-muted-foreground">CSV, TXT ou Excel (.xlsx, .xls)</p>
           </label>
         </div>
         {csvError && (
@@ -424,12 +455,12 @@ export const AddStudentsDialog = ({
           <DialogTitle>
             {method === 'select' && 'Ajouter des élèves'}
             {method === 'email' && 'Invitation par email'}
-            {method === 'csv' && 'Import CSV'}
+            {method === 'csv' && 'Import fichier'}
           </DialogTitle>
           <DialogDescription>
             {method === 'select' && 'Choisissez comment vous souhaitez ajouter des élèves'}
             {method === 'email' && 'Envoyez des invitations par email à vos élèves'}
-            {method === 'csv' && 'Importez une liste d\'emails depuis un fichier'}
+            {method === 'csv' && 'Importez une liste d\'emails depuis un fichier CSV, TXT ou Excel'}
           </DialogDescription>
         </DialogHeader>
 
