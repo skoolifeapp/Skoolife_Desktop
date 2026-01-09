@@ -39,7 +39,8 @@ interface DailyStats {
   date: string;
   sessions: number;
   completed: number;
-  hours: number;
+  plannedHours: number;
+  completedHours: number;
 }
 
 const SchoolAnalytics = () => {
@@ -93,25 +94,30 @@ const SchoolAnalytics = () => {
         .gte('date', startDate);
 
       // Group by date
-      const dateMap = new Map<string, { sessions: number; completed: number; hours: number }>();
+      const dateMap = new Map<string, { sessions: number; completed: number; plannedHours: number; completedHours: number }>();
       
       // Initialize all dates
       eachDayOfInterval({
         start: subDays(new Date(), daysAgo),
         end: new Date()
       }).forEach(date => {
-        dateMap.set(format(date, 'yyyy-MM-dd'), { sessions: 0, completed: 0, hours: 0 });
+        dateMap.set(format(date, 'yyyy-MM-dd'), { sessions: 0, completed: 0, plannedHours: 0, completedHours: 0 });
       });
 
       // Fill with data
       sessions?.forEach(session => {
-        const existing = dateMap.get(session.date) || { sessions: 0, completed: 0, hours: 0 };
+        const existing = dateMap.get(session.date) || { sessions: 0, completed: 0, plannedHours: 0, completedHours: 0 };
         existing.sessions++;
-        if (session.status === 'done') existing.completed++;
         
         const start = new Date(`1970-01-01T${session.start_time}`);
         const end = new Date(`1970-01-01T${session.end_time}`);
-        existing.hours += (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+        const sessionHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+        
+        existing.plannedHours += sessionHours;
+        if (session.status === 'done') {
+          existing.completed++;
+          existing.completedHours += sessionHours;
+        }
         
         dateMap.set(session.date, existing);
       });
@@ -119,8 +125,10 @@ const SchoolAnalytics = () => {
       const statsArray: DailyStats[] = Array.from(dateMap.entries())
         .map(([date, data]) => ({
           date,
-          ...data,
-          hours: Math.round(data.hours * 10) / 10,
+          sessions: data.sessions,
+          completed: data.completed,
+          plannedHours: Math.round(data.plannedHours * 10) / 10,
+          completedHours: Math.round(data.completedHours * 10) / 10,
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
@@ -151,7 +159,8 @@ const SchoolAnalytics = () => {
   const filteredStudentCount = studentIds.length;
   const totalSessions = dailyStats.reduce((acc, d) => acc + d.sessions, 0);
   const totalCompleted = dailyStats.reduce((acc, d) => acc + d.completed, 0);
-  const totalHours = dailyStats.reduce((acc, d) => acc + d.hours, 0);
+  const totalPlannedHours = dailyStats.reduce((acc, d) => acc + d.plannedHours, 0);
+  const totalCompletedHours = dailyStats.reduce((acc, d) => acc + d.completedHours, 0);
   const completionRate = totalSessions > 0 ? Math.round((totalCompleted / totalSessions) * 100) : 0;
 
   return (
@@ -194,7 +203,7 @@ const SchoolAnalytics = () => {
         </div>
 
         {/* Quick stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -224,15 +233,32 @@ const SchoolAnalytics = () => {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
+                <CardDescription>Heures planifiées</CardDescription>
+                <Calendar className="w-5 h-5 text-blue-400" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{Math.round(totalPlannedHours)}h</div>
+              <p className="text-sm text-muted-foreground">
+                {filteredStudentCount > 0 
+                  ? `${(totalPlannedHours / filteredStudentCount).toFixed(1)}h/élève`
+                  : '-'}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
                 <CardDescription>Heures révisées</CardDescription>
                 <Clock className="w-5 h-5 text-green-500" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{Math.round(totalHours)}h</div>
+              <div className="text-3xl font-bold">{Math.round(totalCompletedHours)}h</div>
               <p className="text-sm text-muted-foreground">
-                {filteredStudentCount > 0 
-                  ? `${(totalHours / filteredStudentCount).toFixed(1)}h/élève`
+                {totalPlannedHours > 0 
+                  ? `${Math.round((totalCompletedHours / totalPlannedHours) * 100)}% du prévu`
                   : '-'}
               </p>
             </CardContent>
@@ -360,7 +386,7 @@ const SchoolAnalytics = () => {
                 </div>
                 <p className="text-2xl font-bold">
                   {totalSessions > 0 
-                    ? `${(totalHours / totalSessions * 60).toFixed(0)} min`
+                    ? `${(totalPlannedHours / totalSessions * 60).toFixed(0)} min`
                     : '-'}
                 </p>
                 <p className="text-sm text-muted-foreground">temps de révision</p>
