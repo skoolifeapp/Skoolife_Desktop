@@ -57,8 +57,8 @@ const SchoolAccessCodes = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [newCode, setNewCode] = useState({
     code: '',
-    cohortId: '',
-    classId: '',
+    cohortId: 'none',
+    classId: 'none',
     maxUses: '100',
     expiresAt: '',
   });
@@ -91,8 +91,8 @@ const SchoolAccessCodes = () => {
     setIsCreating(true);
     const { error } = await createAccessCode({
       code: newCode.code,
-      cohortId: newCode.cohortId || undefined,
-      classId: newCode.classId || undefined,
+      cohortId: newCode.cohortId !== 'none' ? newCode.cohortId : undefined,
+      classId: newCode.classId !== 'none' ? newCode.classId : undefined,
       maxUses: parseInt(newCode.maxUses) || 100,
       expiresAt: newCode.expiresAt || undefined,
     });
@@ -102,7 +102,7 @@ const SchoolAccessCodes = () => {
     } else {
       toast.success('Code créé avec succès !');
       setIsDialogOpen(false);
-      setNewCode({ code: '', cohortId: '', classId: '', maxUses: '100', expiresAt: '' });
+      setNewCode({ code: '', cohortId: 'none', classId: 'none', maxUses: '100', expiresAt: '' });
     }
     setIsCreating(false);
   };
@@ -121,7 +121,7 @@ const SchoolAccessCodes = () => {
     toast.success('Code copié !');
   };
 
-  const filteredClasses = newCode.cohortId 
+  const filteredClasses = newCode.cohortId !== 'none'
     ? classes.filter(c => c.cohort_id === newCode.cohortId)
     : classes;
 
@@ -194,13 +194,13 @@ const SchoolAccessCodes = () => {
                     <Label>Cohorte (optionnel)</Label>
                     <Select
                       value={newCode.cohortId}
-                      onValueChange={(v) => setNewCode({ ...newCode, cohortId: v, classId: '' })}
+                      onValueChange={(v) => setNewCode({ ...newCode, cohortId: v, classId: 'none' })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Toutes" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Toutes les cohortes</SelectItem>
+                        <SelectItem value="none">Toutes les cohortes</SelectItem>
                         {cohorts.map((cohort) => (
                           <SelectItem key={cohort.id} value={cohort.id}>
                             {cohort.name}
@@ -214,13 +214,13 @@ const SchoolAccessCodes = () => {
                     <Select
                       value={newCode.classId}
                       onValueChange={(v) => setNewCode({ ...newCode, classId: v })}
-                      disabled={!newCode.cohortId}
+                      disabled={newCode.cohortId === 'none'}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Toutes" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Toutes les classes</SelectItem>
+                        <SelectItem value="none">Toutes les classes</SelectItem>
                         {filteredClasses.map((cls) => (
                           <SelectItem key={cls.id} value={cls.id}>
                             {cls.name}
