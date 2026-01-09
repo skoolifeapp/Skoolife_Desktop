@@ -24,7 +24,7 @@ const Auth = () => {
   const [checkingRedirect, setCheckingRedirect] = useState(false);
   const [hasSchoolCode, setHasSchoolCode] = useState(false);
   const [schoolCode, setSchoolCode] = useState('');
-  const { signIn, signUp, user, checkIsAdmin } = useAuth();
+  const { signIn, signUp, user, checkIsAdmin, refreshSubscription } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -152,6 +152,8 @@ const Auth = () => {
                   if (result?.success) {
                     localStorage.setItem('school_name', result.school_name || '');
                     toast.success(`Bienvenue ! Tu as été ajouté à ${result.school_name}`);
+                    // Immediately refresh subscription status so the user sees "Major" access instantly
+                    await refreshSubscription();
                   } else {
                     localStorage.removeItem('school_access_granted');
                     toast.error(result?.error || 'Code école invalide');
