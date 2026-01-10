@@ -406,42 +406,40 @@ const Settings = () => {
                 </AlertDialogContent>
               </AlertDialog>
 
-              {/* Video Tutorial Reset - Only for school students */}
-              {isSchoolStudent && (
-                <div className="pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Revoir la vidéo de présentation de Skoolife.
-                  </p>
-                  <Button 
-                    variant="outline"
-                    disabled={resettingVideoTutorial}
-                    onClick={async () => {
-                      if (!user) return;
-                      setResettingVideoTutorial(true);
-                      try {
-                        await supabase
-                          .from('profiles')
-                          .update({ has_seen_video_tutorial: false })
-                          .eq('id', user.id);
-                        toast.success('Tutoriel vidéo réinitialisé');
-                        navigate('/app');
-                      } catch (err) {
-                        console.error(err);
-                        toast.error("Erreur lors de la réinitialisation");
-                      } finally {
-                        setResettingVideoTutorial(false);
-                      }
-                    }}
-                  >
-                    {resettingVideoTutorial ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Play className="w-4 h-4 mr-2" />
-                    )}
-                    Revoir le tutoriel vidéo
-                  </Button>
-                </div>
-              )}
+              {/* Video Tutorial Reset */}
+              <div className="pt-4 border-t border-border">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Revoir la vidéo de présentation de Skoolife.
+                </p>
+                <Button 
+                  variant="outline"
+                  disabled={resettingVideoTutorial}
+                  onClick={async () => {
+                    if (!user) return;
+                    setResettingVideoTutorial(true);
+                    try {
+                      await supabase
+                        .from('profiles')
+                        .update({ has_seen_video_tutorial: false })
+                        .eq('id', user.id);
+                      toast.success('Tutoriel vidéo réinitialisé');
+                      navigate('/app');
+                    } catch (err) {
+                      console.error(err);
+                      toast.error("Erreur lors de la réinitialisation");
+                    } finally {
+                      setResettingVideoTutorial(false);
+                    }
+                  }}
+                >
+                  {resettingVideoTutorial ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Play className="w-4 h-4 mr-2" />
+                  )}
+                  Revoir le tutoriel vidéo
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
