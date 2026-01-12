@@ -33,9 +33,6 @@ const Subscription = lazy(() => import("./pages/Subscription"));
 const Pomodoro = lazy(() => import("./pages/Pomodoro"));
 const StudyFiles = lazy(() => import("./pages/StudyFiles"));
 const Tasks = lazy(() => import("./pages/Tasks"));
-const Flashcards = lazy(() => import("./pages/Flashcards"));
-const FlashcardDeck = lazy(() => import("./pages/FlashcardDeck"));
-const FlashcardStudy = lazy(() => import("./pages/FlashcardStudy"));
 const FeatureCalendar = lazy(() => import("./pages/FeatureCalendar"));
 const FeatureProgression = lazy(() => import("./pages/FeatureProgression"));
 const FeatureSubjects = lazy(() => import("./pages/FeatureSubjects"));
@@ -118,10 +115,6 @@ const App = () => (
                         <Route path="/pomodoro" element={<Pomodoro />} />
                         <Route path="/study-files" element={<StudyFiles />} />
                         <Route path="/tasks" element={<Tasks />} />
-                        <Route path="/flashcards" element={<Flashcards />} />
-                        <Route path="/flashcards/:deckId" element={<FlashcardDeck />} />
-                        <Route path="/flashcards/:deckId/study" element={<FlashcardStudy />} />
-                        <Route path="/flashcards/study" element={<FlashcardStudy />} />
                       </Route>
 
                       <Route path="/admin" element={<Admin />} />
