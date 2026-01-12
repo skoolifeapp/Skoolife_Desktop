@@ -435,6 +435,174 @@ export type Database = {
           },
         ]
       }
+      flashcard_decks: {
+        Row: {
+          card_count: number | null
+          created_at: string
+          description: string | null
+          id: string
+          last_studied_at: string | null
+          name: string
+          subject_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_count?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_studied_at?: string | null
+          name: string
+          subject_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_count?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_studied_at?: string | null
+          name?: string
+          subject_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcard_decks_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flashcard_decks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flashcard_reviews: {
+        Row: {
+          easiness_factor_after: number | null
+          easiness_factor_before: number | null
+          flashcard_id: string
+          id: string
+          interval_after: number | null
+          interval_before: number | null
+          quality: number
+          reviewed_at: string
+          user_id: string
+        }
+        Insert: {
+          easiness_factor_after?: number | null
+          easiness_factor_before?: number | null
+          flashcard_id: string
+          id?: string
+          interval_after?: number | null
+          interval_before?: number | null
+          quality: number
+          reviewed_at?: string
+          user_id: string
+        }
+        Update: {
+          easiness_factor_after?: number | null
+          easiness_factor_before?: number | null
+          flashcard_id?: string
+          id?: string
+          interval_after?: number | null
+          interval_before?: number | null
+          quality?: number
+          reviewed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcard_reviews_flashcard_id_fkey"
+            columns: ["flashcard_id"]
+            isOneToOne: false
+            referencedRelation: "flashcards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flashcard_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      flashcards: {
+        Row: {
+          back: string
+          correct_reviews: number | null
+          created_at: string
+          deck_id: string
+          easiness_factor: number | null
+          front: string
+          id: string
+          interval_days: number | null
+          last_reviewed_at: string | null
+          next_review_at: string | null
+          repetition_count: number | null
+          total_reviews: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          back: string
+          correct_reviews?: number | null
+          created_at?: string
+          deck_id: string
+          easiness_factor?: number | null
+          front: string
+          id?: string
+          interval_days?: number | null
+          last_reviewed_at?: string | null
+          next_review_at?: string | null
+          repetition_count?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          back?: string
+          correct_reviews?: number | null
+          created_at?: string
+          deck_id?: string
+          easiness_factor?: number | null
+          front?: string
+          id?: string
+          interval_days?: number | null
+          last_reviewed_at?: string | null
+          next_review_at?: string | null
+          repetition_count?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_deck_id_fkey"
+            columns: ["deck_id"]
+            isOneToOne: false
+            referencedRelation: "flashcard_decks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flashcards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -487,6 +655,7 @@ export type Database = {
           email: string | null
           first_name: string | null
           has_seen_support_hint: boolean | null
+          has_seen_video_tutorial: boolean | null
           id: string
           is_onboarding_complete: boolean | null
           last_name: string | null
@@ -512,6 +681,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           has_seen_support_hint?: boolean | null
+          has_seen_video_tutorial?: boolean | null
           id: string
           is_onboarding_complete?: boolean | null
           last_name?: string | null
@@ -537,6 +707,7 @@ export type Database = {
           email?: string | null
           first_name?: string | null
           has_seen_support_hint?: boolean | null
+          has_seen_video_tutorial?: boolean | null
           id?: string
           is_onboarding_complete?: boolean | null
           last_name?: string | null
