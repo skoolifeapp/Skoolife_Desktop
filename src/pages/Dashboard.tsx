@@ -37,6 +37,7 @@ import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 
 import { InvitedSessionDialog } from '@/components/InvitedSessionDialog';
 import { UpgradeDialog } from '@/components/UpgradeDialog';
+import { DeleteCalendarDialog } from '@/components/DeleteCalendarDialog';
 
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
@@ -58,6 +59,7 @@ const Dashboard = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [gridClickData, setGridClickData] = useState<GridClickData | null>(null);
   const [deletingEvents, setDeletingEvents] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showEventTutorial, setShowEventTutorial] = useState(false);
   
@@ -702,21 +704,59 @@ const Dashboard = () => {
     navigate('/');
   };
 
-  const handleDeleteAllEvents = async () => {
+  const handleDeleteCalendarItems = async (option: 'all' | 'events_only' | 'sessions_only') => {
     if (!user) return;
     
     setDeletingEvents(true);
     try {
-      const { error } = await supabase
-        .from('calendar_events')
-        .delete()
-        .eq('user_id', user.id);
+      if (option === 'all' || option === 'events_only') {
+        const { error: eventsError } = await supabase
+          .from('calendar_events')
+          .delete()
+          .eq('user_id', user.id);
+        if (eventsError) throw eventsError;
+      }
 
-      if (error) throw error;
+      if (option === 'all' || option === 'sessions_only') {
+        // First get sessions that have invites to preserve them
+        const { data: sessionsWithInvites } = await supabase
+          .from('session_invites')
+          .select('session_id')
+          .eq('invited_by', user.id);
+        
+        const sessionIdsWithInvites = new Set((sessionsWithInvites || []).map(i => i.session_id));
+        
+        // Get all user sessions
+        const { data: allUserSessions } = await supabase
+          .from('revision_sessions')
+          .select('id')
+          .eq('user_id', user.id);
+        
+        // Filter out sessions with invites
+        const sessionsToDelete = (allUserSessions || [])
+          .filter(s => !sessionIdsWithInvites.has(s.id))
+          .map(s => s.id);
+        
+        if (sessionsToDelete.length > 0) {
+          const { error: sessionsError } = await supabase
+            .from('revision_sessions')
+            .delete()
+            .in('id', sessionsToDelete);
+          if (sessionsError) throw sessionsError;
+        }
+      }
+
+      const message = option === 'all' 
+        ? 'Tous les éléments supprimés'
+        : option === 'events_only'
+        ? 'Événements supprimés'
+        : 'Sessions de révision supprimées';
+      
+      toast.success(message);
       fetchData();
     } catch (err) {
       console.error(err);
-      toast.error('Erreur lors de la suppression des événements');
+      toast.error('Erreur lors de la suppression');
     } finally {
       setDeletingEvents(false);
     }
@@ -1025,42 +1065,24 @@ const Dashboard = () => {
               <Upload className="w-4 h-4" />
             </Button>
             {hasActiveSubscription && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
-                    disabled={calendarEvents.length === 0}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Supprimer tous les événements ?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Cette action supprimera définitivement tous les {calendarEvents.length} événements de ton calendrier. 
-                      Cette action est irréversible.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={handleDeleteAllEvents}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      disabled={deletingEvents}
-                    >
-                      {deletingEvents ? (
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      ) : (
-                        <Trash2 className="w-4 h-4 mr-2" />
-                      )}
-                      Supprimer tout
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
+                  disabled={calendarEvents.length === 0 && sessions.filter(s => !s.isInvitedSession).length === 0}
+                  onClick={() => setDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+                <DeleteCalendarDialog
+                  open={deleteDialogOpen}
+                  onOpenChange={setDeleteDialogOpen}
+                  eventCount={calendarEvents.length}
+                  sessionCount={sessions.filter(s => !s.isInvitedSession).length}
+                  onDelete={handleDeleteCalendarItems}
+                />
+              </>
             )}
             {calendarView === 'week' ? (
               <>
