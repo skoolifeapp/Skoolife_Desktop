@@ -257,8 +257,8 @@ const Auth = () => {
             </p>
           </div>
 
-          {/* Space selector - only visible on login */}
-          {isLogin && (
+          {/* Space selector - temporarily hidden */}
+          {/* {isLogin && (
             <div className="flex gap-2 p-1 bg-muted rounded-lg">
               <button
                 type="button"
@@ -285,7 +285,7 @@ const Auth = () => {
                 Espace établissements
               </button>
             </div>
-          )}
+          )} */}
 
           {/* Auth card */}
           <Card className="border-0 shadow-lg">
@@ -423,8 +423,8 @@ const Auth = () => {
                   )}
                 </Button>
 
-                {/* School code field - only show on student signup */}
-                {!isLogin && space === 'student' && (
+                {/* School code field - temporarily hidden */}
+                {/* {!isLogin && space === 'student' && (
                   <div className="space-y-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
                     <div className="flex items-start gap-3">
                       <Checkbox
@@ -433,7 +433,6 @@ const Auth = () => {
                         onCheckedChange={(checked) => setHasSchoolCode(checked === true)}
                         className="mt-0.5"
                       />
-                      <label
                         htmlFor="has-school-code"
                         className="text-sm text-foreground leading-relaxed cursor-pointer flex items-center gap-2"
                       >
@@ -458,7 +457,7 @@ const Auth = () => {
                       </div>
                     )}
                   </div>
-                )}
+                )} */}
 
                 {/* CGU/Privacy mention - only show on student signup */}
                 {!isLogin && space === 'student' && (
