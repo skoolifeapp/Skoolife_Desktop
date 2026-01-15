@@ -138,7 +138,7 @@ const Index = () => {
             variants={fadeInUp}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            Gratuit pendant 7 jours.
+            7 jours gratuits, sans carte bancaire.
           </motion.p>
         </motion.div>
 

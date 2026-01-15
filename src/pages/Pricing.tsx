@@ -81,38 +81,9 @@ const Pricing = () => {
   const handleSelectPlan = async (planKey: 'student' | 'major') => {
     triggerConfetti();
     
-    // Redirect to auth if not logged in
-    if (!user) {
-      navigate('/auth?mode=signup');
-      return;
-    }
-
-    const plan = PLANS[planKey];
-    setLoadingPlan(planKey);
-
-    // Open the window immediately on user click to avoid popup blocker
-    const newWindow = window.open('about:blank', '_blank');
-
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { priceId: plan.priceId },
-      });
-
-      if (error) throw error;
-
-      if (data?.url && newWindow) {
-        newWindow.location.href = data.url;
-      } else if (data?.url) {
-        // Fallback if popup was blocked
-        window.location.href = data.url;
-      }
-    } catch (error: any) {
-      console.error('Checkout error:', error);
-      if (newWindow) newWindow.close();
-      toast.error('Erreur lors de la création du paiement');
-    } finally {
-      setLoadingPlan(null);
-    }
+    // Store selected tier and redirect to auth
+    localStorage.setItem('selected_tier', planKey);
+    navigate('/auth?mode=signup');
   };
 
   return (
@@ -131,10 +102,18 @@ const Pricing = () => {
           initial="hidden"
           animate="visible"
         >
+          <motion.div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 text-sm font-medium mb-6"
+            variants={fadeInUp}
+            transition={{ duration: 0.6 }}
+          >
+            <Sparkles className="w-4 h-4" />
+            7 jours gratuits, sans carte bancaire
+          </motion.div>
           <motion.h1 
             className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground mb-6 font-heading"
             variants={fadeInUp}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.6, delay: 0.05 }}
           >
             Choisis ta formule
           </motion.h1>
@@ -143,7 +122,7 @@ const Pricing = () => {
             variants={fadeInUp}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Commence ton essai gratuit de 7 jours. Annule à tout moment, sans engagement.
+            Teste Skoolife gratuitement pendant 7 jours, puis choisis l'offre qui te convient.
           </motion.p>
         </motion.div>
 
@@ -165,15 +144,12 @@ const Pricing = () => {
                 </div>
                 <CardDescription className="text-base">{PLANS.student.description}</CardDescription>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-2xl text-muted-foreground line-through">{PLANS.student.price}€</span>
-                  <span className="text-4xl font-bold text-foreground">2,39€</span>
+                  <span className="text-4xl font-bold text-foreground">{PLANS.student.price}€</span>
                   <span className="text-muted-foreground">/ mois</span>
                 </div>
-                <div className="mt-3">
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                    -20% les 2 premiers mois
-                  </Badge>
-                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Après 7 jours d'essai gratuit
+                </p>
               </CardHeader>
               <CardContent className="space-y-6">
                 <ul className="space-y-4">
@@ -197,7 +173,7 @@ const Pricing = () => {
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      Commencer l'essai gratuit
+                      Essayer 7 jours gratuit
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </>
                   )}
@@ -224,15 +200,12 @@ const Pricing = () => {
                 </div>
                 <CardDescription className="text-base">{PLANS.major.description}</CardDescription>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-2xl text-muted-foreground line-through">{PLANS.major.price}€</span>
-                  <span className="text-4xl font-bold text-foreground">3,99€</span>
+                  <span className="text-4xl font-bold text-foreground">{PLANS.major.price}€</span>
                   <span className="text-muted-foreground">/ mois</span>
                 </div>
-                <div className="mt-3">
-                  <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                    -20% les 2 premiers mois
-                  </Badge>
-                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Après 7 jours d'essai gratuit
+                </p>
               </CardHeader>
               <CardContent className="space-y-6">
                 <ul className="space-y-4">
@@ -258,7 +231,7 @@ const Pricing = () => {
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      Commencer l'essai gratuit
+                      Essayer 7 jours gratuit
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </>
                   )}

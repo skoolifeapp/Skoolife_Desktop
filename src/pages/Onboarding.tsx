@@ -191,6 +191,9 @@ const Onboarding = () => {
       const hasSchoolAccess = localStorage.getItem('school_access_granted') === 'true';
       const schoolNameFromCode = localStorage.getItem('school_name');
       const finalSchoolName = schoolNameFromCode || school;
+      
+      // Get selected tier from localStorage (set on pricing page)
+      const selectedTier = localStorage.getItem('selected_tier') as 'student' | 'major' | null;
 
       // Upsert profile (create if not exists, update if exists)
       const { error: profileError } = await supabase
@@ -207,7 +210,10 @@ const Onboarding = () => {
           main_exam_period: examPeriod,
           is_onboarding_complete: true,
           marketing_emails_optin: marketingOptIn,
-          marketing_optin_at: marketingOptIn ? now : null
+          marketing_optin_at: marketingOptIn ? now : null,
+          // Set trial info if not already set
+          selected_tier: selectedTier || 'student',
+          trial_started_at: now,
         }, { onConflict: 'id' });
 
       if (profileError) throw profileError;
@@ -215,6 +221,7 @@ const Onboarding = () => {
       // Clean up localStorage
       localStorage.removeItem('school_access_granted');
       localStorage.removeItem('school_name');
+      localStorage.removeItem('selected_tier');
 
       // Refresh subscription status before navigating so Major access shows instantly
       if (hasSchoolAccess) {
@@ -224,12 +231,9 @@ const Onboarding = () => {
       const pendingInviteToken = localStorage.getItem('pending_invite_token');
       if (pendingInviteToken) {
         navigate(`/invite/${pendingInviteToken}`);
-      } else if (hasSchoolAccess) {
-        // User has school access, go directly to app
-        navigate('/app');
       } else {
-        // No school code, redirect to pricing
-        navigate('/pricing');
+        // All users go directly to app (trial starts now)
+        navigate('/app');
       }
     } catch (err) {
       console.error(err);
