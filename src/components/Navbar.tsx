@@ -143,8 +143,8 @@ const Navbar = () => {
             À propos
           </Link>
           
-          {/* Établissements link - visible for everyone */}
-          <Link 
+          {/* Établissements link - temporarily hidden */}
+          {/* <Link 
             to="/etablissements" 
             className={`px-3 py-1.5 text-sm transition-colors rounded-full ${
               location.pathname === '/etablissements' 
@@ -153,7 +153,7 @@ const Navbar = () => {
             }`}
           >
             Établissements
-          </Link>
+          </Link> */}
         </div>
         
         {/* Dashboard école - School admins only */}
