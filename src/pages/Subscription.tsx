@@ -41,7 +41,7 @@ const TIER_INFO = {
 
 const Subscription = () => {
   const navigate = useNavigate();
-  const { subscriptionTier, session, subscriptionLoading, checkSubscription, refreshSubscription, user, trialInfo } = useAuth();
+  const { subscriptionTier, session, subscriptionLoading, checkSubscription, refreshSubscription, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [subscriptionData, setSubscriptionData] = useState<{
     subscription_end?: string | null;
@@ -50,7 +50,6 @@ const Subscription = () => {
     is_lifetime?: boolean;
     lifetime_tier?: string | null;
     is_school_access?: boolean;
-    is_trial?: boolean;
   } | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [reactivateLoading, setReactivateLoading] = useState(false);
@@ -59,7 +58,6 @@ const Subscription = () => {
     open: false,
     targetTier: null,
   });
-
 
   const fetchSubscriptionDetails = async () => {
     if (!session) {
@@ -71,7 +69,7 @@ const Subscription = () => {
       // First check for lifetime tier
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('lifetime_tier, selected_tier, trial_started_at')
+        .select('lifetime_tier')
         .eq('id', session.user.id)
         .maybeSingle();
 
@@ -88,6 +86,7 @@ const Subscription = () => {
       }
 
       // School access (Major offert par l'établissement)
+      // Same as in useAuth: don't join schools table (students may not be allowed to read it).
       const { data: schoolMembership } = await supabase
         .from('school_members')
         .select('school_id')
@@ -107,25 +106,14 @@ const Subscription = () => {
         return;
       }
 
-      // Check Stripe subscription
       const { data, error } = await supabase.functions.invoke("check-subscription", {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
 
-      if (!error && data?.subscribed) {
+      if (!error && data) {
         setSubscriptionData(data);
-      } else if (trialInfo.isTrialing) {
-        // User is on trial
-        setSubscriptionData({
-          subscription_end: trialInfo.trialEndsAt,
-          subscription_status: 'trial',
-          cancel_at_period_end: false,
-          is_trial: true,
-        });
-      } else {
-        setSubscriptionData(null);
       }
     } catch (err) {
       console.error("Error fetching subscription:", err);
@@ -246,7 +234,6 @@ const Subscription = () => {
   const TierIcon = tierInfo.icon;
   const isLifetime = subscriptionData?.is_lifetime;
   const isSchoolAccess = subscriptionData?.is_school_access === true;
-  const isTrial = subscriptionData?.is_trial === true || trialInfo.isTrialing;
   const nextBillingDate = subscriptionData?.subscription_end
     ? format(new Date(subscriptionData.subscription_end), "d MMMM yyyy", { locale: fr })
     : null;
@@ -271,7 +258,7 @@ const Subscription = () => {
                 <div>
                   <CardTitle className="text-xl">{tierInfo.name}</CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    {isSchoolAccess ? "Accès offert par ton établissement" : isLifetime ? "Accès à vie" : isTrial ? "Essai gratuit" : "Abonnement mensuel"}
+                    {isSchoolAccess ? "Accès offert par ton établissement" : isLifetime ? "Accès à vie" : "Abonnement mensuel"}
                   </p>
                 </div>
               </div>
@@ -283,10 +270,6 @@ const Subscription = () => {
                 <Badge className="bg-gradient-to-r from-amber-500 to-yellow-500 text-white hover:from-amber-600 hover:to-yellow-600">
                   À vie ✨
                 </Badge>
-              ) : isTrial ? (
-                <Badge className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/20">
-                  Essai gratuit
-                </Badge>
               ) : isCanceled ? (
                 <Badge variant="destructive">Annulé</Badge>
               ) : (
@@ -295,14 +278,6 @@ const Subscription = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Trial message */}
-            {isTrial && trialInfo.daysRemaining !== null && (
-              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                <p className="text-sm text-blue-700 dark:text-blue-400 font-medium">
-                  🎉 Tu profites de ton essai gratuit ! Il te reste <strong>{trialInfo.daysRemaining} jour{trialInfo.daysRemaining > 1 ? 's' : ''}</strong> pour découvrir toutes les fonctionnalités.
-                </p>
-              </div>
-            )}
             {/* School message */}
             {isSchoolAccess && (
               <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-xl">

@@ -1,8 +1,6 @@
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { AppSidebar } from './AppSidebar';
-import { TrialExpiredDialog } from './TrialExpiredDialog';
-import { useAuth } from '@/hooks/useAuth';
 import {
   DashboardSkeleton,
   ProgressionSkeleton,
@@ -26,15 +24,6 @@ const getSkeletonForRoute = (pathname: string) => {
 
 export const AppLayout = () => {
   const location = useLocation();
-  const { trialInfo, subscriptionLoading } = useAuth();
-  const [showTrialExpired, setShowTrialExpired] = useState(false);
-
-  useEffect(() => {
-    // Show trial expired dialog when trial has expired and no active subscription
-    if (!subscriptionLoading && trialInfo.trialExpired) {
-      setShowTrialExpired(true);
-    }
-  }, [trialInfo.trialExpired, subscriptionLoading]);
   
   return (
     <AppSidebar>
@@ -43,12 +32,6 @@ export const AppLayout = () => {
           <Outlet />
         </div>
       </Suspense>
-      
-      <TrialExpiredDialog 
-        open={showTrialExpired} 
-        onOpenChange={setShowTrialExpired}
-        selectedTier={trialInfo.selectedTier}
-      />
     </AppSidebar>
   );
 };

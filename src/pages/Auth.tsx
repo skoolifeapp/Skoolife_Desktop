@@ -83,8 +83,24 @@ const Auth = () => {
           // User already onboarded, go to app
           navigate('/app');
         } else {
-          // New user: go to onboarding first
-          navigate('/onboarding');
+          // Check if user has school access (free via school code)
+          const schoolAccessGranted = localStorage.getItem('school_access_granted') === 'true';
+          
+          // Also check if user is a school member in the database
+          const { data: schoolMember } = await supabase
+            .from('school_members')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('is_active', true)
+            .maybeSingle();
+          
+          if (schoolAccessGranted || schoolMember) {
+            // School user: skip pricing, go directly to onboarding
+            navigate('/onboarding');
+          } else {
+            // New user without school: send to pricing page to select subscription
+            navigate('/pricing');
+          }
         }
         
         setCheckingRedirect(false);
@@ -241,8 +257,8 @@ const Auth = () => {
             </p>
           </div>
 
-          {/* Space selector - temporarily hidden */}
-          {/* {isLogin && (
+          {/* Space selector - only visible on login */}
+          {isLogin && (
             <div className="flex gap-2 p-1 bg-muted rounded-lg">
               <button
                 type="button"
@@ -269,7 +285,7 @@ const Auth = () => {
                 Espace établissements
               </button>
             </div>
-          )} */}
+          )}
 
           {/* Auth card */}
           <Card className="border-0 shadow-lg">
@@ -407,8 +423,8 @@ const Auth = () => {
                   )}
                 </Button>
 
-                {/* School code field - temporarily hidden */}
-                {/* {!isLogin && space === 'student' && (
+                {/* School code field - only show on student signup */}
+                {!isLogin && space === 'student' && (
                   <div className="space-y-3 p-4 rounded-lg bg-primary/5 border border-primary/20">
                     <div className="flex items-start gap-3">
                       <Checkbox
@@ -417,6 +433,7 @@ const Auth = () => {
                         onCheckedChange={(checked) => setHasSchoolCode(checked === true)}
                         className="mt-0.5"
                       />
+                      <label
                         htmlFor="has-school-code"
                         className="text-sm text-foreground leading-relaxed cursor-pointer flex items-center gap-2"
                       >
@@ -441,7 +458,7 @@ const Auth = () => {
                       </div>
                     )}
                   </div>
-                )} */}
+                )}
 
                 {/* CGU/Privacy mention - only show on student signup */}
                 {!isLogin && space === 'student' && (
