@@ -14,9 +14,3 @@ verify_jwt = false
 
 [functions.send-access-code-emails]
 verify_jwt = false
-
-[functions.skoo-tts]
-verify_jwt = false
-
-[functions.skoo-coach]
-verify_jwt = false

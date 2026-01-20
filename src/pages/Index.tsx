@@ -11,7 +11,6 @@ import LandingFeatures from '@/components/LandingFeatures';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { useConfetti } from '@/hooks/useConfetti';
-import { SkooLanding } from '@/components/SkooLanding';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -159,9 +158,6 @@ const Index = () => {
 
       {/* Features Section */}
       <LandingFeatures />
-
-      {/* Skoo Avatar - Landing greeting */}
-      <SkooLanding />
 
       <Footer />
     </div>

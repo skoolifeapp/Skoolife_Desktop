@@ -1,7 +1,6 @@
 import { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { AppSidebar } from './AppSidebar';
-import { SkooWidget } from './SkooWidget';
 import {
   DashboardSkeleton,
   ProgressionSkeleton,
@@ -33,9 +32,6 @@ export const AppLayout = () => {
           <Outlet />
         </div>
       </Suspense>
-      
-      {/* Skoo Coach Widget - Available on all authenticated pages */}
-      <SkooWidget />
     </AppSidebar>
   );
 };

@@ -668,11 +668,9 @@ export type Database = {
           privacy_accepted_at: string | null
           privacy_version: string | null
           school: string | null
-          selected_tier: string | null
           signed_up_via_invite: boolean | null
           study_domain: string | null
           study_subcategory: string | null
-          trial_started_at: string | null
           updated_at: string | null
           weekly_revision_hours: number | null
         }
@@ -696,11 +694,9 @@ export type Database = {
           privacy_accepted_at?: string | null
           privacy_version?: string | null
           school?: string | null
-          selected_tier?: string | null
           signed_up_via_invite?: boolean | null
           study_domain?: string | null
           study_subcategory?: string | null
-          trial_started_at?: string | null
           updated_at?: string | null
           weekly_revision_hours?: number | null
         }
@@ -724,11 +720,9 @@ export type Database = {
           privacy_accepted_at?: string | null
           privacy_version?: string | null
           school?: string | null
-          selected_tier?: string | null
           signed_up_via_invite?: boolean | null
           study_domain?: string | null
           study_subcategory?: string | null
-          trial_started_at?: string | null
           updated_at?: string | null
           weekly_revision_hours?: number | null
         }
