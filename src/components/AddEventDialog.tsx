@@ -95,6 +95,7 @@ const ALL_EVENT_TYPES = [
   { value: 'cours', label: 'Cours' },
   { value: 'travail', label: 'Travail' },
   { value: 'perso', label: 'Personnel' },
+  { value: 'sport', label: 'Sport' },
   { value: 'revision_libre', label: 'Révision libre' },
   { value: 'visio', label: 'Visio', majorOnly: true },
   { value: 'autre', label: 'Autre' },

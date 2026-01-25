@@ -49,6 +49,7 @@ const EVENT_TYPES = [
   { value: 'cours', label: 'Cours' },
   { value: 'travail', label: 'Travail' },
   { value: 'perso', label: 'Personnel' },
+  { value: 'sport', label: 'Sport' },
   { value: 'revision_libre', label: 'Révision libre' },
   { value: 'autre', label: 'Autre' },
 ];
