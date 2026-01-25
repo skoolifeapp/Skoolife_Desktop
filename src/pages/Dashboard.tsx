@@ -38,6 +38,7 @@ import { EventTutorialOverlay } from '@/components/EventTutorialOverlay';
 import { InvitedSessionDialog } from '@/components/InvitedSessionDialog';
 import { UpgradeDialog } from '@/components/UpgradeDialog';
 import { DeleteCalendarDialog } from '@/components/DeleteCalendarDialog';
+import { setUserEventColors } from '@/lib/eventTypeColors';
 
 import type { Profile, Subject, RevisionSession, CalendarEvent } from '@/types/planning';
 
@@ -158,12 +159,27 @@ const Dashboard = () => {
     if (!user) return;
 
     try {
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('first_name, weekly_revision_hours, is_onboarding_complete, signed_up_via_invite')
-        .eq('id', user.id)
-        .maybeSingle();
+      // Fetch profile and user preferences in parallel
+      const [profileResult, preferencesResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('first_name, weekly_revision_hours, is_onboarding_complete, signed_up_via_invite')
+          .eq('id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('user_preferences')
+          .select('event_type_colors')
+          .eq('user_id', user.id)
+          .maybeSingle()
+      ]);
+
+      const profileData = profileResult.data;
+      const preferencesData = preferencesResult.data;
+
+      // Set user's custom event colors
+      if (preferencesData && (preferencesData as any).event_type_colors) {
+        setUserEventColors((preferencesData as any).event_type_colors);
+      }
 
       if (profileData && !profileData.is_onboarding_complete) {
         navigate('/onboarding');

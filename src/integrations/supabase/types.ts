@@ -1545,6 +1545,7 @@ export type Database = {
           created_at: string | null
           daily_end_time: string | null
           daily_start_time: string | null
+          event_type_colors: Json | null
           id: string
           max_hours_per_day: number | null
           notes: string | null
@@ -1559,6 +1560,7 @@ export type Database = {
           created_at?: string | null
           daily_end_time?: string | null
           daily_start_time?: string | null
+          event_type_colors?: Json | null
           id?: string
           max_hours_per_day?: number | null
           notes?: string | null
@@ -1573,6 +1575,7 @@ export type Database = {
           created_at?: string | null
           daily_end_time?: string | null
           daily_start_time?: string | null
+          event_type_colors?: Json | null
           id?: string
           max_hours_per_day?: number | null
           notes?: string | null

@@ -29,8 +29,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Clock, Loader2, RotateCcw, Settings as SettingsIcon } from 'lucide-react';
+import { Clock, Loader2, RotateCcw, Settings as SettingsIcon, Palette } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { EventColorPicker, DEFAULT_EVENT_COLORS } from '@/components/EventColorPicker';
+import { EVENT_TYPES, setUserEventColors } from '@/lib/eventTypeColors';
 
 
 const DAYS_OF_WEEK = [
@@ -53,6 +55,7 @@ interface PreferencesData {
   avoid_late_evening: boolean;
   avoid_early_morning: boolean;
   notes: string;
+  event_type_colors: Record<string, string>;
 }
 
 const SESSION_DURATIONS = [
@@ -77,6 +80,7 @@ const Settings = () => {
     avoid_late_evening: false,
     avoid_early_morning: false,
     notes: '',
+    event_type_colors: {},
   });
 
   const { user } = useAuth();
@@ -110,6 +114,11 @@ const Settings = () => {
       const prefsData = prefsRes.data;
       const profileData = profileRes.data;
 
+      const eventTypeColors = (prefsData as any)?.event_type_colors || {};
+      
+      // Set global user colors for the color system
+      setUserEventColors(eventTypeColors);
+
       setPreferences({
         weekly_revision_hours: profileData?.weekly_revision_hours || 10,
         preferred_days_of_week: prefsData?.preferred_days_of_week || [1, 2, 3, 4, 5],
@@ -120,6 +129,7 @@ const Settings = () => {
         avoid_late_evening: prefsData?.avoid_late_evening || false,
         avoid_early_morning: prefsData?.avoid_early_morning || false,
         notes: prefsData?.notes || '',
+        event_type_colors: eventTypeColors,
       });
     } catch (err) {
       console.error(err);
@@ -150,6 +160,7 @@ const Settings = () => {
           avoid_late_evening: preferences.avoid_late_evening,
           avoid_early_morning: preferences.avoid_early_morning,
           notes: preferences.notes,
+          event_type_colors: preferences.event_type_colors,
         } as any, { onConflict: 'user_id' }),
         supabase.from('profiles').update({
           weekly_revision_hours: preferences.weekly_revision_hours,
@@ -358,6 +369,59 @@ const Settings = () => {
               {savingPreferences && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Enregistrer mes préférences
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Section: Event Colors */}
+        <Card className="border-0 shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="w-5 h-5 text-primary" />
+              Couleurs des événements
+            </CardTitle>
+            <CardDescription>
+              Personnalise les couleurs de chaque type d'événement dans ton calendrier.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="divide-y divide-border">
+              {EVENT_TYPES.map((eventType) => {
+                const currentColor = preferences.event_type_colors[eventType.value] || DEFAULT_EVENT_COLORS[eventType.value];
+                return (
+                  <EventColorPicker
+                    key={eventType.value}
+                    eventType={eventType.value}
+                    label={eventType.label}
+                    currentColor={currentColor}
+                    onChange={(color) => {
+                      const newColors = { ...preferences.event_type_colors, [eventType.value]: color };
+                      setPreferences({ ...preferences, event_type_colors: newColors });
+                      setUserEventColors(newColors);
+                    }}
+                    onReset={() => {
+                      const newColors = { ...preferences.event_type_colors };
+                      delete newColors[eventType.value];
+                      setPreferences({ ...preferences, event_type_colors: newColors });
+                      setUserEventColors(newColors);
+                    }}
+                  />
+                );
+              })}
+            </div>
+            <div className="mt-4 pt-4 border-t border-border">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setPreferences({ ...preferences, event_type_colors: {} });
+                  setUserEventColors({});
+                  toast.success('Couleurs réinitialisées');
+                }}
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Réinitialiser toutes les couleurs
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

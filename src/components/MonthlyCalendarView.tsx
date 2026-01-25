@@ -3,7 +3,7 @@ import { fr } from 'date-fns/locale';
 import type { RevisionSession, CalendarEvent, Subject } from '@/types/planning';
 import { cn } from '@/lib/utils';
 import { useMemo } from 'react';
-import { getEventTypeColorClass } from '@/lib/eventTypeColors';
+import { getEventTypeColorClass, getEventColor, hasCustomColors } from '@/lib/eventTypeColors';
 
 interface MonthlyCalendarViewProps {
   currentMonth: Date;
@@ -194,23 +194,30 @@ const MonthlyCalendarView = ({
                     ))}
 
                     {/* Calendar events (cours, etc.) */}
-                    {dayEvents.slice(0, Math.max(0, maxDisplay - dayExams.length)).map((event) => (
-                      <div
-                        key={event.id}
-                        className={cn(
-                          "px-1.5 py-0.5 text-[10px] font-medium rounded truncate cursor-pointer transition-opacity hover:opacity-80 text-white",
-                          getEventTypeColorClass(event.event_type)
-                        )}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEventClick(event);
-                        }}
-                        title={`${event.title} - ${format(parseISO(event.start_datetime), 'HH:mm')}`}
-                      >
-                        <span className="opacity-70 mr-1">{format(parseISO(event.start_datetime), 'HH:mm')}</span>
-                        {event.title}
-                      </div>
-                    ))}
+                    {dayEvents.slice(0, Math.max(0, maxDisplay - dayExams.length)).map((event) => {
+                      const useCustom = hasCustomColors();
+                      const colorClass = useCustom ? '' : getEventTypeColorClass(event.event_type);
+                      const inlineStyle = useCustom ? { backgroundColor: getEventColor(event.event_type) } : undefined;
+                      
+                      return (
+                        <div
+                          key={event.id}
+                          className={cn(
+                            "px-1.5 py-0.5 text-[10px] font-medium rounded truncate cursor-pointer transition-opacity hover:opacity-80 text-white",
+                            colorClass
+                          )}
+                          style={inlineStyle}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEventClick(event);
+                          }}
+                          title={`${event.title} - ${format(parseISO(event.start_datetime), 'HH:mm')}`}
+                        >
+                          <span className="opacity-70 mr-1">{format(parseISO(event.start_datetime), 'HH:mm')}</span>
+                          {event.title}
+                        </div>
+                      );
+                    })}
 
                     {/* Revision sessions */}
                     {daySessions.slice(0, Math.max(0, maxDisplay - dayExams.length - Math.min(dayEvents.length, maxDisplay - dayExams.length))).map((session) => (
