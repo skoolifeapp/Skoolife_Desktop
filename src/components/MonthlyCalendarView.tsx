@@ -3,6 +3,7 @@ import { fr } from 'date-fns/locale';
 import type { RevisionSession, CalendarEvent, Subject } from '@/types/planning';
 import { cn } from '@/lib/utils';
 import { useMemo } from 'react';
+import { getEventTypeColorClass } from '@/lib/eventTypeColors';
 
 interface MonthlyCalendarViewProps {
   currentMonth: Date;
@@ -73,15 +74,7 @@ const MonthlyCalendarView = ({
     });
   };
 
-  const getEventTypeColor = (eventType: string | null) => {
-    switch (eventType) {
-      case 'exam': return 'bg-red-500';
-      case 'cours': return 'bg-blue-500';
-      case 'travail': return 'bg-amber-500';
-      case 'perso': return 'bg-purple-500';
-      default: return 'bg-indigo-500';
-    }
-  };
+  // Use centralized event type colors
 
   const getSessionStatusStyle = (status: string | null) => {
     switch (status) {
@@ -206,7 +199,7 @@ const MonthlyCalendarView = ({
                         key={event.id}
                         className={cn(
                           "px-1.5 py-0.5 text-[10px] font-medium rounded truncate cursor-pointer transition-opacity hover:opacity-80 text-white",
-                          getEventTypeColor(event.event_type)
+                          getEventTypeColorClass(event.event_type)
                         )}
                         onClick={(e) => {
                           e.stopPropagation();

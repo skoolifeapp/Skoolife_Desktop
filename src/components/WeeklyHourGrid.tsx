@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar, Users, MapPin, Paperclip, Check } from 'lucide-react';
 import type { RevisionSession, CalendarEvent, Subject } from '@/types/planning';
+import { cn } from '@/lib/utils';
+import { getEventTypeStyles } from '@/lib/eventTypeColors';
 
 export interface SessionInvitee {
   accepted_by: string | null;
@@ -683,8 +685,9 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                     const isClickable = !!onEventClick;
                     const isDraggable = !!onEventMove;
                     const isElearning = event.title.toUpperCase().includes('ELEARNING');
-                    const isVisio = event.event_type === 'visio';
-                    const isPurpleEvent = isElearning || isVisio;
+                    // Use event type for colors, with elearning override for visio
+                    const effectiveEventType = isElearning ? 'visio' : event.event_type;
+                    const eventStyles = getEventTypeStyles(effectiveEventType);
                     
                     return (
                       <div
@@ -695,10 +698,9 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         onDragEnd={handleDragEnd}
                         onClick={() => { if (!justResizedRef.current) onEventClick?.(event); }}
                         className={cn(
-                          "absolute rounded-md px-1 py-1 overflow-hidden z-10 flex flex-col items-start justify-start text-left group",
-                          isPurpleEvent 
-                            ? "bg-purple-100 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-800"
-                            : "bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800",
+                          "absolute rounded-md px-1 py-1 overflow-hidden z-10 flex flex-col items-start justify-start text-left group border",
+                          eventStyles.bg,
+                          eventStyles.border,
                           isClickable && "cursor-pointer transition-all hover:shadow-md",
                           isDraggable && !resizingItem && "cursor-grab active:cursor-grabbing"
                         )}
@@ -713,31 +715,26 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                       >
                         {/* File indicator for "cours" type events with files for this subject */}
                         {event.event_type === 'cours' && event.subject_name && (subjectFileCounts?.[event.subject_name] ?? 0) > 0 && (
-                          <Paperclip className="absolute top-1 right-1 w-3 h-3 text-blue-600 dark:text-blue-300" />
+                          <Paperclip className={cn("absolute top-1 right-1 w-3 h-3", eventStyles.textSecondary)} />
                         )}
                         {/* Top resize handle - only visible when hovering near top */}
                         {onEventResize && (
                           <div
                             className={cn(
                               "absolute top-0 left-0 right-0 h-1.5 cursor-ns-resize rounded-t-md transition-colors",
-                              isPurpleEvent ? "hover:bg-purple-400/50" : "hover:bg-blue-400/50"
+                              eventStyles.hoverBg
                             )}
                             onMouseDown={(e) => handleResizeStart(e, 'event', event.id, block.startMinutes, block.endMinutes, 'top')}
                           />
                         )}
                         <p className={cn(
                           "text-xs font-medium truncate w-full pt-1",
-                          isPurpleEvent 
-                            ? "text-purple-800 dark:text-purple-200 pr-4" 
-                            : "text-blue-800 dark:text-blue-200",
-                          event.event_type === 'cours' && !isPurpleEvent && "pr-4"
+                          eventStyles.text,
+                          event.event_type === 'cours' && "pr-4"
                         )}>
                           {event.title}
                         </p>
-                        <p className={cn(
-                          "text-[10px]",
-                          isPurpleEvent ? "text-purple-600 dark:text-purple-300" : "text-blue-600 dark:text-blue-300"
-                        )}>
+                        <p className={cn("text-[10px]", eventStyles.textSecondary)}>
                           {resizePreview?.id === event.id 
                             ? `${resizePreview.newStartTime || formatTimeRange(event.start_datetime, event.end_datetime, true).split(' - ')[0]} - ${resizePreview.newEndTime || formatTimeRange(event.start_datetime, event.end_datetime, true).split(' - ')[1]}`
                             : formatTimeRange(event.start_datetime, event.end_datetime, true)}
@@ -747,7 +744,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                           <div
                             className={cn(
                               "absolute bottom-0 left-0 right-0 h-1.5 cursor-ns-resize rounded-b-md transition-colors",
-                              isPurpleEvent ? "hover:bg-purple-400/50" : "hover:bg-blue-400/50"
+                              eventStyles.hoverBg
                             )}
                             onMouseDown={(e) => handleResizeStart(e, 'event', event.id, block.startMinutes, block.endMinutes, 'bottom')}
                           />
@@ -908,10 +905,5 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
     </div>
   );
 };
-
-// Helper cn function if not imported
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
-}
 
 export default WeeklyHourGrid;
