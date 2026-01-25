@@ -10,8 +10,42 @@ export const EVENT_TYPES = [
   { value: 'autre', label: 'Autre' },
 ];
 
+// Default colors for each event type (hex values)
+export const DEFAULT_EVENT_COLORS: Record<string, string> = {
+  cours: '#3B82F6',      // Blue
+  travail: '#F59E0B',    // Amber
+  perso: '#A855F7',      // Purple
+  sport: '#22C55E',      // Green
+  revision_libre: '#14B8A6', // Teal
+  visio: '#8B5CF6',      // Violet
+  autre: '#64748B',      // Slate
+  exam: '#EF4444',       // Red
+};
+
+// Global variable to store user's custom colors (set from Settings)
+let userEventColors: Record<string, string> = {};
+
+export const setUserEventColors = (colors: Record<string, string> | null) => {
+  userEventColors = colors || {};
+};
+
+export const getUserEventColors = (): Record<string, string> => {
+  return userEventColors;
+};
+
+// Get the effective color for an event type (user custom or default)
+export const getEventColor = (eventType: string | null | undefined): string => {
+  const type = eventType || 'autre';
+  return userEventColors[type] || DEFAULT_EVENT_COLORS[type] || DEFAULT_EVENT_COLORS.autre;
+};
+
 // Colors for each event type (Tailwind classes for monthly view)
 export const getEventTypeColorClass = (eventType: string | null | undefined): string => {
+  // If user has custom colors, we use inline styles instead
+  if (Object.keys(userEventColors).length > 0) {
+    return ''; // Will use inline style instead
+  }
+  
   switch (eventType) {
     case 'exam': return 'bg-red-500';
     case 'cours': return 'bg-blue-500';
@@ -24,6 +58,66 @@ export const getEventTypeColorClass = (eventType: string | null | undefined): st
   }
 };
 
+// Check if user has custom colors
+export const hasCustomColors = (): boolean => {
+  return Object.keys(userEventColors).length > 0;
+};
+
+// Helper to convert hex to rgb for generating lighter/darker shades
+const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
+};
+
+// Generate styles from a hex color for the weekly grid
+const generateStylesFromHex = (hex: string): {
+  bg: string;
+  border: string;
+  text: string;
+  textSecondary: string;
+  hoverBg: string;
+  inlineStyles: {
+    backgroundColor: string;
+    borderColor: string;
+    color: string;
+  };
+} => {
+  const rgb = hexToRgb(hex);
+  if (!rgb) {
+    return {
+      bg: 'bg-slate-100 dark:bg-slate-900/30',
+      border: 'border-slate-200 dark:border-slate-800',
+      text: 'text-slate-800 dark:text-slate-200',
+      textSecondary: 'text-slate-600 dark:text-slate-300',
+      hoverBg: 'hover:bg-slate-400/50',
+      inlineStyles: {
+        backgroundColor: 'rgba(100, 116, 139, 0.2)',
+        borderColor: 'rgba(100, 116, 139, 0.3)',
+        color: '#475569',
+      },
+    };
+  }
+
+  return {
+    bg: '', // Will use inline style
+    border: '', // Will use inline style
+    text: '', // Will use inline style
+    textSecondary: '',
+    hoverBg: '',
+    inlineStyles: {
+      backgroundColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`,
+      borderColor: `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.3)`,
+      color: hex,
+    },
+  };
+};
+
 // Colors for WeeklyHourGrid (light/dark mode with backgrounds and text)
 export const getEventTypeStyles = (eventType: string | null | undefined): {
   bg: string;
@@ -31,7 +125,19 @@ export const getEventTypeStyles = (eventType: string | null | undefined): {
   text: string;
   textSecondary: string;
   hoverBg: string;
+  inlineStyles?: {
+    backgroundColor: string;
+    borderColor: string;
+    color: string;
+  };
 } => {
+  const type = eventType || 'autre';
+  
+  // Check for custom color first
+  if (userEventColors[type]) {
+    return generateStylesFromHex(userEventColors[type]);
+  }
+
   switch (eventType) {
     case 'cours':
       return {

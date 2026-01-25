@@ -699,8 +699,8 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                         onClick={() => { if (!justResizedRef.current) onEventClick?.(event); }}
                         className={cn(
                           "absolute rounded-md px-1 py-1 overflow-hidden z-10 flex flex-col items-start justify-start text-left group border",
-                          eventStyles.bg,
-                          eventStyles.border,
+                          !eventStyles.inlineStyles && eventStyles.bg,
+                          !eventStyles.inlineStyles && eventStyles.border,
                           isClickable && "cursor-pointer transition-all hover:shadow-md",
                           isDraggable && !resizingItem && "cursor-grab active:cursor-grabbing"
                         )}
@@ -710,31 +710,41 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                           width: `calc(${widthPercent}% - ${gap * 2}px)`,
                           top: resizePreview?.id === event.id && resizePreview.top !== undefined ? `${resizePreview.top}px` : style.top,
                           height: resizePreview?.id === event.id ? `${resizePreview.height}px` : style.height,
+                          ...(eventStyles.inlineStyles ? {
+                            backgroundColor: eventStyles.inlineStyles.backgroundColor,
+                            borderColor: eventStyles.inlineStyles.borderColor,
+                          } : {})
                         }}
                         title={`${event.title}\n${formatTimeRange(event.start_datetime, event.end_datetime, true)}`}
                       >
                         {/* File indicator for "cours" type events with files for this subject */}
                         {event.event_type === 'cours' && event.subject_name && (subjectFileCounts?.[event.subject_name] ?? 0) > 0 && (
-                          <Paperclip className={cn("absolute top-1 right-1 w-3 h-3", eventStyles.textSecondary)} />
+                          <Paperclip className={cn("absolute top-1 right-1 w-3 h-3", !eventStyles.inlineStyles && eventStyles.textSecondary)} 
+                            style={eventStyles.inlineStyles ? { color: eventStyles.inlineStyles.color } : undefined}
+                          />
                         )}
                         {/* Top resize handle - only visible when hovering near top */}
                         {onEventResize && (
                           <div
                             className={cn(
                               "absolute top-0 left-0 right-0 h-1.5 cursor-ns-resize rounded-t-md transition-colors",
-                              eventStyles.hoverBg
+                              !eventStyles.inlineStyles && eventStyles.hoverBg
                             )}
                             onMouseDown={(e) => handleResizeStart(e, 'event', event.id, block.startMinutes, block.endMinutes, 'top')}
                           />
                         )}
                         <p className={cn(
                           "text-xs font-medium truncate w-full pt-1",
-                          eventStyles.text,
+                          !eventStyles.inlineStyles && eventStyles.text,
                           event.event_type === 'cours' && "pr-4"
-                        )}>
+                        )}
+                          style={eventStyles.inlineStyles ? { color: eventStyles.inlineStyles.color } : undefined}
+                        >
                           {event.title}
                         </p>
-                        <p className={cn("text-[10px]", eventStyles.textSecondary)}>
+                        <p className={cn("text-[10px]", !eventStyles.inlineStyles && eventStyles.textSecondary)}
+                          style={eventStyles.inlineStyles ? { color: eventStyles.inlineStyles.color, opacity: 0.7 } : undefined}
+                        >
                           {resizePreview?.id === event.id 
                             ? `${resizePreview.newStartTime || formatTimeRange(event.start_datetime, event.end_datetime, true).split(' - ')[0]} - ${resizePreview.newEndTime || formatTimeRange(event.start_datetime, event.end_datetime, true).split(' - ')[1]}`
                             : formatTimeRange(event.start_datetime, event.end_datetime, true)}
@@ -744,7 +754,7 @@ const WeeklyHourGrid = ({ weekDays, sessions, calendarEvents, exams = [], sessio
                           <div
                             className={cn(
                               "absolute bottom-0 left-0 right-0 h-1.5 cursor-ns-resize rounded-b-md transition-colors",
-                              eventStyles.hoverBg
+                              !eventStyles.inlineStyles && eventStyles.hoverBg
                             )}
                             onMouseDown={(e) => handleResizeStart(e, 'event', event.id, block.startMinutes, block.endMinutes, 'bottom')}
                           />
