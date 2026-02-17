@@ -33,6 +33,7 @@ const Subscription = lazy(() => import("./pages/Subscription"));
 const Pomodoro = lazy(() => import("./pages/Pomodoro"));
 const StudyFiles = lazy(() => import("./pages/StudyFiles"));
 const Tasks = lazy(() => import("./pages/Tasks"));
+const AITools = lazy(() => import("./pages/AITools"));
 const FeatureCalendar = lazy(() => import("./pages/FeatureCalendar"));
 const FeatureProgression = lazy(() => import("./pages/FeatureProgression"));
 const FeatureSubjects = lazy(() => import("./pages/FeatureSubjects"));
@@ -115,6 +116,7 @@ const App = () => (
                         <Route path="/pomodoro" element={<Pomodoro />} />
                         <Route path="/study-files" element={<StudyFiles />} />
                         <Route path="/tasks" element={<Tasks />} />
+                        <Route path="/ai-tools" element={<AITools />} />
                       </Route>
 
                       <Route path="/admin" element={<Admin />} />
