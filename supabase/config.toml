@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.google-calendar]
 verify_jwt = false
+
+[functions.skoo-copilot]
+verify_jwt = false
