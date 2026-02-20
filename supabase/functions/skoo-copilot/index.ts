@@ -7,122 +7,155 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
+const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 const tools = [
   {
-    name: "create_revision_session",
-    description: "Crée une session de révision dans le planning de l'étudiant",
-    input_schema: {
-      type: "object",
-      properties: {
-        subject_id: { type: "string", description: "UUID de la matière" },
-        date: { type: "string", description: "Date YYYY-MM-DD" },
-        start_time: { type: "string", description: "Heure début HH:MM" },
-        end_time: { type: "string", description: "Heure fin HH:MM" },
-        notes: { type: "string", description: "Notes optionnelles" },
-      },
-      required: ["subject_id", "date", "start_time", "end_time"],
-    },
-  },
-  {
-    name: "update_session_status",
-    description: "Met à jour le statut d'une session (planned, completed, skipped)",
-    input_schema: {
-      type: "object",
-      properties: {
-        session_id: { type: "string" },
-        status: { type: "string", enum: ["planned", "completed", "skipped"] },
-      },
-      required: ["session_id", "status"],
-    },
-  },
-  {
-    name: "create_task",
-    description: "Crée une tâche pour l'étudiant",
-    input_schema: {
-      type: "object",
-      properties: {
-        title: { type: "string" },
-        description: { type: "string" },
-        subject_id: { type: "string" },
-        priority: { type: "string", enum: ["low", "medium", "high"] },
-        due_date: { type: "string", description: "Date YYYY-MM-DD" },
-      },
-      required: ["title"],
-    },
-  },
-  {
-    name: "generate_quiz",
-    description: "Génère un quiz interactif sur un sujet donné",
-    input_schema: {
-      type: "object",
-      properties: {
-        subject: { type: "string", description: "Sujet du quiz" },
-        num_questions: { type: "integer" },
-        difficulty: { type: "string", enum: ["facile", "moyen", "difficile"] },
-      },
-      required: ["subject"],
-    },
-  },
-  {
-    name: "generate_revision_sheet",
-    description: "Génère une fiche de révision structurée",
-    input_schema: {
-      type: "object",
-      properties: {
-        subject: { type: "string" },
-        topics: { type: "array", items: { type: "string" } },
-      },
-      required: ["subject"],
-    },
-  },
-  {
-    name: "get_study_stats",
-    description: "Récupère les statistiques de révision de l'étudiant",
-    input_schema: {
-      type: "object",
-      properties: {
-        period: { type: "string", enum: ["today", "this_week", "this_month"] },
-      },
-      required: ["period"],
-    },
-  },
-  {
-    name: "suggest_study_plan",
-    description: "Propose un plan de révision optimisé pour la semaine",
-    input_schema: {
-      type: "object",
-      properties: {
-        focus_subjects: {
-          type: "array",
-          items: { type: "string" },
-          description: "UUIDs des matières à prioriser",
+    type: "function",
+    function: {
+      name: "create_revision_session",
+      description: "Crée une session de révision dans le planning de l'étudiant",
+      parameters: {
+        type: "object",
+        properties: {
+          subject_id: { type: "string", description: "UUID de la matière" },
+          date: { type: "string", description: "Date YYYY-MM-DD" },
+          start_time: { type: "string", description: "Heure début HH:MM" },
+          end_time: { type: "string", description: "Heure fin HH:MM" },
+          notes: { type: "string", description: "Notes optionnelles" },
         },
+        required: ["subject_id", "date", "start_time", "end_time"],
+        additionalProperties: false,
       },
     },
   },
   {
-    name: "create_flashcard_deck",
-    description: "Crée un deck de flashcards sur un sujet",
-    input_schema: {
-      type: "object",
-      properties: {
-        name: { type: "string" },
-        subject_id: { type: "string" },
-        cards: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              front: { type: "string" },
-              back: { type: "string" },
-            },
-            required: ["front", "back"],
+    type: "function",
+    function: {
+      name: "update_session_status",
+      description: "Met à jour le statut d'une session (planned, completed, skipped)",
+      parameters: {
+        type: "object",
+        properties: {
+          session_id: { type: "string" },
+          status: { type: "string", enum: ["planned", "completed", "skipped"] },
+        },
+        required: ["session_id", "status"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_task",
+      description: "Crée une tâche pour l'étudiant",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          description: { type: "string" },
+          subject_id: { type: "string" },
+          priority: { type: "string", enum: ["low", "medium", "high"] },
+          due_date: { type: "string", description: "Date YYYY-MM-DD" },
+        },
+        required: ["title"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "generate_quiz",
+      description: "Génère un quiz interactif sur un sujet donné",
+      parameters: {
+        type: "object",
+        properties: {
+          subject: { type: "string", description: "Sujet du quiz" },
+          num_questions: { type: "integer" },
+          difficulty: { type: "string", enum: ["facile", "moyen", "difficile"] },
+        },
+        required: ["subject"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "generate_revision_sheet",
+      description: "Génère une fiche de révision structurée",
+      parameters: {
+        type: "object",
+        properties: {
+          subject: { type: "string" },
+          topics: { type: "array", items: { type: "string" } },
+        },
+        required: ["subject"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_study_stats",
+      description: "Récupère les statistiques de révision de l'étudiant",
+      parameters: {
+        type: "object",
+        properties: {
+          period: { type: "string", enum: ["today", "this_week", "this_month"] },
+        },
+        required: ["period"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "suggest_study_plan",
+      description: "Propose un plan de révision optimisé pour la semaine",
+      parameters: {
+        type: "object",
+        properties: {
+          focus_subjects: {
+            type: "array",
+            items: { type: "string" },
+            description: "UUIDs des matières à prioriser",
           },
         },
+        additionalProperties: false,
       },
-      required: ["name", "cards"],
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "create_flashcard_deck",
+      description: "Crée un deck de flashcards sur un sujet",
+      parameters: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          subject_id: { type: "string" },
+          cards: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                front: { type: "string" },
+                back: { type: "string" },
+              },
+              required: ["front", "back"],
+              additionalProperties: false,
+            },
+          },
+        },
+        required: ["name", "cards"],
+        additionalProperties: false,
+      },
     },
   },
 ];
@@ -302,10 +335,10 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
 
   try {
-    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!ANTHROPIC_API_KEY) {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
       return new Response(
-        JSON.stringify({ error: "ANTHROPIC_API_KEY not configured" }),
+        JSON.stringify({ error: "LOVABLE_API_KEY not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -339,32 +372,45 @@ serve(async (req) => {
     const { messages, user_context } = await req.json();
     const systemPrompt = buildSystemPrompt(user_context);
 
-    let claudeMessages = messages.map((m: any) => ({
-      role: m.role,
-      content: m.content,
-    }));
+    // Convert messages to OpenAI format
+    let openaiMessages: any[] = [
+      { role: "system", content: systemPrompt },
+      ...messages.map((m: any) => ({
+        role: m.role,
+        content: m.content,
+      })),
+    ];
     const allToolCalls: any[] = [];
 
     for (let i = 0; i < 5; i++) {
-      const response = await fetch(ANTHROPIC_API_URL, {
+      const response = await fetch(LOVABLE_AI_URL, {
         method: "POST",
         headers: {
-          "x-api-key": ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json",
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 4096,
-          system: systemPrompt,
+          model: "google/gemini-3-flash-preview",
+          messages: openaiMessages,
           tools,
-          messages: claudeMessages,
         }),
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Trop de requêtes, réessaie dans quelques instants." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        if (response.status === 402) {
+          return new Response(
+            JSON.stringify({ error: "Crédits IA insuffisants." }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
         const errText = await response.text();
-        console.error("Anthropic error:", response.status, errText);
+        console.error("Lovable AI error:", response.status, errText);
         return new Response(
           JSON.stringify({ error: "AI service error", details: errText }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -372,30 +418,43 @@ serve(async (req) => {
       }
 
       const result = await response.json();
-      const textBlocks = result.content.filter((b: any) => b.type === "text");
-      const toolUseBlocks = result.content.filter((b: any) => b.type === "tool_use");
+      const choice = result.choices?.[0];
+      const message = choice?.message;
 
-      if (result.stop_reason === "tool_use" && toolUseBlocks.length > 0) {
-        const toolResults = [];
-        for (const tb of toolUseBlocks) {
-          const toolResult = await executeTool(tb.name, tb.input, supabaseAdmin, userId);
-          allToolCalls.push({ name: tb.name, input: tb.input, result: toolResult });
-          toolResults.push({
-            type: "tool_result",
-            tool_use_id: tb.id,
+      if (!message) {
+        return new Response(
+          JSON.stringify({ response: "Désolé, je n'ai pas pu répondre. Réessaie !", tool_calls: allToolCalls }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Check if the model wants to call tools
+      if (choice.finish_reason === "tool_calls" && message.tool_calls?.length > 0) {
+        const toolResultMessages: any[] = [];
+        for (const tc of message.tool_calls) {
+          const toolInput = typeof tc.function.arguments === "string"
+            ? JSON.parse(tc.function.arguments)
+            : tc.function.arguments;
+          const toolResult = await executeTool(tc.function.name, toolInput, supabaseAdmin, userId);
+          allToolCalls.push({ name: tc.function.name, input: toolInput, result: toolResult });
+          toolResultMessages.push({
+            role: "tool",
+            tool_call_id: tc.id,
             content: JSON.stringify(toolResult),
           });
         }
 
-        claudeMessages = [
-          ...claudeMessages,
-          { role: "assistant", content: result.content },
-          { role: "user", content: toolResults },
+        // Add assistant message with tool calls + tool results, then loop
+        openaiMessages = [
+          ...openaiMessages,
+          message,
+          ...toolResultMessages,
         ];
         continue;
       }
 
-      const responseText = textBlocks.map((b: any) => b.text).join("");
+      // No tool calls — return the text response
+      const responseText = message.content || "";
       return new Response(
         JSON.stringify({ response: responseText, tool_calls: allToolCalls }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
