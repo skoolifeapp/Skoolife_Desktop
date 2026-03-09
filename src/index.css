@@ -2,116 +2,103 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fonts loaded in index.html for better performance */
-
 @layer base {
 :root {
-    /* Skoolife Brand Colors */
-    --background: 45 100% 98%;
-    --foreground: 222 47% 11%;
+    /* Skoolife Brand Colors - Purple/Violet theme */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 10%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 260 30% 97%;
+    --card-foreground: 240 10% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 240 10% 10%;
 
-    /* Primary: Jaune Skoolife #F9C74F */
-    --primary: 43 92% 64%;
-    --primary-foreground: 222 47% 11%;
+    /* Primary: Violet Skoolife */
+    --primary: 263 70% 58%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Soft cream #FFF6D9 */
-    --secondary: 45 100% 92%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary: Soft lavender */
+    --secondary: 263 40% 95%;
+    --secondary-foreground: 240 10% 10%;
 
-    /* Muted: Background muted #F8F5EC */
-    --muted: 43 44% 95%;
-    --muted-foreground: 220 9% 46%;
+    /* Muted */
+    --muted: 260 20% 95%;
+    --muted-foreground: 240 5% 46%;
 
-    /* Accent: Primary dark #F4B41A */
-    --accent: 43 91% 53%;
-    --accent-foreground: 222 47% 11%;
+    /* Accent: Deeper violet */
+    --accent: 263 80% 48%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Border soft #E5E7EB */
-    --border: 220 14% 91%;
-    --input: 220 14% 91%;
-    --ring: 43 92% 64%;
+    --border: 260 15% 90%;
+    --input: 260 15% 90%;
+    --ring: 263 70% 58%;
 
     --radius: 0.75rem;
 
     /* Custom Skoolife colors */
-    --skoo-yellow: 43 92% 64%;
-    --skoo-yellow-light: 45 100% 92%;
-    --skoo-yellow-dark: 43 91% 53%;
-    --skoo-orange: 35 100% 55%;
-    --skoo-cream: 45 100% 92%;
-    --skoo-gray: 220 9% 46%;
-    --skoo-dark: 222 47% 11%;
-    
-    /* Subject colors for calendar */
-    --subject-blue: 210 100% 60%;
-    --subject-green: 145 65% 45%;
-    --subject-purple: 270 70% 60%;
-    --subject-pink: 340 80% 60%;
-    --subject-orange: 25 100% 55%;
-    --subject-teal: 175 70% 45%;
+    --skoo-violet: 263 70% 58%;
+    --skoo-violet-light: 263 40% 95%;
+    --skoo-violet-dark: 263 80% 48%;
+    --skoo-orange: 25 95% 55%;
+    --skoo-cream: 40 60% 97%;
 
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.1), 0 2px 4px -2px hsl(222 47% 11% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1), 0 4px 6px -4px hsl(222 47% 11% / 0.1);
-    --shadow-glow: 0 0 20px hsl(43 92% 64% / 0.3);
+    --shadow-sm: 0 1px 2px 0 hsl(263 70% 58% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(263 70% 58% / 0.1), 0 2px 4px -2px hsl(263 70% 58% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(263 70% 58% / 0.1), 0 4px 6px -4px hsl(263 70% 58% / 0.1);
+    --shadow-glow: 0 0 20px hsl(263 70% 58% / 0.3);
 
-    --sidebar-background: 43 92% 64%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 222 47% 11%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 43 85% 55%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 43 80% 50%;
-    --sidebar-ring: 222 47% 11%;
+    --sidebar-background: 263 70% 58%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 263 70% 58%;
+    --sidebar-accent: 263 60% 50%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 263 60% 50%;
+    --sidebar-ring: 0 0% 100%;
   }
 
 .dark {
-    --background: 222 47% 8%;
-    --foreground: 45 100% 95%;
+    --background: 260 20% 8%;
+    --foreground: 260 10% 95%;
 
-    --card: 222 47% 12%;
-    --card-foreground: 45 100% 95%;
+    --card: 260 20% 12%;
+    --card-foreground: 260 10% 95%;
 
-    --popover: 222 47% 12%;
-    --popover-foreground: 45 100% 95%;
+    --popover: 260 20% 12%;
+    --popover-foreground: 260 10% 95%;
 
-    --primary: 43 92% 64%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 263 70% 58%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 47% 18%;
-    --secondary-foreground: 45 100% 95%;
+    --secondary: 260 20% 18%;
+    --secondary-foreground: 260 10% 95%;
 
-    --muted: 222 47% 18%;
-    --muted-foreground: 220 9% 60%;
+    --muted: 260 20% 18%;
+    --muted-foreground: 260 10% 60%;
 
-    --accent: 43 91% 53%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 263 80% 48%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 47% 20%;
-    --input: 222 47% 20%;
-    --ring: 43 92% 64%;
+    --border: 260 20% 20%;
+    --input: 260 20% 20%;
+    --ring: 263 70% 58%;
 
-    --sidebar-background: 222 47% 14%;
+    --sidebar-background: 260 20% 14%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 43 92% 64%;
-    --sidebar-primary-foreground: 222 47% 11%;
-    --sidebar-accent: 222 47% 20%;
+    --sidebar-primary: 263 70% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 260 20% 20%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 222 47% 20%;
-    --sidebar-ring: 43 92% 64%;
+    --sidebar-border: 260 20% 20%;
+    --sidebar-ring: 263 70% 58%;
   }
 }
 
@@ -122,28 +109,12 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     @apply font-bold tracking-tight;
-  }
-
-  h1 {
-    @apply text-3xl md:text-5xl font-bold;
-  }
-
-  h2 {
-    @apply text-2xl md:text-3xl font-bold;
-  }
-
-  h3 {
-    @apply text-xl md:text-2xl font-semibold;
-  }
-
-  h4 {
-    @apply text-lg md:text-xl font-semibold;
   }
 }
 
@@ -152,83 +123,35 @@
     text-wrap: balance;
   }
 
-  .gradient-text-animated {
-    background: linear-gradient(
-      90deg,
-      hsl(var(--primary)) 0%,
-      hsl(var(--skoo-orange)) 25%,
-      hsl(var(--primary)) 50%,
-      hsl(var(--skoo-orange)) 75%,
-      hsl(var(--primary)) 100%
-    );
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: gradient-shift 3s ease-in-out infinite;
-  }
-
-  .gradient-primary {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
-  }
-
-  .gradient-card {
-    background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%);
-  }
-
-  .glass {
-    background: hsl(var(--card) / 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid hsl(var(--border) / 0.5);
-  }
-
-  /* Hover animations */
-  .hover-scale {
-    @apply transition-transform duration-300 ease-out hover:scale-105;
-  }
-
   .hover-lift {
     @apply transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-1;
   }
 
-  .hover-glow {
-    @apply transition-shadow duration-300 ease-out hover:shadow-glow;
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out;
   }
 
-  /* Entrance animations */
+  .animate-fade-in-delay-1 {
+    animation: fade-in 0.6s ease-out 0.2s both;
+  }
+
+  .animate-fade-in-delay-2 {
+    animation: fade-in 0.6s ease-out 0.4s both;
+  }
+
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
-
-  .animate-pulse-soft {
-    animation: pulse-soft 2s ease-in-out infinite;
-  }
-
-  .animate-slide-up {
-    animation: slide-up 0.5s ease-out;
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.3s ease-out;
-  }
-
-  /* Staggered animations */
-  .stagger-1 { animation-delay: 0.1s; }
-  .stagger-2 { animation-delay: 0.2s; }
-  .stagger-3 { animation-delay: 0.3s; }
-  .stagger-4 { animation-delay: 0.4s; }
-  .stagger-5 { animation-delay: 0.5s; }
 }
 
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% center;
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
   }
-  50% {
-    background-position: 100% center;
-  }
-  100% {
-    background-position: 0% center;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -239,65 +162,6 @@
   50% {
     transform: translateY(-10px);
   }
-}
-
-@keyframes pulse-soft {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes glow-pulse {
-  0%, 100% {
-    box-shadow: 0 0 15px hsl(var(--primary) / 0.4), 0 0 30px hsl(var(--primary) / 0.2);
-  }
-  50% {
-    box-shadow: 0 0 25px hsl(var(--primary) / 0.6), 0 0 50px hsl(var(--primary) / 0.3);
-  }
-}
-
-/* Shimmer animation for skeletons */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--muted)) 0%,
-    hsl(var(--muted-foreground) / 0.1) 50%,
-    hsl(var(--muted)) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
 }
 
 /* Custom scrollbar */
@@ -318,189 +182,4 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
-}
-
-/* Safe area for iOS devices with notch/home indicator */
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* ========================================
-   Tarteaucitron Cookie Consent Overrides
-   ======================================== */
-
-/* Main banner container */
-#tarteaucitronRoot #tarteaucitronAlertBig {
-  background: hsl(var(--card)) !important;
-  border: 1px solid hsl(var(--border)) !important;
-  border-radius: 1rem !important;
-  box-shadow: 0 10px 40px -10px hsl(var(--foreground) / 0.15) !important;
-  padding: 1.5rem !important;
-  max-width: 480px !important;
-  margin: 1rem !important;
-}
-
-/* Banner text */
-#tarteaucitronRoot #tarteaucitronDisclaimerAlert {
-  color: hsl(var(--foreground)) !important;
-  font-family: 'Inter', sans-serif !important;
-  font-size: 0.875rem !important;
-  line-height: 1.5 !important;
-}
-
-/* All buttons base style */
-#tarteaucitronRoot button,
-#tarteaucitronRoot .tarteaucitronAllow,
-#tarteaucitronRoot .tarteaucitronDeny {
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 500 !important;
-  border-radius: 0.5rem !important;
-  padding: 0.625rem 1.25rem !important;
-  font-size: 0.875rem !important;
-  transition: all 0.2s ease !important;
-  cursor: pointer !important;
-}
-
-/* Accept All button - Primary style */
-#tarteaucitronRoot #tarteaucitronPersonalize2,
-#tarteaucitronRoot .tarteaucitronAllow {
-  background: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-  border: none !important;
-}
-
-#tarteaucitronRoot #tarteaucitronPersonalize2:hover,
-#tarteaucitronRoot .tarteaucitronAllow:hover {
-  background: hsl(var(--accent)) !important;
-  transform: translateY(-1px) !important;
-}
-
-/* Deny All button - Secondary style */
-#tarteaucitronRoot #tarteaucitronAllDenied2,
-#tarteaucitronRoot .tarteaucitronDeny {
-  background: hsl(var(--secondary)) !important;
-  color: hsl(var(--secondary-foreground)) !important;
-  border: 1px solid hsl(var(--border)) !important;
-}
-
-#tarteaucitronRoot #tarteaucitronAllDenied2:hover,
-#tarteaucitronRoot .tarteaucitronDeny:hover {
-  background: hsl(var(--muted)) !important;
-}
-
-/* Customize button */
-#tarteaucitronRoot #tarteaucitronCloseAlert {
-  background: transparent !important;
-  color: hsl(var(--muted-foreground)) !important;
-  border: none !important;
-  text-decoration: underline !important;
-}
-
-#tarteaucitronRoot #tarteaucitronCloseAlert:hover {
-  color: hsl(var(--foreground)) !important;
-}
-
-/* Panel/Modal container */
-#tarteaucitronRoot #tarteaucitron {
-  background: hsl(var(--background) / 0.95) !important;
-  backdrop-filter: blur(8px) !important;
-}
-
-#tarteaucitronRoot #tarteaucitronBack {
-  background: hsl(var(--card)) !important;
-  border-radius: 1rem !important;
-  border: 1px solid hsl(var(--border)) !important;
-  box-shadow: 0 25px 50px -12px hsl(var(--foreground) / 0.25) !important;
-}
-
-/* Panel header */
-#tarteaucitronRoot #tarteaucitronServices .tarteaucitronTitle {
-  background: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-  font-family: 'Poppins', sans-serif !important;
-  font-weight: 600 !important;
-  border-radius: 0.75rem 0.75rem 0 0 !important;
-}
-
-/* Service lines */
-#tarteaucitronRoot #tarteaucitronServices .tarteaucitronLine {
-  background: hsl(var(--card)) !important;
-  border-bottom: 1px solid hsl(var(--border)) !important;
-  padding: 1rem !important;
-}
-
-#tarteaucitronRoot #tarteaucitronServices .tarteaucitronLine:hover {
-  background: hsl(var(--muted)) !important;
-}
-
-/* Service name text */
-#tarteaucitronRoot .tarteaucitronName {
-  color: hsl(var(--foreground)) !important;
-  font-family: 'Inter', sans-serif !important;
-}
-
-/* Service description */
-#tarteaucitronRoot .tarteaucitronListCookies {
-  color: hsl(var(--muted-foreground)) !important;
-  font-size: 0.75rem !important;
-}
-
-/* Icon in corner */
-#tarteaucitronRoot #tarteaucitronManager {
-  background: hsl(var(--primary)) !important;
-  border-radius: 50% !important;
-  width: 44px !important;
-  height: 44px !important;
-  box-shadow: 0 4px 12px hsl(var(--primary) / 0.3) !important;
-}
-
-#tarteaucitronRoot #tarteaucitronManager:hover {
-  background: hsl(var(--accent)) !important;
-  transform: scale(1.1) !important;
-}
-
-/* Hide credit text for cleaner look */
-#tarteaucitronRoot #tarteaucitronInfo {
-  display: none !important;
-}
-
-/* Links styling */
-#tarteaucitronRoot a {
-  color: hsl(var(--primary)) !important;
-}
-
-#tarteaucitronRoot a:hover {
-  color: hsl(var(--accent)) !important;
-}
-
-/* Dark mode specific overrides */
-.dark #tarteaucitronRoot #tarteaucitronAlertBig {
-  background: hsl(var(--card)) !important;
-  border-color: hsl(var(--border)) !important;
-}
-
-.dark #tarteaucitronRoot #tarteaucitronBack {
-  background: hsl(var(--card)) !important;
-}
-
-.dark #tarteaucitronRoot #tarteaucitronServices .tarteaucitronLine {
-  background: hsl(var(--card)) !important;
-}
-
-.dark #tarteaucitronRoot #tarteaucitronServices .tarteaucitronLine:hover {
-  background: hsl(var(--muted)) !important;
-}
-
-/* Responsive adjustments */
-@media (max-width: 640px) {
-  #tarteaucitronRoot #tarteaucitronAlertBig {
-    margin: 0.5rem !important;
-    padding: 1rem !important;
-    border-radius: 0.75rem !important;
-  }
-
-  #tarteaucitronRoot button {
-    padding: 0.5rem 1rem !important;
-    font-size: 0.8125rem !important;
-  }
 }
