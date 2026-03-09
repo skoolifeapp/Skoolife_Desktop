@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
-        heading: ["Poppins", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        sans: ["DM Sans", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        heading: ["DM Sans", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
